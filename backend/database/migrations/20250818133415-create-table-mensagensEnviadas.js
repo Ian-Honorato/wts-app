@@ -1,33 +1,24 @@
-// dentro do arquivo de migração recém-criado
-
 "use strict";
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("usuarios", {
+    await queryInterface.createTable("mensagens_enviadas", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      nome: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: Sequelize.STRING,
+      data_envio: {
+        type: Sequelize.DATEONLY,
         allowNull: false,
         unique: true,
       },
-      tipo_usuario: {
-        type: Sequelize.Enum("admin", "usuario"),
+      quantidade: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: "usuario",
-      },
-      password_hash: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        defaultValue: 0,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -41,6 +32,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("usuarios");
+    await queryInterface.dropTable("mensagens_enviadas");
   },
 };

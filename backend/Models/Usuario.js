@@ -7,7 +7,7 @@ class Usuario extends Model {
       {
         nome: {
           type: DataTypes.STRING,
-          defaultValue: "",
+          allowNull: false,
           validate: {
             notEmpty: {
               msg: "O campo nome não pode estar vazio.",
@@ -16,7 +16,7 @@ class Usuario extends Model {
         },
         email: {
           type: DataTypes.STRING,
-          defaultValue: "",
+          allowNull: false,
           unique: {
             msg: "O e-mail informado já está cadastrado.",
           },
@@ -26,10 +26,14 @@ class Usuario extends Model {
             },
           },
         },
-
+        tipo_usuario: {
+          type: DataTypes.ENUM("admin", "usuario"),
+          defaultValue: "usuario",
+          allowNull: false,
+        },
         password: {
           type: DataTypes.VIRTUAL,
-          defaultValue: "",
+          allowNull: false,
           validate: {
             len: {
               args: [6, 50],
@@ -37,20 +41,20 @@ class Usuario extends Model {
             },
           },
         },
-
         password_hash: {
           type: DataTypes.STRING,
-          defaultValue: "",
+          allowNull: false,
         },
       },
       {
         sequelize,
         tableName: "usuarios",
+        timestamps: true,
+        underscored: true,
       }
     );
 
     this.addHook("beforeSave", async (usuario) => {
-      // Verifica se o campo VIRTUAL 'password' foi preenchido
       if (usuario.password) {
         usuario.password_hash = await bcrypt.hash(usuario.password, 10);
       }
@@ -59,12 +63,13 @@ class Usuario extends Model {
     return this;
   }
 
-  passwordIsValid(password) {
-    return bcrypt.compare(password, this.password_hash);
+  async passwordIsValid(password) {
+    if (!this.password_hash) return false;
+    return await bcrypt.compare(password, this.password_hash);
   }
+
   static associate(models) {
     this.hasMany(models.Cliente, { foreignKey: "usuario_id", as: "clientes" });
-    // Adicione a linha abaixo
     this.hasMany(models.ContratoCertificado, {
       foreignKey: "usuario_id",
       as: "contratos",

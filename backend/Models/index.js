@@ -2,8 +2,21 @@ import { Sequelize } from "sequelize";
 import database from "../config/database";
 
 // Import models
+import Usuario from "./Usuario";
+import Cliente from "./Cliente";
+import ContratoCertificado from "./ContratoCertificado";
+import MensagensEnviadas from "./MensagensEnviadas ";
+import PagamentoParceiro from "./PagamentoParceiro";
+import Parceiro from "./Parceiro";
 
-const models = [];
+const models = [
+  Usuario,
+  Cliente,
+  ContratoCertificado,
+  MensagensEnviadas,
+  PagamentoParceiro,
+  Parceiro,
+];
 
 const connection = new Sequelize(database);
 
@@ -13,4 +26,12 @@ models.forEach(
   (model) => model.associate && model.associate(connection.models)
 );
 
-export { connection };
+export {
+  connection,
+  Usuario,
+  Cliente,
+  ContratoCertificado,
+  MensagensEnviadas,
+  PagamentoParceiro,
+  Parceiro,
+};
