@@ -1,6 +1,6 @@
 //importações referentes ao express e dependencias
 import express from "express";
-
+import cors from "cors";
 //importações referentes as rotas
 import usuariosRoutes from "./Routes/usuarioRoutes.js";
 import clientesRoutes from "./Routes/clienteRoutes.js";
@@ -15,6 +15,7 @@ class App {
     this.routes();
   }
   middlewares() {
+    this.app.use(cors());
     this.app.use(express.json());
   }
   routes() {

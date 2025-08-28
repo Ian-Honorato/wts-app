@@ -54,7 +54,7 @@ const ServiceCard = ({ service, onServiceClick }) => {
 
 const Produtos = ({ onServiceClick }) => {
   return (
-    <section className={styles.container}>
+    <section className={styles.container} id="servicos">
       <h2 className={styles.title}>Nossos Serviços</h2>
       <div className={styles.servicesGrid}>
         {servicesData.map((service, index) => (

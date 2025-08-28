@@ -1,51 +1,19 @@
-import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
 
-//importações referentes aos componentes
-import Header from "./components/homePage/header/header.jsx";
-import Hero from "./components/homePage/hero/hero.jsx";
-import Produtos from "./components/homePage/produtos/produtos.jsx";
-import Contatos from "./components/homePage/Contatos/contatos.jsx";
-import Footer from "./components/homePage/footer/footer.jsx";
+// Importe apenas as PÁGINAS completas
+import HomePage from "./pages/HomePage";
+import Dashboard from "./pages/Dashboard";
 
-//modais
-import LoginModal from "./components/homePage/LoginModal/loginModal.jsx";
-import ServiceModal from "./components/homePage/ServiceModal/serviceModal.jsx";
 function App() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
-
-  const handleOpenLoginModal = () => {
-    setIsLoginModalOpen(true);
-  };
-
-  const handleOpenServiceModal = (service) => {
-    setSelectedService(service);
-    setIsServiceModalOpen(true);
-    //console.log("clicou no modal service");
-  };
-
-  const closeModals = () => {
-    setIsLoginModalOpen(false);
-    setIsServiceModalOpen(false);
-  };
-
   return (
-    <>
-      <Header onLoginClick={handleOpenLoginModal} />
-      <Hero />
-      <Produtos onServiceClick={handleOpenServiceModal} />
-      <Contatos />
-      <Footer />
+    <Routes>
+      {/* Rota para o seu SPA de marketing/apresentação */}
+      <Route path="/" element={<HomePage />} />
 
-      <LoginModal isOpen={isLoginModalOpen} onClose={closeModals} />
-      <ServiceModal
-        isOpen={isServiceModalOpen}
-        onClose={closeModals}
-        serviceData={selectedService}
-      />
-    </>
+      {/* Rota para sua aplicação logada */}
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
   );
 }
 

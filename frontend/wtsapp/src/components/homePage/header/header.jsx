@@ -23,13 +23,13 @@ const Header = ({ onLoginClick }) => {
           <div className={styles.links_container}>
             <ul className={styles.navMenu}>
               <li>
-                <a href="#">Home</a>
+                <a href="#hero">Home</a>
               </li>
               <li>
-                <a href="#">Sobre</a>
+                <a href="#servicos">Serviços</a>
               </li>
               <li>
-                <a href="#">Contato</a>
+                <a href="#contatos">Contato</a>
               </li>
             </ul>
           </div>

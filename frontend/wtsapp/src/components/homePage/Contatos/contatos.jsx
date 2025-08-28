@@ -9,7 +9,7 @@ import { faWhatsapp } from "@fortawesome/free-brands-svg-icons"; // Ícone de ma
 
 const Contatos = () => {
   return (
-    <section className={styles.contactSection}>
+    <section id="contatos" className={styles.contactSection}>
       <div className={styles.container}>
         <h2 className={styles.title}>Entre em Contato</h2>
 

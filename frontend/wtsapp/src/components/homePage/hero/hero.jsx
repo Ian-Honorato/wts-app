@@ -9,6 +9,7 @@ const Hero = () => {
     // 2. Aplicamos a imagem de fundo via 'style' inline.
     // Isso é necessário porque o CSS não consegue acessar a variável 'heroBackground'.
     <section
+      id="hero"
       className={styles.hero}
       style={{ backgroundImage: `url(${heroBackground})` }}
     >
