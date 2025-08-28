@@ -1,15 +1,14 @@
-/* Container principal do cabeçalho */
+/* header.module.css */
+
 .header {
   width: 100%;
-  background-color: #fff;
+  background-color: var(--white-color);
   padding: 1rem 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 99;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1001;
 }
 
-/* Barra de navegação interna */
 .nav {
   display: flex;
   justify-content: space-between;
@@ -18,24 +17,23 @@
   margin: 0 auto;
   padding: 0 2rem;
 }
-
-/* Estilo da marca/logo */
+.brand_container {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 0.8rem;
+}
 .brand {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #005f73;
+  color: var(--text-color);
   text-decoration: none;
 }
-
-/* Container dos links de navegação */
-.links_container {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
+.logoImage {
+  height: 50px;
 }
-
-/* Lista de links */
-.navMenu {
+/* Estilos da navegação para DESKTOP */
+.links_container_desktop .navMenu {
   list-style: none;
   display: flex;
   gap: 2rem;
@@ -43,57 +41,137 @@
   padding: 0;
 }
 
-.navMenu a {
+.links_container_desktop .navMenu a {
   text-decoration: none;
-  color: #333;
+  color: var(--text-light-color);
   font-weight: 600;
   font-size: 1rem;
   transition: color 0.2s ease-in-out;
 }
 
-.navMenu a:hover {
-  color: #0a9396;
+.links_container_desktop .navMenu a:hover {
+  color: var(--primary-color);
 }
 
-/* Estilo do botão de Login */
 .loginIcon {
-  color: var(--primary-dark-color);
-  font-size: 1.6rem;
-  margin-right: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.login_button:hover {
-  background-color: #005f73;
-  color: #fff;
-}
-
-/* Botão do menu mobile (hambúrguer) */
-.menu_button {
-  display: none;
+  font-size: 1.3rem;
+  color: var(--text-light-color);
   padding: 0.5rem;
-  font-size: 1.2rem;
-  background-color: transparent;
-  border: 1px solid #333;
-  border-radius: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.loginIcon:hover {
+  color: var(--primary-color);
+  background-color: #f0f0f0;
+}
+
+.icons_container_mobile {
+  display: none;
+  align-items: center;
+  gap: 0.5rem; /* Espaço entre o ícone de login e o de menu */
+}
+
+/* Botão do Menu Mobile (Hambúrguer) */
+.menu_button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
   cursor: pointer;
+  color: var(--text-color);
+  padding: 0.5rem; /* Área de clique */
+}
+
+/* --- SIDEBAR --- */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: var(--white-color);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 2001;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarOpen {
+  transform: translateX(0);
+}
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-light-color);
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  cursor: pointer;
+}
+.sidebarMenu {
+  list-style: none;
+  padding: 0;
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.sidebarMenu a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.sidebarLogin {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+.sidebarLogin a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+}
+.sidebarLogin span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-light-color);
 }
 
 /* --- RESPONSIVIDADE --- */
-/* Regras para telas com largura máxima de 768px (tablets e celulares) */
 @media (max-width: 768px) {
-  .links_container,
-  .login_container {
+  /* Esconde a navegação e login do desktop */
+  .links_container_desktop,
+  .login_container_desktop {
     display: none;
   }
 
-  .menu_button {
-    display: block;
-  }
-
-  .nav {
-    justify-content: space-between;
+  /* Mostra o container com os ícones do mobile */
+  .icons_container_mobile {
+    display: flex; /* ATIVA O CONTAINER NO MOBILE */
   }
 }

@@ -1,6 +1,12 @@
+/* src/index.css */
+
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   /* ======================================== */
-  /* NOVA PALETA DE CORES            */
+  /* PALETA DE CORES DEFINIDA                  */
   /* ======================================== */
 
   /* Cor principal, vibrante e moderna */
@@ -9,30 +15,28 @@
   /* Tom mais escuro da primária, para contraste e hovers */
   --primary-dark-color: #005f73;
 
-  /* Cores de Texto  */
+  /* Cores de Texto (legibilidade máxima) */
   --text-color: #2d3748;
   --text-light-color: #4a5568;
 
   /* Cores de Fundo e Estrutura */
-  --background-light-color: #f7fafc; /* Quase branco, para fundos de seção */
-  --white-color: #ffffff; /* Branco puro para cards e destaques */
-  --border-color: #e2e8f0; /* Cinza claro para bordas */
+  --background-light-color: #f7fafc;
+  --white-color: #ffffff;
+  --border-color: #e2e8f0;
 
-  /* Sombras*/
+  /* Sombras */
   --box-shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
   --box-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html,
 body {
   font-family: "Roboto", sans-serif;
-  width: 100%;
-}
-html {
-  scroll-behavior: smooth;
+  color: var(--text-color);
+  background-color: var(--white-color);
 }

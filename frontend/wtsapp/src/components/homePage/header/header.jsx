@@ -1,29 +1,44 @@
-import React from "react";
+import React, { useState } from "react"; // Importando o useState
 import styles from "./header.module.css";
 
 //ico
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
-
+import { faUser, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+//logo
+import logo from "../../../assets/logo.png";
 const Header = ({ onLoginClick }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   const handleLoginClick = (e) => {
     e.preventDefault();
+    setIsSidebarOpen(false); // Garante que a sidebar feche se estiver aberta
     onLoginClick();
   };
+
   return (
     <>
+      {isSidebarOpen && (
+        <div className={styles.backdrop} onClick={toggleSidebar}></div>
+      )}
+
       <header className={styles.header}>
         <nav className={styles.nav}>
           <div className={styles.brand_container}>
+            <img src={logo} alt="Logo da Marca" className={styles.logoImage} />
             <a href="#" className={styles.brand}>
-              Marca
+              ValideJá
             </a>
           </div>
 
-          <div className={styles.links_container}>
+          {/* Links para Desktop */}
+          <div className={styles.links_container_desktop}>
             <ul className={styles.navMenu}>
               <li>
-                <a href="#hero">Home</a>
+                <a href="#">Home</a>
               </li>
               <li>
                 <a href="#servicos">Serviços</a>
@@ -34,7 +49,8 @@ const Header = ({ onLoginClick }) => {
             </ul>
           </div>
 
-          <div className={styles.login_container}>
+          {/* Container de Ícones para DESKTOP (só tem o login) */}
+          <div className={styles.login_container_desktop}>
             <a
               href="#"
               className={styles.loginIcon}
@@ -45,9 +61,61 @@ const Header = ({ onLoginClick }) => {
             </a>
           </div>
 
-          <button className={styles.menu_button}>Menu</button>
+          {/* NOVO: Container de Ícones para MOBILE (login + menu) */}
+          <div className={styles.icons_container_mobile}>
+            <a
+              href="#"
+              className={styles.loginIcon}
+              title="Login / Acessar conta"
+              onClick={handleLoginClick}
+            >
+              <FontAwesomeIcon icon={faUser} />
+            </a>
+            <button className={styles.menu_button} onClick={toggleSidebar}>
+              <FontAwesomeIcon icon={faBars} />
+            </button>
+          </div>
         </nav>
       </header>
+
+      {/* A Sidebar continua a mesma */}
+      <nav
+        className={`${styles.sidebar} ${
+          isSidebarOpen ? styles.sidebarOpen : ""
+        }`}
+      >
+        <button className={styles.closeButton} onClick={toggleSidebar}>
+          <FontAwesomeIcon icon={faTimes} />
+        </button>
+        <ul className={styles.sidebarMenu}>
+          <li>
+            <a href="#" onClick={toggleSidebar}>
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="#servicos" onClick={toggleSidebar}>
+              Serviços
+            </a>
+          </li>
+          <li>
+            <a href="#contatos" onClick={toggleSidebar}>
+              Contato
+            </a>
+          </li>
+        </ul>
+        <div className={styles.sidebarLogin}>
+          <a
+            href="#"
+            className={styles.loginIcon}
+            title="Login"
+            onClick={handleLoginClick}
+          >
+            <FontAwesomeIcon icon={faUser} />
+            <span>Acessar Conta</span>
+          </a>
+        </div>
+      </nav>
     </>
   );
 };
