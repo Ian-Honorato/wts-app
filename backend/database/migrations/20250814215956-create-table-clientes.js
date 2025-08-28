@@ -1,5 +1,3 @@
-// dentro do novo arquivo de migração (ex: ...-create-table-clientes.js)
-
 "use strict";
 
 module.exports = {
@@ -20,6 +18,14 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
+      tipo_cliente: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      representante: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       email: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -28,9 +34,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      endereco: {
-        type: Sequelize.STRING,
+      referencia_parceiro: {
+        type: Sequelize.INTEGER,
         allowNull: true,
+        references: {
+          model: "parceiros",
+          key: "id",
+        },
       },
       id_usuario: {
         type: Sequelize.INTEGER,

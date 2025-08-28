@@ -13,6 +13,16 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
+      cadastrado_por_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "usuarios",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
+      },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,

@@ -2,6 +2,11 @@
 import express from "express";
 
 //importações referentes as rotas
+import usuariosRoutes from "./Routes/usuarioRoutes.js";
+import clientesRoutes from "./Routes/clienteRoutes.js";
+import parceirosRoutes from "./Routes/parceiroRoutes.js";
+import certificadosRoutes from "./Routes/certificadoRoutes.js";
+import pagamentoParceiroRoutes from "./Routes/pagamentoParceiroRoutes.js";
 
 class App {
   constructor() {
@@ -12,6 +17,12 @@ class App {
   middlewares() {
     this.app.use(express.json());
   }
-  routes() {}
+  routes() {
+    this.app.use("/usuarios", usuariosRoutes);
+    this.app.use("/clientes", clientesRoutes);
+    this.app.use("/parceiros", parceirosRoutes);
+    this.app.use("/certificados", certificadosRoutes);
+    this.app.use("/pagamentos", pagamentoParceiroRoutes);
+  }
 }
 export default new App().app;

@@ -21,7 +21,7 @@ module.exports = {
         unique: true,
       },
       tipo_usuario: {
-        type: Sequelize.Enum("admin", "usuario"),
+        type: Sequelize.ENUM("admin", "usuario"),
         allowNull: false,
         defaultValue: "usuario",
       },

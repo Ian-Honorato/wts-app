@@ -13,12 +13,21 @@ module.exports = {
       data_envio: {
         type: Sequelize.DATEONLY,
         allowNull: false,
-        unique: true,
       },
       quantidade: {
         type: Sequelize.INTEGER,
         allowNull: false,
         defaultValue: 0,
+      },
+      enviada_por_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "usuarios",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       created_at: {
         type: Sequelize.DATE,

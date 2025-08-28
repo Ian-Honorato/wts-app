@@ -4,24 +4,35 @@ class Parceiro extends Model {
   static init(sequelize) {
     super.init(
       {
-        nome_escritorio: DataTypes.STRING,
+        nome_escritorio: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        },
       },
       {
         sequelize,
         tableName: "parceiros",
+        timestamps: true,
+        underscored: true,
       }
     );
     return this;
   }
 
-  // Vamos adicionar as associações aqui em breve
   static associate(models) {
-    // Um parceiro pode ter muitos clientes
-    this.hasMany(models.Cliente, { foreignKey: "parceiro_id", as: "clientes" });
-    // Um parceiro pode ter muitos pagamentos
+    this.belongsTo(models.Usuario, {
+      foreignKey: "cadastrado_por_id",
+      as: "cadastrado_por",
+    });
+
     this.hasMany(models.PagamentoParceiro, {
       foreignKey: "parceiro_id",
       as: "pagamentos",
+    });
+    this.hasMany(models.Cliente, {
+      foreignKey: "referencia_parceiro",
+      as: "clientes_indicados",
     });
   }
 }

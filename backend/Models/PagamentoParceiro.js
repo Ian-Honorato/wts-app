@@ -4,21 +4,35 @@ class PagamentoParceiro extends Model {
   static init(sequelize) {
     super.init(
       {
-        data_pagamento: DataTypes.DATE,
-        valor_pago: DataTypes.DECIMAL(10, 2),
-        quantidade_clientes: DataTypes.INTEGER,
-        percentual_pagamento: DataTypes.FLOAT,
+        data_pagamento: {
+          type: DataTypes.DATE,
+          allowNull: false,
+        },
+        valor_pago: {
+          type: DataTypes.DECIMAL(10, 2),
+          allowNull: false,
+        },
+        quantidade_clientes: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        percentual_pagamento: {
+          type: DataTypes.FLOAT,
+          allowNull: false,
+        },
       },
       {
         sequelize,
         tableName: "pagamentos_parceiros",
+        timestamps: true,
+        underscored: true,
       }
     );
     return this;
   }
 
+  // A associação está perfeita como você fez.
   static associate(models) {
-    // Um pagamento pertence a um parceiro
     this.belongsTo(models.Parceiro, {
       foreignKey: "parceiro_id",
       as: "parceiro",

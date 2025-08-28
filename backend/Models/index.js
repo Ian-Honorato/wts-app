@@ -5,9 +5,10 @@ import database from "../config/database";
 import Usuario from "./Usuario";
 import Cliente from "./Cliente";
 import ContratoCertificado from "./ContratoCertificado";
-import MensagensEnviadas from "./MensagensEnviadas ";
+import MensagensEnviadas from "./MensagensEnviadas";
 import PagamentoParceiro from "./PagamentoParceiro";
 import Parceiro from "./Parceiro";
+import Certificado from "./Certificado";
 
 const models = [
   Usuario,
@@ -16,6 +17,7 @@ const models = [
   MensagensEnviadas,
   PagamentoParceiro,
   Parceiro,
+  Certificado,
 ];
 
 const connection = new Sequelize(database);
@@ -27,11 +29,12 @@ models.forEach(
 );
 
 export {
-  connection,
+  connection as sequelize,
   Usuario,
   Cliente,
   ContratoCertificado,
   MensagensEnviadas,
   PagamentoParceiro,
   Parceiro,
+  Certificado,
 };

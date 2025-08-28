@@ -34,10 +34,6 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      data_emissao: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
       data_vencimento: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -54,6 +50,16 @@ module.exports = {
         ),
         allowNull: false,
         defaultValue: "Não identificado",
+      },
+      referencia_certificado: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "certificados",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
       },
       created_at: {
         type: Sequelize.DATE,

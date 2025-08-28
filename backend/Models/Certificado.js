@@ -4,11 +4,17 @@ class Certificado extends Model {
   static init(sequelize) {
     super.init(
       {
-        nome_certificado: DataTypes.STRING,
+        nome_certificado: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        },
       },
       {
         sequelize,
         tableName: "certificados",
+        timestamps: true,
+        underscored: true,
       }
     );
     return this;
@@ -17,7 +23,7 @@ class Certificado extends Model {
   static associate(models) {
     // Um tipo de certificado pode estar em muitos contratos
     this.hasMany(models.ContratoCertificado, {
-      foreignKey: "certificado_id",
+      foreignKey: "referencia_certificado",
       as: "contratos",
     });
   }

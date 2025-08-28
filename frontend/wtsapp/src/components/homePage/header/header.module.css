@@ -1,0 +1,99 @@
+/* Container principal do cabeçalho */
+.header {
+  width: 100%;
+  background-color: #fff;
+  padding: 1rem 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+/* Barra de navegação interna */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Estilo da marca/logo */
+.brand {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #005f73;
+  text-decoration: none;
+}
+
+/* Container dos links de navegação */
+.links_container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Lista de links */
+.navMenu {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+}
+
+.navMenu a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.navMenu a:hover {
+  color: #0a9396;
+}
+
+/* Estilo do botão de Login */
+.loginIcon {
+  color: var(--primary-dark-color);
+  font-size: 1.6rem;
+  margin-right: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.login_button:hover {
+  background-color: #005f73;
+  color: #fff;
+}
+
+/* Botão do menu mobile (hambúrguer) */
+.menu_button {
+  display: none;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  background-color: transparent;
+  border: 1px solid #333;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* --- RESPONSIVIDADE --- */
+/* Regras para telas com largura máxima de 768px (tablets e celulares) */
+@media (max-width: 768px) {
+  .links_container,
+  .login_container {
+    display: none;
+  }
+
+  .menu_button {
+    display: block;
+  }
+
+  .nav {
+    justify-content: space-between;
+  }
+}

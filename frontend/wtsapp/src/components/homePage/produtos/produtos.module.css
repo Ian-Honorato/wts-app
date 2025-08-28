@@ -1,0 +1,89 @@
+/* produtos.module.css */
+
+.container {
+  padding: 4rem 2rem;
+  background-color: #f4f7f6; /* Um cinza bem claro para diferenciar da seção hero */
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  color: var(--text-color);
+  margin-bottom: 3rem;
+}
+
+/* O grid que vai conter os cards */
+.servicesGrid {
+  display: grid;
+  /* Cria 3 colunas em telas grandes, com no máximo 350px de largura cada */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem; /* Espaçamento entre os cards */
+  max-width: 1100px;
+  margin: 0 auto; /* Centraliza o grid */
+}
+
+/* Estilo individual de cada card */
+.card {
+  background-color: var(--white-color);
+  padding: 2.5rem 2rem;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-light);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.cardIcon {
+  font-size: 3rem;
+  margin-bottom: 1.4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-light-color);
+  text-shadow: var(--box-shadow-light);
+}
+
+.cardTitle {
+  font-size: 1.3rem;
+  color: var(--primary-dark-color);
+  margin-bottom: 0.8rem;
+  /* Garante que o título não empurre os outros elementos para baixo se tiver 2 linhas */
+  min-height: 50px;
+}
+
+.cardDescription {
+  color: var(--text-light-color);
+  line-height: 1.6;
+  flex-grow: 1; /* Faz a descrição ocupar o espaço disponível, alinhando os links */
+  margin-bottom: 1.5rem;
+}
+
+.cardLink {
+  color: var(--primary-color); /* Cor secundária */
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cardLink:hover {
+  text-decoration: underline;
+}
+
+/* --- RESPONSIVIDADE --- */
+/* Em telas menores, o grid se ajustará automaticamente para 1 ou 2 colunas
+   graças ao 'auto-fit' e 'minmax' que usamos em .servicesGrid.
+   Podemos apenas ajustar as fontes se necessário. */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .container {
+    padding: 3rem 1rem;
+  }
+}

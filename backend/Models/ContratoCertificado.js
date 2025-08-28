@@ -4,32 +4,51 @@ class ContratoCertificado extends Model {
   static init(sequelize) {
     super.init(
       {
-        numero_contrato: DataTypes.STRING,
-        data_emissao: DataTypes.DATE,
-        data_vencimento: DataTypes.DATE,
-        status: DataTypes.ENUM(
-          "Agendado",
-          "Em contato",
-          "Renovado",
-          "Não identificado",
-          "Não vai renovar",
-          "Cancelado",
-          "Ativo"
-        ),
+        numero_contrato: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        },
+        data_vencimento: {
+          type: DataTypes.DATE,
+          allowNull: false,
+        },
+        status: {
+          type: DataTypes.ENUM(
+            "Agendado",
+            "Em contato",
+            "Renovado",
+            "Não identificado",
+            "Não vai renovar",
+            "Cancelado",
+            "Ativo"
+          ),
+          allowNull: false,
+          defaultValue: "Não identificado",
+        },
       },
       {
         sequelize,
         tableName: "contratos_certificados",
+        timestamps: true,
+        underscored: true,
       }
     );
     return this;
   }
 
   static associate(models) {
-    // Relação com Cliente
     this.belongsTo(models.Cliente, { foreignKey: "cliente_id", as: "cliente" });
-    // Relação com Usuário
-    this.belongsTo(models.Usuario, { foreignKey: "usuario_id", as: "usuario" });
+
+    this.belongsTo(models.Usuario, {
+      foreignKey: "usuario_id",
+      as: "responsavel",
+    });
+
+    this.belongsTo(models.Certificado, {
+      foreignKey: "referencia_certificado",
+      as: "certificado",
+    });
   }
 }
 

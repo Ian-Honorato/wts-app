@@ -13,7 +13,6 @@ class MensagensEnviadas extends Model {
         data_envio: {
           type: DataTypes.DATEONLY,
           allowNull: false,
-          unique: true,
         },
         quantidade: {
           type: DataTypes.INTEGER,
@@ -32,7 +31,12 @@ class MensagensEnviadas extends Model {
     return this;
   }
 
-  static associate(models) {}
+  static associate(models) {
+    this.belongsTo(models.Usuario, {
+      foreignKey: "enviada_por_id",
+      as: "remetente",
+    });
+  }
 }
 
 export default MensagensEnviadas;
