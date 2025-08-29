@@ -435,6 +435,43 @@ class ClienteController {
       return handleError(e, res);
     }
   }
+  async search(req, res) {
+    try {
+      const { q } = req.query;
+
+      if (!q) {
+        return res.status(400).json({
+          error: "O parâmetro de busca 'q' é obrigatório.",
+        });
+      }
+      const cleanedQuery = q.replace(/\D/g, "");
+
+      const clientes = await Cliente.findAll({
+        where: {
+          // A busca agora usa [Op.or]
+          [Op.or]: [
+            {
+              nome: {
+                [Op.like]: `%${q}%`,
+              },
+            },
+            {
+              cpf_cnpj: {
+                [Op.like]: `%${cleanedQuery}%`,
+              },
+            },
+          ],
+        },
+        limit: 10,
+        attributes: ["id", "nome", "cpf_cnpj"],
+        order: [["nome", "ASC"]],
+      });
+
+      return res.json(clientes);
+    } catch (e) {
+      return handleError(e, res);
+    }
+  }
 
   /**
    * Encontra contratos com data de vencimento nos próximos 30 dias.

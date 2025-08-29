@@ -30,7 +30,7 @@ const certificados = [
   "e-CPF A3 token",
 ];
 
-const ClientModal = ({ isOpen, onClose }) => {
+const ClientModal = ({ isOpen, onClose, onFeedback }) => {
   // Estado inicial com todos os campos do formulário
   const [formData, setFormData] = useState({
     nome_cliente: "",
@@ -111,17 +111,18 @@ const ClientModal = ({ isOpen, onClose }) => {
       console.log("retorno completo:", response);
       console.log("Status:", response.status);
       console.log("Data:", response.data);
-      // DEPOIS FAZER UM MODAL DE SUCESSO AQUI
 
-      onClose(); // Fecha o modal em caso de sucesso
+      onFeedback("success", "Cliente cadastrado com sucesso!");
     } catch (err) {
       console.error("Erro ao cadastrar cliente:", err);
       if (err.response) {
+        let errorMessage = "Não foi possível cadastrar o cliente.";
         // Erros de validação (400) ou conflito (409)
         const message = err.response.data.details
           ? err.response.data.details.join(", ")
           : err.response.data.error;
         setApiError(message || "Não foi possível cadastrar o cliente.");
+        onFeedback("error", errorMessage);
       } else {
         setApiError("Erro de conexão. Tente novamente.");
       }

@@ -20,8 +20,10 @@ router.get("/contratos", loginRequired, clienteController.findByContract);
 
 // --- ROTAS CRUD PADRÃO ---
 
-// Lista todos os clientes (retorna dados mais simples)
 router.get("/", loginRequired, clienteController.index);
+
+// Lista todos os clientes (retorna dados mais simples)
+router.get("/search", loginRequired, clienteController.search);
 
 // Exibe um cliente específico com todos os seus dados associados
 router.get("/:id", loginRequired, clienteController.show);
