@@ -80,7 +80,6 @@ function sanitizarCliente(data, isUpdate = false) {
     if (!sanitizedData.nome_cliente)
       errors.push("O nome do cliente é obrigatório.");
     if (!sanitizedData.cpf_cnpj) errors.push("O CPF/CNPJ é obrigatório.");
-    if (!sanitizedData.telefone) errors.push("O telefone é obrigatório.");
     if (!sanitizedData.status) errors.push("O status é obrigatório.");
     if (!sanitizedData.nome_parceiro)
       errors.push("O nome do parceiro é obrigatório.");
@@ -89,7 +88,22 @@ function sanitizarCliente(data, isUpdate = false) {
     if (!sanitizedData.numero_contrato)
       errors.push("O número do contrato é obrigatório.");
   }
+  if (!sanitizedData.telefone) {
+    errors.push("O telefone é obrigatório.");
+  } else {
+    // 1. Remove todos os caracteres não numéricos
+    const cleanedTelefone = String(sanitizedData.telefone).replace(/\D/g, "");
 
+    // 2. Valida o comprimento (DDD + 8 ou 9 dígitos)
+    if (cleanedTelefone.length < 10 || cleanedTelefone.length > 11) {
+      errors.push(
+        "O telefone deve conter um DDD válido e 8 ou 9 dígitos numéricos."
+      );
+    } else {
+      // 3. Adiciona o código do país (55) e atualiza o objeto
+      sanitizedData.telefone = "55" + cleanedTelefone;
+    }
+  }
   if (sanitizedData.cpf_cnpj) {
     const cleanedCpfCnpj = String(sanitizedData.cpf_cnpj).replace(/\D/g, "");
     if (cleanedCpfCnpj.length === 11) {
@@ -106,9 +120,9 @@ function sanitizarCliente(data, isUpdate = false) {
     sanitizedData.data_vencimento &&
     typeof sanitizedData.data_vencimento === "string"
   ) {
-    const parts = sanitizedData.data_vencimento.split("/");
+    const parts = sanitizedData.data_vencimento.split("-");
     if (parts.length === 3) {
-      const [day, month, year] = parts.map(Number);
+      const [year, month, day] = parts.map(Number);
       const dateObj = new Date(year, month - 1, day);
       if (!isNaN(dateObj.getTime()) && dateObj.getDate() === day) {
         sanitizedData.data_vencimento = dateObj;

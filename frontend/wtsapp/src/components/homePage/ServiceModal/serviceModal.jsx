@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const ServiceModal = ({ isOpen, onClose, serviceData }) => {
-  // Não renderiza nada se não estiver aberto ou se não tiver dados
   if (!isOpen || !serviceData) {
     return null;
   }

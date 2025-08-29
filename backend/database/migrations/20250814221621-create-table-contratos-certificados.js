@@ -36,7 +36,7 @@ module.exports = {
       },
       data_vencimento: {
         type: Sequelize.DATE,
-        allowNull: false,
+        allowNull: true, //aqui pode ser nulo - contrato nao identificado
       },
       status: {
         type: Sequelize.ENUM(

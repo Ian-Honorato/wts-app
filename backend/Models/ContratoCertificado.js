@@ -11,7 +11,7 @@ class ContratoCertificado extends Model {
         },
         data_vencimento: {
           type: DataTypes.DATE,
-          allowNull: false,
+          allowNull: true,
         },
         status: {
           type: DataTypes.ENUM(

@@ -14,11 +14,16 @@ import {
   faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
-const AdminHeader = ({ user, onLogout }) => {
+const AdminHeader = ({ user, onLogout, onOpenClientModal }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+  const handleCadastrarClienteClick = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenClientModal();
   };
 
   return (
@@ -76,7 +81,9 @@ const AdminHeader = ({ user, onLogout }) => {
                 </summary>
                 <ul>
                   <li>
-                    <a href="#">Cadastrar</a>
+                    <a href="#" onClick={handleCadastrarClienteClick}>
+                      Cadastrar
+                    </a>
                   </li>
                   <li>
                     <a href="#">Listar</a>
