@@ -16,7 +16,7 @@ router.get(
 
 // Rota para buscar a lista completa de clientes com todos os dados associados
 router.get("/details", loginRequired, clienteController.findBasic);
-router.get("/contratos", loginRequired, clienteController.findByContract);
+router.post("/contratos", loginRequired, clienteController.findByContract);
 
 // --- ROTAS CRUD PADRÃO ---
 

@@ -17,44 +17,9 @@ import {
 } from "sequelize";
 
 // ----------------------------------------------------------------------------
-// FUNÇÕES AUXILIARES (Futuramente em uma pasta /Utils)
+// FUNÇÕES AUXILIARES
 // ----------------------------------------------------------------------------
-
-/**
- * Função auxiliar para centralizar o tratamento de erros do Sequelize.
- */
-function handleError(e, res) {
-  if (e instanceof ValidationError) {
-    const errors = e.errors.map((err) => ({
-      field: err.path,
-      message: err.message,
-    }));
-    return res
-      .status(400)
-      .json({ error: "Dados inválidos fornecidos.", details: errors });
-  }
-  if (e instanceof UniqueConstraintError) {
-    const errors = e.errors.map((err) => ({
-      field: err.path,
-      message: `O campo '${err.path}' já está em uso.`,
-    }));
-    return res
-      .status(409)
-      .json({ error: "Conflito de dados.", details: errors });
-  }
-  if (e instanceof ForeignKeyConstraintError) {
-    return res.status(409).json({
-      error: "Operação não permitida.",
-      details:
-        "Este registro não pode ser excluído pois está associado a outros no sistema.",
-    });
-  }
-  console.error("Erro Inesperado no Servidor:", e);
-  return res.status(500).json({
-    error: "Ocorreu um erro inesperado no servidor.",
-    details: process.env.NODE_ENV === "development" ? e.message : undefined,
-  });
-}
+import { errorHandler, handleError } from "../Util/errorHandler.js";
 
 /**
  * Valida, sanitiza e formata os dados de entrada para um cliente.
@@ -88,21 +53,30 @@ function sanitizarCliente(data, isUpdate = false) {
     if (!sanitizedData.numero_contrato)
       errors.push("O número do contrato é obrigatório.");
   }
-  if (!sanitizedData.telefone) {
-    errors.push("O telefone é obrigatório.");
-  } else {
-    // 1. Remove todos os caracteres não numéricos
+  // NOVO BLOCO DE VALIDAÇÃO DE TELEFONE
+  if (sanitizedData.telefone) {
     const cleanedTelefone = String(sanitizedData.telefone).replace(/\D/g, "");
 
-    // 2. Valida o comprimento (DDD + 8 ou 9 dígitos)
-    if (cleanedTelefone.length < 10 || cleanedTelefone.length > 11) {
-      errors.push(
-        "O telefone deve conter um DDD válido e 8 ou 9 dígitos numéricos."
-      );
+    if (isUpdate) {
+      if (cleanedTelefone.length < 10 || cleanedTelefone.length > 15) {
+        errors.push("O número de telefone fornecido é inválido.");
+      } else {
+        sanitizedData.telefone = cleanedTelefone;
+      }
     } else {
-      // 3. Adiciona o código do país (55) e atualiza o objeto
-      sanitizedData.telefone = "55" + cleanedTelefone;
+      if (cleanedTelefone.length === 10 || cleanedTelefone.length === 11) {
+        sanitizedData.telefone = "55" + cleanedTelefone;
+      } else if (cleanedTelefone.length >= 12 && cleanedTelefone.length <= 15) {
+        sanitizedData.telefone = cleanedTelefone;
+      } else {
+        errors.push(
+          "O telefone deve conter um DDD e 8 ou 9 dígitos, ou ser um número internacional válido."
+        );
+      }
     }
+  } else if (!isUpdate) {
+    // O telefone só é obrigatório na criação.
+    errors.push("O telefone é obrigatório.");
   }
   if (sanitizedData.cpf_cnpj) {
     const cleanedCpfCnpj = String(sanitizedData.cpf_cnpj).replace(/\D/g, "");
@@ -251,7 +225,7 @@ class ClienteController {
       if (e.message.includes("já existe")) {
         return res.status(409).json({ error: e.message });
       }
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -361,7 +335,7 @@ class ClienteController {
       if (e.message.includes("não encontrado")) {
         return res.status(404).json({ error: e.message });
       }
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -380,7 +354,7 @@ class ClienteController {
       await cliente.destroy();
       return res.json({ message: "Cliente excluído com sucesso." });
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -394,7 +368,7 @@ class ClienteController {
       });
       return res.json(clientes);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -432,7 +406,7 @@ class ClienteController {
 
       return res.json(cliente);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
   async search(req, res) {
@@ -469,7 +443,7 @@ class ClienteController {
 
       return res.json(clientes);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -478,36 +452,64 @@ class ClienteController {
    */
   async findByContract(req, res) {
     try {
+      const { days } = req.body;
+      const periodInDays = parseInt(days) || 30;
+
       const hoje = new Date();
-      const dataFutura = new Date();
-      dataFutura.setDate(hoje.getDate() + 30);
+      hoje.setHours(0, 0, 0, 0);
+
+      const dataLimite = new Date();
+      dataLimite.setDate(hoje.getDate() + periodInDays);
 
       const contratos = await ContratoCertificado.findAll({
-        where: { data_vencimento: { [Op.between]: [hoje, dataFutura] } },
-        include: {
-          model: Cliente,
-          as: "cliente",
-          attributes: ["cpf_cnpj", "telefone", "representante"],
+        where: {
+          data_vencimento: {
+            [Op.between]: [hoje, dataLimite],
+          },
+
+          status: {
+            [Op.notIn]: [
+              "Cancelado",
+              "Renovado",
+              "Não vai renovar",
+              "Agendado",
+              "Em contato",
+            ],
+          },
         },
+        include: [
+          {
+            model: Cliente,
+            as: "cliente",
+            attributes: ["id", "nome", "representante", "telefone"],
+          },
+        ],
         order: [["data_vencimento", "ASC"]],
       });
 
       const contratosCriticos = contratos.map((contrato) => {
-        const diffTime = Math.abs(new Date(contrato.data_vencimento) - hoje);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const msPorDia = 1000 * 60 * 60 * 24;
+        const dataVencimento = new Date(contrato.data_vencimento);
+        dataVencimento.setHours(0, 0, 0, 0);
+
+        const diffTime = dataVencimento - hoje;
+        const diasCalculados = Math.ceil(diffTime / msPorDia);
+
+        const diasRestantes =
+          diasCalculados <= 0 ? "Vencido hoje" : diasCalculados;
+
         return {
-          id: contrato.id,
-          Registro: contrato.cliente.cpf_cnpj,
-          Data_vencimento: contrato.data_vencimento,
-          Representante: contrato.cliente.representante,
-          telefone: contrato.cliente.telefone,
-          dias_restantes: diffDays,
+          cliente: contrato.cliente,
+          contrato_id: contrato.id,
+          data_vencimento: contrato.data_vencimento,
+          dias_restantes: diasRestantes,
         };
       });
 
+      // A resposta final é enviada aqui, uma única vez, após o loop
       return res.json({ Contratos_criticos: contratosCriticos });
     } catch (e) {
-      return handleError(e, res);
+      return handleError(e, res); // Corrigido para chamar handleError
     }
   }
 
@@ -541,7 +543,7 @@ class ClienteController {
       });
       return res.json(clientes);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 }

@@ -9,7 +9,13 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 
-const ListClientsModal = ({ isOpen, onClose, onShowDetails }) => {
+const ListClientsModal = ({
+  isOpen,
+  onClose,
+  onShowDetails,
+  onOpenUpdateModal,
+  onFeedback,
+}) => {
   const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -63,26 +69,64 @@ const ListClientsModal = ({ isOpen, onClose, onShowDetails }) => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
-  // Funções de clique
   const handleSelectClient = (client) => {
     setSearchTerm("");
     onClose(); // Fecha o modal de lista
     setTimeout(() => {
-      // Dá um tempo para a animação
-      onShowDetails(client.id); // Abre o modal de detalhes
+      onShowDetails(client.id);
     }, 300);
   };
 
-  const handleActionClick = (action, clientId) => {
-    console.log(`Ação: ${action}, Cliente ID: ${clientId}`);
+  const handleActionClick = async (action, clientId) => {
     if (action === "show") {
-      setSearchTerm("");
       onClose();
-      setTimeout(() => {
-        onShowDetails(clientId);
-      }, 300);
+      setTimeout(() => onShowDetails(clientId), 300);
+      return;
     }
-    // Lógica para update e delete virá depois
+
+    if (action === "update") {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:3001/clientes/${clientId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        onClose();
+        setTimeout(() => onOpenUpdateModal(response.data), 300);
+      } catch (error) {
+        console.error("Erro ao buscar cliente para edição:", error);
+        onFeedback("error", "Não foi possível carregar dados para edição.");
+      }
+      return;
+    }
+
+    if (action === "delete") {
+      if (
+        //criar um modal de confirmação futuramente
+        window.confirm(
+          "Você tem certeza que deseja excluir este cliente? Esta ação é irreversível."
+        )
+      ) {
+        try {
+          const token = sessionStorage.getItem("token");
+          await axios.delete(`http://localhost:3001/clientes/${clientId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          // Atualiza a lista de clientes no estado, removendo o que foi deletado
+          setClients((prevClients) =>
+            prevClients.filter((client) => client.id !== clientId)
+          );
+          onFeedback("success", "Cliente excluído com sucesso!");
+        } catch (error) {
+          console.error("Erro ao excluir cliente:", error);
+          // 4. Chama o modal de feedback de erro
+          onFeedback("error", "Não foi possível excluir o cliente.");
+        }
+      }
+    }
   };
 
   if (!isOpen) return null;

@@ -19,6 +19,7 @@ const AdminHeader = ({
   onLogout,
   onOpenClientModal,
   onOpenListClientsModal,
+  onOpenImportModal,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toggleSidebar = () => {
@@ -35,7 +36,11 @@ const AdminHeader = ({
     toggleSidebar();
     onOpenListClientsModal();
   };
-
+  const handleImportClick = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenImportModal();
+  };
   return (
     <>
       {isSidebarOpen && (
@@ -101,7 +106,9 @@ const AdminHeader = ({
                     </a>
                   </li>
                   <li>
-                    <a href="#">Importar</a>
+                    <a href="#" onClick={handleImportClick}>
+                      Importar
+                    </a>
                   </li>
                 </ul>
               </details>

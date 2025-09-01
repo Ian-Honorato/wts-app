@@ -8,38 +8,7 @@ import {
   ForeignKeyConstraintError,
 } from "sequelize";
 
-/**
- * Função auxiliar para centralizar o tratamento de erros.
- */
-function handleError(e, res) {
-  if (e instanceof ValidationError) {
-    const errors = e.errors.map((err) => ({
-      field: err.path,
-      message: err.message,
-    }));
-    return res
-      .status(400)
-      .json({ error: "Dados inválidos fornecidos.", details: errors });
-  }
-  if (e instanceof UniqueConstraintError) {
-    return res
-      .status(409)
-      .json({ error: "Este nome de certificado já está em uso." });
-  }
-  if (e instanceof ForeignKeyConstraintError) {
-    return res.status(409).json({
-      error: "Operação não permitida.",
-      details:
-        "Este certificado não pode ser excluído pois está associado a um ou mais contratos.",
-    });
-  }
-  console.error("Erro Inesperado no Servidor:", e);
-  return res.status(500).json({
-    error: "Ocorreu um erro inesperado no servidor.",
-    details: process.env.NODE_ENV === "development" ? e.message : undefined,
-  });
-}
-
+import { handleError } from "../Util/errorHandler.js";
 class CertificadoController {
   /**
    * Cria um novo tipo de certificado.
@@ -57,7 +26,7 @@ class CertificadoController {
       return res.status(201).json(novoCertificado);
     } catch (e) {
       // 2. Corrige a chamada para a função auxiliar (remove o 'this')
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -71,7 +40,7 @@ class CertificadoController {
       });
       return res.json(certificados);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -89,7 +58,7 @@ class CertificadoController {
 
       return res.json(certificado);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -117,7 +86,7 @@ class CertificadoController {
       });
       return res.json(certificadoAtualizado);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -136,7 +105,7 @@ class CertificadoController {
       await certificado.destroy();
       return res.json({ message: "Certificado excluído com sucesso." });
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 }

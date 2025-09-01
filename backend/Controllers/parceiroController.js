@@ -7,39 +7,10 @@ import {
   UniqueConstraintError,
   ForeignKeyConstraintError,
 } from "sequelize";
-
+import { handleError } from "../Util/errorHandler.js";
 /**
  * Função auxiliar para centralizar o tratamento de erros.
  */
-function handleError(e, res) {
-  if (e instanceof ValidationError) {
-    const errors = e.errors.map((err) => ({
-      field: err.path,
-      message: err.message,
-    }));
-    return res
-      .status(400)
-      .json({ error: "Dados inválidos fornecidos.", details: errors });
-  }
-  if (e instanceof UniqueConstraintError) {
-    return res
-      .status(409)
-      .json({ error: "Este nome de escritório já está em uso." });
-  }
-  if (e instanceof ForeignKeyConstraintError) {
-    return res.status(409).json({
-      error: "Operação não permitida.",
-      details:
-        "Este parceiro não pode ser excluído pois está associado a clientes, pagamentos ou outros registros.",
-    });
-  }
-  console.error("Erro Inesperado no Servidor:", e);
-  return res.status(500).json({
-    error: "Ocorreu um erro inesperado no servidor.",
-    details: process.env.NODE_ENV === "development" ? e.message : undefined,
-  });
-}
-
 class ParceiroController {
   /**
    * Cria um novo parceiro, associando-o ao usuário logado.

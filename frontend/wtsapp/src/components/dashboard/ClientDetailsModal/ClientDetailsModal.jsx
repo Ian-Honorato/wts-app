@@ -4,7 +4,12 @@ import styles from "./clientDetailsModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
-const ClientDetailsModal = ({ isOpen, onClose, clientId }) => {
+const ClientDetailsModal = ({
+  isOpen,
+  onClose,
+  clientId,
+  onOpenUpdateModal,
+}) => {
   const [details, setDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,9 +40,11 @@ const ClientDetailsModal = ({ isOpen, onClose, clientId }) => {
     }
   }, [isOpen, clientId]); // Roda o efeito quando o modal abre ou o ID muda
 
-  const handleAction = (action) => {
-    console.log(`Ação: ${action}, Cliente ID: ${clientId}`);
-    // Futuramente, aqui você chamaria as funções para alterar ou remover
+  const handleAlterar = () => {
+    onClose(); // Fecha o modal de detalhes
+    setTimeout(() => {
+      onOpenUpdateModal(details);
+    }, 300);
   };
 
   if (!isOpen) return null;
@@ -120,15 +127,12 @@ const ClientDetailsModal = ({ isOpen, onClose, clientId }) => {
         </div>
 
         <div className={styles.footerActions}>
-          <button
-            className={`${styles.actionButton} ${styles.delete}`}
-            onClick={() => handleAction("remover")}
-          >
+          <button className={`${styles.actionButton} ${styles.delete}`}>
             Remover
           </button>
           <button
             className={`${styles.actionButton} ${styles.update}`}
-            onClick={() => handleAction("alterar")}
+            onClick={handleAlterar}
           >
             Alterar
           </button>

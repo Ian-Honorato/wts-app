@@ -30,7 +30,7 @@ const certificados = [
   "e-CPF A3 token",
 ];
 
-const ClientModal = ({ isOpen, onClose, onFeedback }) => {
+const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   // Estado inicial com todos os campos do formulário
   const [formData, setFormData] = useState({
     nome_cliente: "",
@@ -44,29 +44,52 @@ const ClientModal = ({ isOpen, onClose, onFeedback }) => {
     data_vencimento: "",
     status: "",
   });
-
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
 
-  // Limpa o formulário quando o modal é fechado/reaberto
+  const isUpdateMode = Boolean(clientToEdit);
+
   useEffect(() => {
-    if (!isOpen) {
-      setFormData({
-        nome_cliente: "",
-        cpf_cnpj: "",
-        representante: "",
-        email_cliente: "",
-        telefone: "",
-        nome_parceiro: "",
-        nome_certificado: "",
-        numero_contrato: "",
-        data_vencimento: "",
-        status: "",
-      });
+    if (isOpen) {
+      if (isUpdateMode) {
+        // Se for modo de edição, preenche o formulário com os dados do cliente
+        setFormData({
+          nome_cliente: clientToEdit.nome,
+          cpf_cnpj: clientToEdit.cpf_cnpj,
+          representante: clientToEdit.representante || "",
+          email_cliente: clientToEdit.email || "",
+          telefone: clientToEdit.telefone,
+          // Assumindo que o backend retorna os nomes para edição
+          nome_parceiro: clientToEdit.parceiro_indicador?.nome_escritorio || "",
+          nome_certificado:
+            clientToEdit.contratos?.[0]?.certificado.nome_certificado || "",
+          numero_contrato: clientToEdit.contratos?.[0]?.numero_contrato || "",
+          // Formata a data para o input AAAA-MM-DD
+          data_vencimento: clientToEdit.contratos?.[0]?.data_vencimento
+            ? new Date(clientToEdit.contratos[0].data_vencimento)
+                .toISOString()
+                .split("T")[0]
+            : "",
+          status: clientToEdit.contratos?.[0]?.status || "",
+        });
+      } else {
+        // Se for modo de criação, limpa o formulário
+        setFormData({
+          nome_cliente: "",
+          cpf_cnpj: "",
+          representante: "",
+          email_cliente: "",
+          telefone: "",
+          nome_parceiro: "",
+          nome_certificado: "",
+          numero_contrato: "",
+          data_vencimento: "",
+          status: "",
+        });
+      }
       setErrors({});
-      setApiError("");
     }
-  }, [isOpen]);
+  }, [isOpen, clientToEdit, isUpdateMode]);
 
   const validate = () => {
     console.log("Validando dados do formulário:", formData);
@@ -98,21 +121,24 @@ const ClientModal = ({ isOpen, onClose, onFeedback }) => {
 
     try {
       const token = sessionStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:3001/clientes/cadastrar",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      //Testando retornos da API
-      console.log("retorno completo:", response);
-      console.log("Status:", response.status);
-      console.log("Data:", response.data);
 
-      onFeedback("success", "Cliente cadastrado com sucesso!");
+      if (isUpdateMode) {
+        // Se estiver em modo de edição, faz uma requisição PUT
+        await axios.put(
+          `http://localhost:3001/clientes/${clientToEdit.id}`,
+          formData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        onFeedback("success", "Cliente atualizado com sucesso!");
+      } else {
+        // Se não, faz a requisição POST para criar
+        await axios.post("http://localhost:3001/clientes/cadastrar", formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        onFeedback("success", "Cliente cadastrado com sucesso!");
+      }
     } catch (err) {
       console.error("Erro ao cadastrar cliente:", err);
       if (err.response) {
@@ -140,7 +166,9 @@ const ClientModal = ({ isOpen, onClose, onFeedback }) => {
       {" "}
       {/* Clicando no overlay para fechar */}
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>Cadastrar Novo Cliente</h2>
+        <h2 className={styles.title}>
+          {isUpdateMode ? "Atualizar Cliente" : "Cadastrar Novo Cliente"}
+        </h2>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
@@ -309,7 +337,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback }) => {
 
           {apiError && <p className={styles.apiErrorMessage}>{apiError}</p>}
           <button type="submit" className={styles.submitButton}>
-            Cadastrar Cliente
+            {isUpdateMode ? "Salvar Alterações" : "Cadastrar Cliente"}
           </button>
         </form>
         <button className={styles.closeButton} onClick={onClose}>

@@ -1,0 +1,22 @@
+.statCard {
+  background-color: var(--white-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-light);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.iconWrapper {
+  font-size: 2rem;
+  color: var(--primary-color);
+}
+.textWrapper .value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+.textWrapper .title {
+  font-size: 0.9rem;
+  color: var(--text-light-color);
+}
