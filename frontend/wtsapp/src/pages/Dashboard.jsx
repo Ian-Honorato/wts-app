@@ -29,18 +29,12 @@ const Dashboard = () => {
     isDataLoading,
     criticalPeriod,
     setCriticalPeriod,
-    fetchCriticalClients,
   } = useDashboardData(user);
 
-  // 2. A função de feedback age como a "cola" entre os hooks
   const handleSubmitFeedback = (type, message) => {
-    modalHandlers.closeAll(); // Fecha qualquer modal de formulário aberto
+    modalHandlers.closeAll();
     setTimeout(() => {
       modalHandlers.showResponseModal(type, message);
-      if (type === "success") {
-        // Pede para o hook de dados se atualizar
-        fetchCriticalClients();
-      }
     }, 300);
   };
 
@@ -50,7 +44,6 @@ const Dashboard = () => {
 
   return (
     <div>
-      {/* 3. Distribui as ferramentas e dados para os componentes filhos */}
       {user.tipo_usuario === "admin" ? (
         <AdminHeader
           user={user}

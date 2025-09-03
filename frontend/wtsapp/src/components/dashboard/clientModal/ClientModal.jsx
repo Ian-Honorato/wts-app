@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import styles from "./clientModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+
+//hooks
+import {
+  useUpdateClientMutation,
+  useCreateClientMutation,
+} from "../../../hooks/useMutation";
 
 // Lista de status vinda do seu backend para o campo de seleção
 const statusEnumValidos = [
@@ -45,7 +50,9 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     status: "",
   });
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState("");
+
+  const createMutation = useCreateClientMutation();
+  const updateMutation = useUpdateClientMutation();
 
   const isUpdateMode = Boolean(clientToEdit);
 
@@ -111,7 +118,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiError("");
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -119,39 +125,28 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     }
     setErrors({});
 
-    try {
-      const token = sessionStorage.getItem("token");
-
-      if (isUpdateMode) {
-        // Se estiver em modo de edição, faz uma requisição PUT
-        await axios.put(
-          `http://localhost:3001/clientes/${clientToEdit.id}`,
-          formData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        onFeedback("success", "Cliente atualizado com sucesso!");
-      } else {
-        // Se não, faz a requisição POST para criar
-        await axios.post("http://localhost:3001/clientes/cadastrar", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        onFeedback("success", "Cliente cadastrado com sucesso!");
-      }
-    } catch (err) {
-      console.error("Erro ao cadastrar cliente:", err);
-      if (err.response) {
-        let errorMessage = "Não foi possível cadastrar o cliente.";
-        // Erros de validação (400) ou conflito (409)
-        const message = err.response.data.details
-          ? err.response.data.details.join(", ")
-          : err.response.data.error;
-        setApiError(message || "Não foi possível cadastrar o cliente.");
-        onFeedback("error", errorMessage);
-      } else {
-        setApiError("Erro de conexão. Tente novamente.");
-      }
+    if (isUpdateMode) {
+      updateMutation.mutate(formData, {
+        onSuccess: () => {
+          onFeedback("success", "Cliente atualizado com sucesso!");
+        },
+        onError: (error) => {
+          const errorMessage =
+            error.response?.data?.error || "Erro ao atualizar o cliente.";
+          onFeedback("error", errorMessage);
+        },
+      });
+    } else {
+      createMutation.mutate(formData, {
+        onSuccess: () => {
+          onFeedback("success", "Cliente cadastrado com sucesso!");
+        },
+        onError: (error) => {
+          const errorMessage =
+            error.response?.data?.error || "Erro ao cadastrar o cliente.";
+          onFeedback("error", errorMessage);
+        },
+      });
     }
   };
 
@@ -160,6 +155,9 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   };
 
   if (!isOpen) return null;
+
+  const isLoading = createMutation.isLoading || updateMutation.isLoading;
+  const apiError = createMutation.error || updateMutation.error;
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -338,6 +336,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           {apiError && <p className={styles.apiErrorMessage}>{apiError}</p>}
           <button type="submit" className={styles.submitButton}>
             {isUpdateMode ? "Salvar Alterações" : "Cadastrar Cliente"}
+            {isLoading && <span className={"Salvando dados"}></span>}
           </button>
         </form>
         <button className={styles.closeButton} onClick={onClose}>

@@ -1,60 +1,44 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+
+const fetchSumarioData = async () => {
+  const token = sessionStorage.getItem("token");
+  const { data } = await axios.get("http://localhost:3001/clientes/sumario", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+const fetchCriticalClients = async (period) => {
+  const token = sessionStorage.getItem("token");
+  const { data } = await axios.post(
+    `http://localhost:3001/clientes/contratos`,
+    { days: period },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  console.log(data.Contratos_criticos);
+  return data.Contratos_criticos;
+};
 
 export function useDashboardData(user) {
-  const [summaryData, setSummaryData] = useState(null);
-  const [criticalClients, setCriticalClients] = useState([]);
-  const [isDataLoading, setIsDataLoading] = useState(true);
   const [criticalPeriod, setCriticalPeriod] = useState("10");
 
-  const fetchCriticalClients = useCallback(async () => {}, [criticalPeriod]);
+  const { data: sumarioData, isLoading: isSumarioLoading } = useQuery({
+    queryKey: ["sumarioData"],
+    queryFn: fetchSumarioData,
+    enabled: user?.tipo_usuario === "admin",
+  });
 
-  useEffect(() => {
-    if (!user) return;
-    const token = sessionStorage.getItem("token");
-
-    const fetchData = async () => {
-      setIsDataLoading(true);
-      if (user.tipo_usuario === "admin") {
-        //dados paa formação dos graficos
-        try {
-          const response = await axios.get(
-            "http://localhost:3001/dashboard/sumario",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          setSummaryData(response.data);
-        } catch (error) {
-          console.error("Erro ao buscar dados do sumário:", error);
-        }
-      }
-      //dados para formação clientes criticos
-      try {
-        const response = await axios.post(
-          "http://localhost:3001/clientes/contratos",
-          { days: criticalPeriod },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setCriticalClients(response.data.Contratos_criticos);
-        console.log(response.data.Contratos_criticos);
-      } catch (error) {
-        console.error("Erro ao buscar clientes críticos:", error);
-      }
-      setIsDataLoading(false);
-    };
-
-    fetchData();
-  }, [user]);
+  const { data: criticalClients, isLoading: isLoadingCritical } = useQuery({
+    queryKey: ["criticalClients", criticalPeriod],
+    queryFn: () => fetchCriticalClients(criticalPeriod),
+  });
 
   return {
-    summaryData,
-    criticalClients,
-    isDataLoading,
+    sumarioData,
+    criticalClients: criticalClients || [],
+    isDataLoading: isSumarioLoading || isLoadingCritical,
     criticalPeriod,
     setCriticalPeriod,
-    fetchCriticalClients,
   };
 }

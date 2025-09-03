@@ -1,49 +1,37 @@
 import React, { useState } from "react";
-import axios from "axios";
 import styles from "./importXMLModal.module.css";
+
+import { useImportClientMutation } from "../../../hooks/useMutation";
 
 const ImportXMLModal = ({ isOpen, onClose, onFeedback }) => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutate, isLoading } = useImportClientMutation();
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!selectedFile) {
-      onFeedback("error", "Por favor, selecione um arquivo XML.");
+      alert("Por favor, selecione um arquivo XML.");
       return;
     }
 
-    setIsLoading(true);
     const formData = new FormData();
-    formData.append("xmlFile", selectedFile); // O nome 'xmlFile' deve bater com o do multer
+    formData.append("xmlFile", selectedFile);
 
-    try {
-      const token = sessionStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:3001/upload/clientes",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const { report } = response.data;
-      const successMessage = `Importação finalizada! ${report.successCount} clientes importados.`;
-      onFeedback("success", successMessage);
-    } catch (error) {
-      console.error("Erro na importação:", error);
-      const errorMessage =
-        error.response?.data?.error || "Falha na importação do arquivo.";
-      onFeedback("error", errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
+    mutate(formData, {
+      onSuccess: (data) => {
+        const { report } = data;
+        const successMessage = `Importação finalizada! ${report.successCount} clientes importados.`;
+        onFeedback("success", successMessage);
+      },
+      onError: (error) => {
+        const errorMessage =
+          error.response?.data?.error || "Falha na importação do arquivo.";
+        onFeedback("error", errorMessage);
+      },
+    });
   };
 
   if (!isOpen) return null;
@@ -59,6 +47,8 @@ const ImportXMLModal = ({ isOpen, onClose, onFeedback }) => {
             accept=".xml,text/xml"
             onChange={handleFileChange}
             className={styles.fileInput}
+            // Desabilita o input durante o upload
+            disabled={isLoading}
           />
           <label htmlFor="xml-upload" className={styles.fileLabel}>
             {selectedFile
@@ -67,7 +57,9 @@ const ImportXMLModal = ({ isOpen, onClose, onFeedback }) => {
           </label>
         </div>
         {isLoading ? (
-          <p>Enviando e processando... Por favor, aguarde.</p>
+          <p className={styles.loadingText}>
+            Enviando e processando... Por favor, aguarde.
+          </p>
         ) : (
           <button onClick={handleUpload} className={styles.uploadButton}>
             Importar
