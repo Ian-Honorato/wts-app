@@ -1,19 +1,20 @@
 import React, { useState } from "react";
 //dependencias
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 //css
 import styles from "./loginModal.module.css";
 //icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+//hook
+import { useAuth } from "../../../hooks/useAuth.js";
 
 const LoginModal = ({ isOpen, onClose }) => {
   const default_url = "http://localhost:3001/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const { login } = useAuth();
 
   //se o modal n estiver aberto, n renderiza nada
   if (!isOpen) {
@@ -37,8 +38,8 @@ const LoginModal = ({ isOpen, onClose }) => {
       if (token) {
         sessionStorage.setItem("token", token);
         sessionStorage.setItem("user", JSON.stringify(user));
+        login(user, token);
         onClose();
-        navigate("/dashboard");
       } else {
         setError("Credenciais inválidas. Tente novamente.");
       }

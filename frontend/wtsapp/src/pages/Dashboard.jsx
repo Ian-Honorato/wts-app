@@ -1,186 +1,125 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+// src/pages/Dashboard.jsx
+import React from "react";
+
+// Hooks
+import { useAuth } from "../hooks/useAuth";
+import { useModalManager } from "../hooks/useModalManager";
+import { useDashboardData } from "../hooks/useDashboardData";
+
 // Componentes
 import AdminHeader from "../components/dashboard/adminHeader/AdminHeader.jsx";
 import UserHeader from "../components/dashboard/userHeader/UserHeader.jsx";
+import AdminDashboard from "../components/dashboard/adminDashboard/AdminDashboard.jsx";
+import ClientesCriticos from "../components/dashboard/clientesCriticos/clientesCriticos.jsx";
+
+// Modais
 import ClientModal from "../components/dashboard/clientModal/ClientModal.jsx";
 import ListClientsModal from "../components/dashboard/listarClientModal/ListClientsModal.jsx";
 import ClientDetailsModal from "../components/dashboard/clientDetailsModal/ClientDetailsModal.jsx";
 import ResponseModal from "../components/dashboard/responseModal/ResponseModal.jsx";
 import ImportXMLModal from "../components/dashboard/importXMLModal/ImportXMLModal.jsx";
-import AdminDashboard from "../components/dashboard/adminDashboard/AdminDashboard.jsx";
-import ClientesCriticos from "../components/dashboard/clientesCriticos/ClientesCriticos.jsx";
-import UserModal from "../components/userModal/UserModal.jsx";
+import UserModal from "../components/dashboard/userModal/UserModal.jsx";
 
 const Dashboard = () => {
-  const [user, setUser] = useState(null);
-  const [summaryData, setSummaryData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  const { user, isLoading: isAuthLoading, logout } = useAuth();
+  const { modalState, modalHandlers } = useModalManager();
+  const {
+    summaryData,
+    criticalClients,
+    isDataLoading,
+    criticalPeriod,
+    setCriticalPeriod,
+    fetchCriticalClients,
+  } = useDashboardData(user);
 
-  // Estados dos Modais
-  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
-  const [isListClientsModalOpen, setIsListClientsModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-
-  // Estados de Dados para os Modais
-  const [selectedClientId, setSelectedClientId] = useState(null);
-  const [editingClient, setEditingClient] = useState(null);
-  const [responseModal, setResponseModal] = useState({
-    isOpen: false,
-    type: "",
-    message: "",
-  });
-
-  // Efeito para verificar autenticação
-  useEffect(() => {
-    const userDataString = sessionStorage.getItem("user");
-    const token = sessionStorage.getItem("token");
-
-    if (!userDataString || !token) {
-      navigate("/");
-      return;
-    }
-
-    const currentUser = JSON.parse(userDataString);
-    setUser(currentUser);
-
-    const fetchData = async () => {
-      if (currentUser.tipo_usuario !== "admin") {
-        setIsLoading(false);
-        return;
+  // 2. A função de feedback age como a "cola" entre os hooks
+  const handleSubmitFeedback = (type, message) => {
+    modalHandlers.closeAll(); // Fecha qualquer modal de formulário aberto
+    setTimeout(() => {
+      modalHandlers.showResponseModal(type, message);
+      if (type === "success") {
+        // Pede para o hook de dados se atualizar
+        fetchCriticalClients();
       }
+    }, 300);
+  };
 
-      try {
-        console.log("Token de autenticação:", token);
-        const response = await axios.get(
-          "http://localhost:3001/dashboard/sumario",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setSummaryData(response.data);
-      } catch (error) {
-        console.error("Erro ao buscar dados do sumário:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [navigate]);
-
-  if (isLoading || !user) {
-    return <div>Verificando autenticação e carregando dados...</div>;
+  if (isAuthLoading || !user) {
+    return <div>Verificando autenticação...</div>;
   }
 
-  // Funções de Manipulação (Handlers)
-  const handleLogout = () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    navigate("/");
-  };
-
-  const handleOpenClientModal = (clientData = null) => {
-    setEditingClient(clientData);
-    setIsClientModalOpen(true);
-  };
-
-  const handleCloseClientModal = () => {
-    setIsClientModalOpen(false);
-    setEditingClient(null);
-  };
-
-  const handleOpenListClientsModal = () => setIsListClientsModalOpen(true);
-  const handleOpenImportModal = () => setIsImportModalOpen(true);
-
-  const handleShowClientDetails = (clientId) => {
-    setSelectedClientId(clientId);
-    setIsDetailsModalOpen(true);
-  };
-
-  const showResponseModal = (type, message) => {
-    setResponseModal({ isOpen: true, type, message });
-  };
-
-  const handleClientSubmitFeedback = (type, message) => {
-    handleCloseClientModal();
-    setTimeout(() => {
-      showResponseModal(type, message);
-    }, 300);
-  };
-
-  const handleListFeedback = (type, message) => {
-    setIsListClientsModalOpen(false);
-    setTimeout(() => {
-      showResponseModal(type, message);
-    }, 300);
-  };
-  const handleUserModalCreate = (type, message) => {
-    setIsUserModalOpen({ isOpen: true, type, message });
-
-    setTimeout(() => {
-      showResponseModal(type, message);
-    }, 300);
-  };
   return (
     <div>
+      {/* 3. Distribui as ferramentas e dados para os componentes filhos */}
       {user.tipo_usuario === "admin" ? (
         <AdminHeader
           user={user}
-          onLogout={handleLogout}
-          onOpenClientModal={handleOpenClientModal}
-          onOpenListClientsModal={handleOpenListClientsModal}
-          onOpenImportModal={handleOpenImportModal}
+          onLogout={logout} // Vem do useAuth
+          onOpenClientModal={modalHandlers.openClientModal}
+          onOpenListClientsModal={modalHandlers.openListClientsModal}
+          onOpenImportModal={modalHandlers.openImportModal}
+          onOpenUserModal={modalHandlers.openUserModal}
         />
       ) : (
-        <UserHeader user={user} onLogout={handleLogout} />
+        <UserHeader user={user} onLogout={logout} />
       )}
 
-      {user.tipo_usuario === "admin" ? (
-        <AdminDashboard summaryData={summaryData} />
-      ) : (
-        <ClientesCriticos />
-      )}
+      <div style={{ padding: "2rem", backgroundColor: "#f4f7f6" }}>
+        {user.tipo_usuario === "admin" ? (
+          <AdminDashboard
+            summaryData={summaryData}
+            criticalClientsData={{
+              clients: criticalClients,
+              isLoading: isDataLoading,
+              period: criticalPeriod,
+              setPeriod: setCriticalPeriod,
+            }}
+          />
+        ) : (
+          <ClientesCriticos
+            clients={criticalClients}
+            isLoading={isDataLoading}
+            period={criticalPeriod}
+            setPeriod={setCriticalPeriod}
+          />
+        )}
+      </div>
 
-      {/* Renderização dos Modais */}
+      {/* A renderização dos modais agora usa os dados e funções dos hooks */}
       <ClientModal
-        isOpen={isClientModalOpen}
-        onClose={handleCloseClientModal}
-        onFeedback={handleClientSubmitFeedback}
-        clientToEdit={editingClient}
+        isOpen={modalState.isClientModalOpen}
+        onClose={modalHandlers.closeClientModal}
+        onFeedback={handleSubmitFeedback}
+        clientToEdit={modalState.editingClient}
       />
       <ListClientsModal
-        isOpen={isListClientsModalOpen}
-        onClose={() => setIsListClientsModalOpen(false)}
-        onShowDetails={handleShowClientDetails}
-        onOpenUpdateModal={handleOpenClientModal}
-        onFeedback={handleListFeedback}
+        isOpen={modalState.isListClientsModalOpen}
+        onClose={modalHandlers.closeListClientsModal}
+        onShowDetails={modalHandlers.showClientDetails}
+        onOpenUpdateModal={modalHandlers.openClientModal}
+        onFeedback={handleSubmitFeedback}
       />
       <ClientDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        clientId={selectedClientId}
-        onOpenUpdateModal={handleOpenClientModal}
+        isOpen={modalState.isDetailsModalOpen}
+        onClose={modalHandlers.closeDetailsModal}
+        clientId={modalState.selectedClientId}
+        onOpenUpdateModal={modalHandlers.openClientModal}
       />
       <ImportXMLModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onFeedback={handleClientSubmitFeedback}
-      />
-      <ResponseModal
-        isOpen={responseModal.isOpen}
-        onClose={() => setResponseModal({ ...responseModal, isOpen: false })}
-        type={responseModal.type}
-        message={responseModal.message}
+        isOpen={modalState.isImportModalOpen}
+        onClose={modalHandlers.closeImportModal}
+        onFeedback={handleSubmitFeedback}
       />
       <UserModal
-        isOpen={isUserModalOpen}
-        onClose={() => setIsUserModalOpen(false)}
-        onFeedback={handleUserModalCreate}
+        isOpen={modalState.isUserModalOpen}
+        onClose={modalHandlers.closeUserModal}
+        onFeedback={handleSubmitFeedback}
+      />
+      <ResponseModal
+        isOpen={modalState.responseModal.isOpen}
+        onClose={modalHandlers.closeResponseModal}
+        type={modalState.responseModal.type}
+        message={modalState.responseModal.message}
       />
     </div>
   );

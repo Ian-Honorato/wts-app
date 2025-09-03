@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth.js";
 
 // Componentes da HomePage
 import Header from "../components/homePage/header/header";
@@ -12,12 +14,24 @@ import LoginModal from "../components/homePage/LoginModal/loginModal.jsx";
 import ServiceModal from "../components/homePage/ServiceModal/serviceModal.jsx";
 
 const HomePage = () => {
-  // O estado dos modais vive e morre com a HomePage
+  // O estado dos modais da HomePage continua aqui
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
-  const handleOpenLoginModal = () => setIsLoginModalOpen(true);
+  // Consumindo o hook de autenticação e o de navegação
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // 2. CRIAR A FUNÇÃO DE DECISÃO
+  const handleUserIconClick = () => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
+
   const handleOpenServiceModal = (service) => {
     setSelectedService(service);
     setIsServiceModalOpen(true);
@@ -29,7 +43,9 @@ const HomePage = () => {
 
   return (
     <>
-      <Header onLoginClick={handleOpenLoginModal} />
+      {/* 3. CONECTAR A NOVA FUNÇÃO AO HEADER */}
+      <Header onUserIconClick={handleUserIconClick} />
+
       <main>
         <Hero />
         <Produtos onServiceClick={handleOpenServiceModal} />
@@ -37,7 +53,10 @@ const HomePage = () => {
       </main>
       <Footer />
 
-      <LoginModal isOpen={isLoginModalOpen} onClose={closeModals} />
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
       <ServiceModal
         isOpen={isServiceModalOpen}
         onClose={closeModals}

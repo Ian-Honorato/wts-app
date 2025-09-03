@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Importando o useState
+import React, { useState } from "react";
 import styles from "./header.module.css";
 
 //ico
@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 //logo
 import logo from "../../../assets/logo.png";
-const Header = ({ onLoginClick }) => {
+const Header = ({ onLoginClick, onUserIconClick }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -15,7 +15,7 @@ const Header = ({ onLoginClick }) => {
 
   const handleLoginClick = (e) => {
     e.preventDefault();
-    setIsSidebarOpen(false); // Garante que a sidebar feche se estiver aberta
+    setIsSidebarOpen(false);
     onLoginClick();
   };
 
@@ -55,7 +55,7 @@ const Header = ({ onLoginClick }) => {
               href="#"
               className={styles.loginIcon}
               title="Login / Acessar conta"
-              onClick={handleLoginClick}
+              onClick={onUserIconClick}
             >
               <FontAwesomeIcon icon={faUser} />
             </a>
