@@ -7,12 +7,40 @@ export function useModalManager() {
     isDetailsModalOpen: false,
     isImportModalOpen: false,
     isUserModalOpen: false,
+    isListUsersModalOpen: false,
+    editingUser: null,
     selectedClientId: null,
     editingClient: null,
     responseModal: { isOpen: false, type: "", message: "" },
   });
 
   const modalHandlers = {
+    openUserModal: (userData = null) => {
+      setModalState((prev) => ({
+        ...prev,
+        editingUser: userData,
+        isUserModalOpen: true,
+      }));
+    },
+    openListUsersModal: () => {
+      setModalState((prev) => ({
+        ...prev,
+        isListUsersModalOpen: true,
+      }));
+    },
+    closeListUsersModal: () => {
+      setModalState((prev) => ({
+        ...prev,
+        isListUsersModalOpen: false,
+      }));
+    },
+    closeUserModal: () =>
+      setModalState((prev) => ({
+        ...prev,
+        isUserModalOpen: false,
+        editingUser: null, // Limpa o usuário ao fechar
+      })),
+
     openClientModal: (clientData = null) =>
       setModalState((prev) => ({
         ...prev,
@@ -45,10 +73,6 @@ export function useModalManager() {
       setModalState((prev) => ({ ...prev, isImportModalOpen: true })),
     closeImportModal: () =>
       setModalState((prev) => ({ ...prev, isImportModalOpen: false })),
-    openUserModal: () =>
-      setModalState((prev) => ({ ...prev, isUserModalOpen: true })),
-    closeUserModal: () =>
-      setModalState((prev) => ({ ...prev, isUserModalOpen: false })),
     showResponseModal: (type, message) =>
       setModalState((prev) => ({
         ...prev,
@@ -67,6 +91,7 @@ export function useModalManager() {
         isDetailsModalOpen: false,
         isImportModalOpen: false,
         isUserModalOpen: false,
+        isListUsersModalOpen: false,
       })),
   };
 

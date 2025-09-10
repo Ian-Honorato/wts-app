@@ -8,10 +8,22 @@ import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
 import ClientesCriticos from "../clientesCriticos/clientesCriticos";
 
-const AdminDashboard = ({ summaryData }) => {
+const AdminDashboard = ({ summaryData, isLoading }) => {
   // Mostra um estado de carregamento enquanto os dados não chegam do componente pai
-  if (!summaryData) {
-    return <div>Carregando dados do dashboard...</div>;
+
+  if (isLoading) {
+    return (
+      <div className={styles.statusMessage}>
+        Carregando dados do dashboard...
+      </div>
+    );
+  }
+  if (!summaryData || summaryData.totalClients === 0) {
+    return (
+      <div className={styles.statusMessage}>
+        Nenhum cliente cadastrado no momento.
+      </div>
+    );
   }
 
   // Extrai os dados para facilitar o uso no JSX

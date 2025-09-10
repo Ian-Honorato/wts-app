@@ -59,7 +59,6 @@ export function useCreateClientMutation() {
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
       queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
     },
-    //verificar alteações na UI em situação de loading ou erro
   });
 }
 export function useImportClientMutation() {

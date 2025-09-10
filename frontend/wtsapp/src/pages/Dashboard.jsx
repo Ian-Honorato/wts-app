@@ -19,6 +19,7 @@ import ClientDetailsModal from "../components/dashboard/clientDetailsModal/Clien
 import ResponseModal from "../components/dashboard/responseModal/ResponseModal.jsx";
 import ImportXMLModal from "../components/dashboard/importXMLModal/ImportXMLModal.jsx";
 import UserModal from "../components/dashboard/userModal/UserModal.jsx";
+import ListUsersModal from "../components/dashboard/ListUsersModal/ListUsersModal.jsx";
 
 const Dashboard = () => {
   const { user, isLoading: isAuthLoading, logout } = useAuth();
@@ -52,6 +53,7 @@ const Dashboard = () => {
           onOpenListClientsModal={modalHandlers.openListClientsModal}
           onOpenImportModal={modalHandlers.openImportModal}
           onOpenUserModal={modalHandlers.openUserModal}
+          onOpenListUserModal={modalHandlers.openListUsersModal}
         />
       ) : (
         <UserHeader user={user} onLogout={logout} />
@@ -78,7 +80,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* A renderização dos modais agora usa os dados e funções dos hooks */}
       <ClientModal
         isOpen={modalState.isClientModalOpen}
         onClose={modalHandlers.closeClientModal}
@@ -107,6 +108,15 @@ const Dashboard = () => {
         isOpen={modalState.isUserModalOpen}
         onClose={modalHandlers.closeUserModal}
         onFeedback={handleSubmitFeedback}
+        clientToEdit={modalState.editingUser}
+      />
+      <ListUsersModal
+        isOpen={modalState.isListUsersModalOpen}
+        onClose={modalHandlers.closeListUsersModal}
+        handleListarUserClick={(userData) => {
+          modalHandlers.closeListUsersModal();
+          setTimeout(() => modalHandlers.openUserModal(userData), 300);
+        }}
       />
       <ResponseModal
         isOpen={modalState.responseModal.isOpen}

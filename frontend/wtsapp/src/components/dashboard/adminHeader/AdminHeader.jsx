@@ -20,10 +20,23 @@ const AdminHeader = ({
   onOpenClientModal,
   onOpenListClientsModal,
   onOpenImportModal,
+  onOpenUserModal,
+  onOpenListUserModal,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+  const handleCadastrarUserClick = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenUserModal();
+  };
+
+  const handleListarUserClick = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenListUserModal();
   };
   const handleCadastrarClienteClick = (e) => {
     e.preventDefault();
@@ -143,10 +156,14 @@ const AdminHeader = ({
                 </summary>
                 <ul>
                   <li>
-                    <a href="#">Cadastrar</a>
+                    <a href="#" onClick={handleCadastrarUserClick}>
+                      Cadastrar
+                    </a>
                   </li>
                   <li>
-                    <a href="#">Listar</a>
+                    <a href="#" onClick={handleListarUserClick}>
+                      Listar
+                    </a>
                   </li>
                 </ul>
               </details>

@@ -13,6 +13,7 @@ class DashboardController {
   async getSummary(req, res) {
     try {
       // Usamos Promise.all para executar todas as consultas em paralelo para melhor performance
+
       const [
         totalClients,
         clientsByType,
@@ -145,8 +146,9 @@ class DashboardController {
         topPartners,
       };
 
-      return res.json(summary);
+      return res.status(200).json(summary);
     } catch (e) {
+      console.log("Caiu no catch - verificar ");
       return errorHandler(e, res);
     }
   }
