@@ -8,6 +8,17 @@ import {
   faEdit,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
+import { useQuery } from "@tanstack/react-query";
+import { useDeleteClientMutation } from "../../../hooks/useMutation";
+import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
+
+const fetchClients = async () => {
+  const token = sessionStorage.getItem("token");
+  const { data } = await axios.get("http://localhost:3001/clientes", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
 
 const ListClientsModal = ({
   isOpen,
@@ -16,62 +27,53 @@ const ListClientsModal = ({
   onOpenUpdateModal,
   onFeedback,
 }) => {
-  const [clients, setClients] = useState([]);
+  // --- HOOKS E ESTADOS ---
+  const {
+    data: clients = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["clients"],
+    queryFn: fetchClients,
+    enabled: isOpen,
+  });
+
+  const deleteMutation = useDeleteClientMutation();
+
+  // Estados para o modal de confirmação
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+
+  // Estados para a busca
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Efeito para buscar os clientes iniciais quando o modal abre
-  useEffect(() => {
-    if (isOpen) {
-      const fetchClients = async () => {
-        setIsLoading(true);
-        try {
-          const token = sessionStorage.getItem("token");
-          const response = await axios.get("http://localhost:3001/clientes", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setClients(response.data);
-        } catch (error) {
-          console.error("Erro ao buscar clientes:", error);
-        }
-        setIsLoading(false);
-      };
-      fetchClients();
-    }
-  }, [isOpen]);
-
-  // Efeito com DEBOUNCE para a busca
+  // --- EFEITOS ---
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
       return;
     }
-
-    const delayDebounceFn = setTimeout(() => {
-      const search = async () => {
-        try {
-          const token = sessionStorage.getItem("token");
-          const response = await axios.get(
-            `http://localhost:3001/clientes/search?q=${searchTerm}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          setSearchResults(response.data);
-        } catch (error) {
-          console.error("Erro na busca:", error);
-        }
-      };
-      search();
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:3001/clientes/search?q=${searchTerm}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setSearchResults(response.data);
+      } catch (error) {
+        console.error("Erro na busca:", error);
+      }
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
+  // --- HANDLERS DE EVENTOS ---
   const handleSelectClient = (client) => {
     setSearchTerm("");
-    onClose(); // Fecha o modal de lista
+    onClose();
     setTimeout(() => {
       onShowDetails(client.id);
     }, 300);
@@ -103,117 +105,149 @@ const ListClientsModal = ({
     }
 
     if (action === "delete") {
-      if (
-        //criar um modal de confirmação futuramente
-        window.confirm(
-          "Você tem certeza que deseja excluir este cliente? Esta ação é irreversível."
-        )
-      ) {
-        try {
-          const token = sessionStorage.getItem("token");
-          await axios.delete(`http://localhost:3001/clientes/${clientId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          // Atualiza a lista de clientes no estado, removendo o que foi deletado
-          setClients((prevClients) =>
-            prevClients.filter((client) => client.id !== clientId)
-          );
-          onFeedback("success", "Cliente excluído com sucesso!");
-        } catch (error) {
-          console.error("Erro ao excluir cliente:", error);
-          // 4. Chama o modal de feedback de erro
-          onFeedback("error", "Não foi possível excluir o cliente.");
-        }
+      // -> Encontre o nome do cliente para uma mensagem mais amigável
+      const client = clients.find((c) => c.id === clientId);
+      if (client) {
+        setClientToDelete({ id: client.id, nome: client.nome });
+        setIsConfirmModalOpen(true);
       }
     }
   };
 
+  const handleConfirmDelete = () => {
+    if (clientToDelete) {
+      deleteMutation.mutate(clientToDelete.id, {
+        onSuccess: () => {
+          onFeedback("success", "Cliente excluído com sucesso!");
+        },
+        onError: (error) => {
+          console.error("Erro ao excluir cliente:", error);
+          onFeedback("error", "Não foi possível excluir o cliente.");
+        },
+        onSettled: () => {
+          setIsConfirmModalOpen(false);
+          setClientToDelete(null);
+        },
+      });
+    }
+  };
+
+  // handler para o cancelamento, para limpar o estado
+  const handleCloseConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+    setClientToDelete(null);
+  };
+
+  // --- RENDERIZAÇÃO ---
   if (!isOpen) return null;
 
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2>Listar Clientes</h2>
-          <button className={styles.closeButton} onClick={onClose}>
-            <FontAwesomeIcon icon={faTimes} />
-          </button>
-        </div>
+    // ->React.Fragment para renderizar múltiplos modais
+    <>
+      <div className={styles.backdrop} onClick={onClose}>
+        <div
+          className={styles.modalContent}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={styles.header}>
+            <h2>Listar Clientes</h2>
+            <button className={styles.closeButton} onClick={onClose}>
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+          </div>
 
-        <div className={styles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Buscar cliente por nome ou CPF/CNPJ..."
-            className={styles.searchInput}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchResults.length > 0 && (
-            <ul className={styles.searchResults}>
-              {searchResults.map((client) => (
-                <li key={client.id} onClick={() => handleSelectClient(client)}>
-                  {client.nome}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className={styles.tableContainer}>
-          {isLoading ? (
-            <p style={{ textAlign: "center", padding: "2rem" }}>
-              Carregando...
-            </p>
-          ) : (
-            <table className={styles.clientsTable}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nome</th>
-                  <th>CPF/CNPJ</th>
-                  <th>Contato</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map((client) => (
-                  <tr key={client.id}>
-                    <td>{client.id}</td>
-                    <td>{client.nome}</td>
-                    <td>{client.cpf_cnpj}</td>
-                    <td>{client.telefone}</td>
-                    <td className={styles.actionsCell}>
-                      <button
-                        onClick={() => handleActionClick("show", client.id)}
-                        className={`${styles.actionButton} ${styles.show}`}
-                        title="Ver Detalhes"
-                      >
-                        <FontAwesomeIcon icon={faEye} />
-                      </button>
-                      <button
-                        onClick={() => handleActionClick("update", client.id)}
-                        className={`${styles.actionButton} ${styles.update}`}
-                        title="Editar Cliente"
-                      >
-                        <FontAwesomeIcon icon={faEdit} />
-                      </button>
-                      <button
-                        onClick={() => handleActionClick("delete", client.id)}
-                        className={`${styles.actionButton} ${styles.delete}`}
-                        title="Remover Cliente"
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </td>
-                  </tr>
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Buscar cliente por nome ou CPF/CNPJ..."
+              className={styles.searchInput}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchResults.length > 0 && (
+              <ul className={styles.searchResults}>
+                {searchResults.map((client) => (
+                  <li
+                    key={client.id}
+                    onClick={() => handleSelectClient(client)}
+                  >
+                    {client.nome}
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          )}
+              </ul>
+            )}
+          </div>
+
+          <div className={styles.tableContainer}>
+            {isLoading ? (
+              <p style={{ textAlign: "center", padding: "2rem" }}>
+                Carregando...
+              </p>
+            ) : isError ? (
+              <p style={{ textAlign: "center", padding: "2rem", color: "red" }}>
+                Erro ao carregar clientes.
+              </p>
+            ) : (
+              <table className={styles.clientsTable}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>CPF/CNPJ</th>
+                    <th>Contato</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clients.map((client) => (
+                    <tr key={client.id}>
+                      <td>{client.id}</td>
+                      <td>{client.nome}</td>
+                      <td>{client.cpf_cnpj}</td>
+                      <td>{client.telefone}</td>
+                      <td className={styles.actionsCell}>
+                        <button
+                          onClick={() => handleActionClick("show", client.id)}
+                          className={`${styles.actionButton} ${styles.show}`}
+                          title="Ver Detalhes"
+                        >
+                          <FontAwesomeIcon icon={faEye} />
+                        </button>
+                        <button
+                          onClick={() => handleActionClick("update", client.id)}
+                          className={`${styles.actionButton} ${styles.update}`}
+                          title="Editar Cliente"
+                          disabled={deleteMutation.isLoading}
+                        >
+                          <FontAwesomeIcon icon={faEdit} />
+                        </button>
+                        <button
+                          onClick={() => handleActionClick("delete", client.id)}
+                          className={`${styles.actionButton} ${styles.delete}`}
+                          title="Remover Cliente"
+                          disabled={deleteMutation.isLoading}
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* -> Renderização do modal de confirmação com as props corretas */}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={handleCloseConfirmModal}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão"
+        message={`Você tem certeza que deseja excluir o cliente "${clientToDelete?.nome}"? Esta ação é irreversível.`}
+      />
+    </>
   );
 };
 

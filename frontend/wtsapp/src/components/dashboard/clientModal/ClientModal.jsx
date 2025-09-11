@@ -38,6 +38,7 @@ const certificados = [
 const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   // Estado inicial com todos os campos do formulário
   const [formData, setFormData] = useState({
+    id: null,
     nome_cliente: "",
     cpf_cnpj: "",
     representante: "",
@@ -61,6 +62,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       if (isUpdateMode) {
         // Se for modo de edição, preenche o formulário com os dados do cliente
         setFormData({
+          id: clientToEdit.id,
           nome_cliente: clientToEdit.nome,
           cpf_cnpj: clientToEdit.cpf_cnpj,
           representante: clientToEdit.representante || "",
@@ -131,6 +133,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           onFeedback("success", "Cliente atualizado com sucesso!");
         },
         onError: (error) => {
+          console.log(error);
           const errorMessage =
             error.response?.data?.error || "Erro ao atualizar o cliente.";
           onFeedback("error", errorMessage);

@@ -25,13 +25,13 @@ const Dashboard = () => {
   const { user, isLoading: isAuthLoading, logout } = useAuth();
   const { modalState, modalHandlers } = useModalManager();
   const {
-    summaryData,
+    sumarioData,
     criticalClients,
     isDataLoading,
     criticalPeriod,
     setCriticalPeriod,
   } = useDashboardData(user);
-
+  //console.log("sumarioData", sumarioData);
   const handleSubmitFeedback = (type, message) => {
     modalHandlers.closeAll();
     setTimeout(() => {
@@ -62,7 +62,7 @@ const Dashboard = () => {
       <div style={{ padding: "2rem", backgroundColor: "#f4f7f6" }}>
         {user.tipo_usuario === "admin" ? (
           <AdminDashboard
-            summaryData={summaryData}
+            summaryData={sumarioData}
             criticalClientsData={{
               clients: criticalClients,
               isLoading: isDataLoading,
@@ -113,7 +113,8 @@ const Dashboard = () => {
       <ListUsersModal
         isOpen={modalState.isListUsersModalOpen}
         onClose={modalHandlers.closeListUsersModal}
-        handleListarUserClick={(userData) => {
+        onFeedback={handleSubmitFeedback}
+        onOpenEditUserModal={(userData) => {
           modalHandlers.closeListUsersModal();
           setTimeout(() => modalHandlers.openUserModal(userData), 300);
         }}

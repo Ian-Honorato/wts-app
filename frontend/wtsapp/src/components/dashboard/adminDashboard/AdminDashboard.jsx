@@ -19,6 +19,7 @@ const AdminDashboard = ({ summaryData, isLoading }) => {
     );
   }
   if (!summaryData || summaryData.totalClients === 0) {
+    // Se nenhuma informaç
     return (
       <div className={styles.statusMessage}>
         Nenhum cliente cadastrado no momento.

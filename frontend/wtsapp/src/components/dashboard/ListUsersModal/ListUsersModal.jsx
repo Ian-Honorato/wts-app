@@ -1,47 +1,66 @@
 // src/components/dashboard/listUsersModal/ListUsersModal.jsx
-import React from "react";
-import modalStyles from "../clientModal/clientModal.module.css"; // Estilo do modal base
-import tableStyles from "./tableStyle.module.css"; // Estilo da tabela específica
+import React, { useState } from "react"; // -> CORREÇÃO 1: Importar o useState
+import modalStyles from "../clientModal/clientModal.module.css";
+import tableStyles from "./tableStyle.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
-// Hooks de dados e mutação
 import {
   useUsersQuery,
   useDeleteUserMutation,
 } from "../../../hooks/userMutation";
+import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
-const ListUsersModal = ({ isOpen, onClose, onOpenEditUserModal }) => {
-  // Se o modal não está aberto, não renderizamos nada
-  if (!isOpen) return null;
-
-  // Busca os dados dos usuários usando nosso hook personalizado
-  const { data: users, isLoading, error, refetch } = useUsersQuery(isOpen);
-
-  // Hook para a mutação de exclusão de usuário
+const ListUsersModal = ({
+  isOpen,
+  onClose,
+  onOpenEditUserModal, // A prop para editar é esta
+  onFeedback,
+}) => {
+  // --- HOOKS E ESTADOS ---
+  const { data: users, isLoading, error } = useUsersQuery(isOpen);
   const deleteMutation = useDeleteUserMutation();
 
-  // Função para lidar com a exclusão de um usuário
-  const handleDelete = (userId, userName) => {
-    if (
-      window.confirm(`Tem certeza que deseja excluir o usuário "${userName}"?`)
-    ) {
-      deleteMutation.mutate(userId, {
-        onSuccess: () => {
-          alert("Usuário excluído com sucesso!");
-          refetch(); // Opcional: refetch para garantir a atualização imediata da lista
-        },
-        onError: (mutationError) => {
-          const errorMessage =
-            mutationError.response?.data?.errors?.[0] ||
-            "Erro ao excluir usuário.";
-          alert(errorMessage);
-        },
-      });
-    }
+  // -> CORREÇÃO 2: Declarar os estados que faltavam
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  // --- HANDLERS ---
+  const handleOpenDeleteConfirmation = (user) => {
+    setUserToDelete(user);
+    setIsConfirmModalOpen(true);
   };
 
-  // Função auxiliar para renderizar o conteúdo principal do modal
+  const handleConfirmDelete = () => {
+    if (!userToDelete) return;
+    deleteMutation.mutate(userToDelete.id, {
+      onSuccess: () => {
+        onFeedback(
+          "success",
+          `Usuário "${userToDelete.nome}" excluído com sucesso!`
+        );
+      },
+      onError: (mutationError) => {
+        const errorMessage =
+          mutationError.response?.data?.errors?.[0] ||
+          "Erro ao excluir usuário.";
+        onFeedback("error", errorMessage);
+      },
+      onSettled: () => {
+        setIsConfirmModalOpen(false);
+        setUserToDelete(null);
+      },
+    });
+  };
+
+  const handleCloseConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+    setUserToDelete(null);
+  };
+
+  if (!isOpen) return null;
+
+  // Função auxiliar para renderizar o conteúdo principal
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -49,17 +68,16 @@ const ListUsersModal = ({ isOpen, onClose, onOpenEditUserModal }) => {
       );
     }
     if (error) {
-      console.error("Erro ao carregar usuários:", error); // Log para debug
       return (
         <div className={tableStyles.statusMessage}>
-          Erro ao carregar usuários. Por favor, tente novamente.
+          Erro ao carregar usuários.
         </div>
       );
     }
     if (!users || users.length === 0) {
       return (
         <div className={tableStyles.statusMessage}>
-          Nenhum usuário cadastrado no momento.
+          Nenhum usuário cadastrado.
         </div>
       );
     }
@@ -67,14 +85,7 @@ const ListUsersModal = ({ isOpen, onClose, onOpenEditUserModal }) => {
     return (
       <div className={tableStyles.tableContainer}>
         <table className={tableStyles.table}>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>Tipo</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
+          <thead>{/* ... cabeçalho da tabela ... */}</thead>
           <tbody>
             {users.map((user) => (
               <tr key={user.id}>
@@ -84,15 +95,16 @@ const ListUsersModal = ({ isOpen, onClose, onOpenEditUserModal }) => {
                 <td className={tableStyles.actionsCell}>
                   <button
                     className={`${tableStyles.actionButton} ${tableStyles.editButton}`}
-                    onClick={() => onOpenEditUserModal(user)} // Passa o objeto user para edição
-                    disabled={deleteMutation.isPending} // Desabilita botões durante exclusão
+                    onClick={() => onOpenEditUserModal(user)}
+                    disabled={deleteMutation.isPending}
                   >
                     <FontAwesomeIcon icon={faEdit} />
                   </button>
                   <button
                     className={`${tableStyles.actionButton} ${tableStyles.deleteButton}`}
-                    onClick={() => handleDelete(user.id, user.nome)}
-                    disabled={deleteMutation.isPending} // Desabilita botões durante exclusão
+                    // -> CORREÇÃO 3: Chamar a função correta para abrir o modal
+                    onClick={() => handleOpenDeleteConfirmation(user)}
+                    disabled={deleteMutation.isPending}
                   >
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
@@ -106,18 +118,27 @@ const ListUsersModal = ({ isOpen, onClose, onOpenEditUserModal }) => {
   };
 
   return (
-    <div className={modalStyles.backdrop} onClick={onClose}>
-      <div
-        className={modalStyles.modalContent}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className={modalStyles.title}>Gerenciar Usuários</h2>
-        {renderContent()}
-        <button className={modalStyles.closeButton} onClick={onClose}>
-          <FontAwesomeIcon icon={faTimes} />
-        </button>
+    <>
+      <div className={modalStyles.backdrop} onClick={onClose}>
+        <div
+          className={modalStyles.modalContent}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className={modalStyles.title}>Gerenciar Usuários</h2>
+          {renderContent()}
+          <button className={modalStyles.closeButton} onClick={onClose}>
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
+        </div>
       </div>
-    </div>
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={handleCloseConfirmModal}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão de Usuário"
+        message={`Você tem certeza que deseja excluir o usuário "${userToDelete?.nome}"?`}
+      />
+    </>
   );
 };
 

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 const updateClientApi = async (clientData) => {
+  console.log("dados do cliente ", clientData);
   const token = sessionStorage.getItem("token");
   const { data } = await axios.put(
     `http://localhost:3001/clientes/${clientData.id}`,
@@ -10,7 +11,14 @@ const updateClientApi = async (clientData) => {
   );
   return data;
 };
-
+const deleteClientApi = async (clientId) => {
+  const token = sessionStorage.getItem("token");
+  const { data } = await axios.delete(
+    `http://localhost:3001/clientes/${clientId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return data;
+};
 const createClientApi = async (clientData) => {
   const token = sessionStorage.getItem("token");
   const { data } = await axios.post(
@@ -55,7 +63,6 @@ export function useCreateClientMutation() {
     mutationFn: createClientApi,
     onSuccess: () => {
       queryClient.invalidateQueries(["clients"]);
-      console.log("cliente criado");
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
       queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
     },
@@ -68,9 +75,22 @@ export function useImportClientMutation() {
     mutationFn: importClientApi,
     onSuccess: () => {
       queryClient.invalidateQueries(["clients"]);
-      console.log("clientes importados");
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
       queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+    },
+  });
+}
+export function useDeleteClientMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteClientApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["clients"]);
+      queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
+      queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+    },
+    onError: (error) => {
+      console.log(error);
     },
   });
 }
