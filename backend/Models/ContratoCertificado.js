@@ -9,6 +9,10 @@ class ContratoCertificado extends Model {
           allowNull: false,
           unique: true,
         },
+        data_renovacao: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
         data_vencimento: {
           type: DataTypes.DATE,
           allowNull: true,

@@ -9,7 +9,6 @@ import {
   useCreateClientMutation,
 } from "../../../hooks/useMutation";
 
-// Lista de status vinda do seu backend para o campo de seleção
 const statusEnumValidos = [
   "Agendado",
   "Em contato",
@@ -38,7 +37,6 @@ const certificados = [
 const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   // Estado inicial com todos os campos do formulário
   const [formData, setFormData] = useState({
-    id: null,
     nome_cliente: "",
     cpf_cnpj: "",
     representante: "",
@@ -47,6 +45,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     nome_parceiro: "",
     nome_certificado: "",
     numero_contrato: "",
+    data_renovacao: "",
     data_vencimento: "",
     status: "",
   });
@@ -60,20 +59,22 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   useEffect(() => {
     if (isOpen) {
       if (isUpdateMode) {
-        // Se for modo de edição, preenche o formulário com os dados do cliente
         setFormData({
-          id: clientToEdit.id,
           nome_cliente: clientToEdit.nome,
           cpf_cnpj: clientToEdit.cpf_cnpj,
           representante: clientToEdit.representante || "",
           email_cliente: clientToEdit.email || "",
           telefone: clientToEdit.telefone,
-          // Assumindo que o backend retorna os nomes para edição
           nome_parceiro: clientToEdit.parceiro_indicador?.nome_escritorio || "",
           nome_certificado:
             clientToEdit.contratos?.[0]?.certificado.nome_certificado || "",
           numero_contrato: clientToEdit.contratos?.[0]?.numero_contrato || "",
-          // Formata a data para o input AAAA-MM-DD
+          // Lógica de formatação já está correta
+          data_renovacao: clientToEdit.contratos?.[0]?.data_renovacao
+            ? new Date(clientToEdit.contratos[0].data_renovacao)
+                .toISOString()
+                .split("T")[0]
+            : "",
           data_vencimento: clientToEdit.contratos?.[0]?.data_vencimento
             ? new Date(clientToEdit.contratos[0].data_vencimento)
                 .toISOString()
@@ -82,7 +83,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           status: clientToEdit.contratos?.[0]?.status || "",
         });
       } else {
-        // Se for modo de criação, limpa o formulário
         setFormData({
           nome_cliente: "",
           cpf_cnpj: "",
@@ -92,6 +92,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           nome_parceiro: "",
           nome_certificado: "",
           numero_contrato: "",
+          data_renovacao: "",
           data_vencimento: "",
           status: "",
         });
@@ -101,7 +102,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   }, [isOpen, clientToEdit, isUpdateMode]);
 
   const validate = () => {
-    console.log("Validando dados do formulário:", formData);
+    //console.log("Validando dados do formulário:", formData);
     const newErrors = {};
     if (!formData.nome_cliente)
       newErrors.nome_cliente = "O nome do cliente é obrigatório.";
@@ -127,20 +128,29 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     }
     setErrors({});
 
+    const mutationData = {
+      ...formData,
+
+      data_renovacao: formData.data_renovacao || null,
+      data_vencimento: formData.data_vencimento || null,
+    };
+
     if (isUpdateMode) {
-      updateMutation.mutate(formData, {
-        onSuccess: () => {
-          onFeedback("success", "Cliente atualizado com sucesso!");
-        },
-        onError: (error) => {
-          console.log(error);
-          const errorMessage =
-            error.response?.data?.error || "Erro ao atualizar o cliente.";
-          onFeedback("error", errorMessage);
-        },
-      });
+      updateMutation.mutate(
+        { ...mutationData, id: clientToEdit.id },
+        {
+          onSuccess: () => {
+            onFeedback("success", "Cliente atualizado com sucesso!");
+          },
+          onError: (error) => {
+            const errorMessage =
+              error.response?.data?.error || "Erro ao atualizar o cliente.";
+            onFeedback("error", errorMessage);
+          },
+        }
+      );
     } else {
-      createMutation.mutate(formData, {
+      createMutation.mutate(mutationData, {
         onSuccess: () => {
           onFeedback("success", "Cliente cadastrado com sucesso!");
         },
@@ -164,14 +174,13 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
-      {" "}
-      {/* Clicando no overlay para fechar */}
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>
           {isUpdateMode ? "Atualizar Cliente" : "Cadastrar Novo Cliente"}
         </h2>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
+            {/* Campos existentes... (Nome, CPF/CNPJ, etc.) */}
             <div className={styles.formGroup}>
               <label htmlFor="nome_cliente">Nome / Razão Social *</label>
               <input
@@ -293,11 +302,20 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
               )}
             </div>
 
-            {/* Campos opcionais */}
             <div className={styles.formGroup}>
-              <label htmlFor="data_vencimento">
-                Data de Vencimento (DD/MM/AAAA)
-              </label>
+              <label htmlFor="data_renovacao">Data de Renovação</label>
+              <input
+                type="date"
+                id="data_renovacao"
+                name="data_renovacao"
+                value={formData.data_renovacao}
+                onChange={handleChange}
+                className={styles.input}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="data_vencimento">Data de Vencimento</label>
               <input
                 type="date"
                 id="data_vencimento"
@@ -337,9 +355,16 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           </div>
 
           {apiError && <p className={styles.apiErrorMessage}>{apiError}</p>}
-          <button type="submit" className={styles.submitButton}>
-            {isUpdateMode ? "Salvar Alterações" : "Cadastrar Cliente"}
-            {isLoading && <span className={"Salvando dados"}></span>}
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={isLoading}
+          >
+            {isLoading
+              ? "Salvando..."
+              : isUpdateMode
+              ? "Salvar Alterações"
+              : "Cadastrar Cliente"}
           </button>
         </form>
         <button className={styles.closeButton} onClick={onClose}>

@@ -30,6 +30,7 @@ const Dashboard = () => {
     isDataLoading,
     criticalPeriod,
     setCriticalPeriod,
+    totalRenovados,
   } = useDashboardData(user);
   //console.log("sumarioData", sumarioData);
   const handleSubmitFeedback = (type, message) => {
@@ -68,6 +69,9 @@ const Dashboard = () => {
               isLoading: isDataLoading,
               period: criticalPeriod,
               setPeriod: setCriticalPeriod,
+            }}
+            renovationsData={{
+              totalRenovados,
             }}
           />
         ) : (

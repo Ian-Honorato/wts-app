@@ -1,40 +1,12 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React from "react";
 import styles from "./clientesCriticos.module.css";
 
-const ClientesCriticos = () => {
-  const [clients, setClients] = useState([]);
-  const [dias, seDias] = useState("10");
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchCriticals = async () => {
-      setIsLoading(true);
-      try {
-        const token = sessionStorage.getItem("token");
-        const response = await axios.post(
-          "http://localhost:3001/clientes/contratos",
-
-          { days: dias },
-
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        setClients(response.data.Contratos_criticos);
-      } catch (error) {
-        console.error("Erro ao buscar clientes críticos:", error);
-      }
-      setIsLoading(false);
-    };
-    fetchCriticals();
-  }, [dias]);
-
+// O componente agora usa APENAS as props que recebe
+const ClientesCriticos = ({ clients, isLoading, period, setPeriod }) => {
   const handleSendMessage = () => {
-    // Lógica futura para Z-API
     alert("Funcionalidade de enviar mensagem em massa ainda não implementada.");
   };
+  //console.log(clients);
 
   return (
     <div className={styles.widgetContainer}>
@@ -42,11 +14,11 @@ const ClientesCriticos = () => {
         <h3>Clientes Críticos</h3>
         <div className={styles.filters}>
           <label htmlFor="periodo">Período:</label>
-          {/* 2. O <select> controla o estado 'period' */}
+
           <select
             id="periodo"
-            value={dias}
-            onChange={(e) => seDias(e.target.value)}
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
             className={styles.select}
           >
             <option value="10">10 dias</option>
@@ -79,7 +51,9 @@ const ClientesCriticos = () => {
                 </p>
                 <p>
                   <strong>Vencimento:</strong>{" "}
-                  {new Date(item.data_vencimento).toLocaleDateString("pt-BR")}
+                  {new Date(item.data_vencimento).toLocaleDateString("pt-BR", {
+                    timeZone: "UTC",
+                  })}
                 </p>
                 <p>
                   <strong>Contato:</strong> {item.cliente.telefone}

@@ -1,8 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
+// ================================================================
+// API Functions
+// ================================================================
+
+export const detailsClientApi = async (clientId) => {
+  const token = sessionStorage.getItem("token");
+  const { data } = await axios.get(
+    `http://localhost:3001/clientes/${clientId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return data;
+};
+
 const updateClientApi = async (clientData) => {
-  console.log("dados do cliente ", clientData);
   const token = sessionStorage.getItem("token");
   const { data } = await axios.put(
     `http://localhost:3001/clientes/${clientData.id}`,
@@ -42,18 +56,22 @@ const importClientApi = async (formData) => {
   );
   return response.data;
 };
+// ================================================================
+// Mutations Hooks
+// ================================================================
 
-// Hook para ALTERAR um cliente
 export function useUpdateClientMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: updateClientApi,
     onSuccess: () => {
-      queryClient.invalidateQueries(["clients"]);
-      console.log("cliente atualizado");
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-      queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "criticalClients",
+      });
     },
   });
 }
@@ -62,21 +80,26 @@ export function useCreateClientMutation() {
   return useMutation({
     mutationFn: createClientApi,
     onSuccess: () => {
-      queryClient.invalidateQueries(["clients"]);
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-      queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "criticalClients",
+      });
     },
   });
 }
 export function useImportClientMutation() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: importClientApi,
     onSuccess: () => {
-      queryClient.invalidateQueries(["clients"]);
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-      queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "criticalClients",
+      });
     },
   });
 }
@@ -85,9 +108,12 @@ export function useDeleteClientMutation() {
   return useMutation({
     mutationFn: deleteClientApi,
     onSuccess: () => {
-      queryClient.invalidateQueries(["clients"]);
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-      queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "criticalClients",
+      });
     },
     onError: (error) => {
       console.log(error);

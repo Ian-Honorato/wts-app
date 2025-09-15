@@ -152,6 +152,45 @@ class DashboardController {
       return errorHandler(e, res);
     }
   }
+  async getRenovationsByPeriod(req, res) {
+    try {
+      const { data_inicio, data_fim } = req.query;
+
+      const whereOptions = {
+        status: "Renovado",
+      };
+
+      const parseDate = (dateString) => {
+        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return null;
+        const [day, month, year] = dateString.split("/");
+        return new Date(`${year}-${month}-${day}T00:00:00`);
+      };
+
+      if (data_inicio && data_fim) {
+        const startDate = parseDate(data_inicio);
+        const endDate = parseDate(data_fim);
+
+        if (startDate && endDate) {
+          endDate.setHours(23, 59, 59, 999);
+
+          whereOptions.updated_at = {
+            [Op.between]: [startDate, endDate],
+          };
+        }
+      }
+
+      const contractsRenovation = await ContratoCertificado.findAll({
+        attributes: [[sequelize.fn("COUNT", sequelize.col("id")), "count"]],
+        where: whereOptions,
+      });
+
+      // Retorna apenas o número total
+      const totalCount = contractsRenovation[0]?.get("count") || 0;
+      return res.json({ totalRenovados: totalCount });
+    } catch (e) {
+      return errorHandler(e, res);
+    }
+  }
 }
 
 export default new DashboardController();

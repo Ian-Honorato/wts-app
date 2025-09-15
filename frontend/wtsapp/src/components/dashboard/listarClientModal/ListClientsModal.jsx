@@ -48,22 +48,32 @@ const ListClientsModal = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
+  const min_searchLength = 3;
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchResults([]);
+    }
+  }, [isOpen]);
   // --- EFEITOS ---
   useEffect(() => {
-    if (!searchTerm.trim()) {
+    if (searchTerm.trim().length < min_searchLength) {
       setSearchResults([]);
       return;
     }
     const delayDebounceFn = setTimeout(async () => {
       try {
+        //console.log("Buscando por:", searchTerm);
         const token = sessionStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:3001/clientes/search?q=${searchTerm}`,
+          `http://localhost:3001/clientes/search?searchTerm=${searchTerm}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setSearchResults(response.data);
+        // console.log("Resultados da busca:", response.data);
       } catch (error) {
         console.error("Erro na busca:", error);
+        setSearchResults([]);
       }
     }, 500);
 
@@ -72,7 +82,7 @@ const ListClientsModal = ({
 
   // --- HANDLERS DE EVENTOS ---
   const handleSelectClient = (client) => {
-    setSearchTerm("");
+    setSearchResults([]);
     onClose();
     setTimeout(() => {
       onShowDetails(client.id);

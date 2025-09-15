@@ -6,12 +6,15 @@ import styles from "./adminDashboard.module.css";
 import StatCard from "../windgets/statCard";
 import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
-import ClientesCriticos from "../clientesCriticos/clientesCriticos";
+import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
 
-const AdminDashboard = ({ summaryData, isLoading }) => {
-  // Mostra um estado de carregamento enquanto os dados não chegam do componente pai
-
-  if (isLoading) {
+const AdminDashboard = ({
+  summaryData,
+  criticalClientsData,
+  renovationsData,
+}) => {
+  console.log(renovationsData);
+  if (criticalClientsData.isLoading) {
     return (
       <div className={styles.statusMessage}>
         Carregando dados do dashboard...
@@ -27,9 +30,9 @@ const AdminDashboard = ({ summaryData, isLoading }) => {
     );
   }
 
-  // Extrai os dados para facilitar o uso no JSX
   const { totalClients, upcomingExpirations, contractsByStatus, topPartners } =
     summaryData;
+  const totalRenovados = renovationsData?.totalRenovados || 0;
 
   return (
     <div className={styles.dashboardGrid}>
@@ -45,6 +48,7 @@ const AdminDashboard = ({ summaryData, isLoading }) => {
         value={upcomingExpirations["31-60 dias"]}
         icon="🗓️"
       />
+      <StatCard title="Renovados no Período" value={totalRenovados} icon="🔄" />
 
       {/* Linha de Gráficos */}
       <div className={styles.widget}>
@@ -57,7 +61,12 @@ const AdminDashboard = ({ summaryData, isLoading }) => {
 
       {/* Widget de Clientes Críticos (ocupa a largura total) */}
       <div className={`${styles.widget} ${styles.fullWidth}`}>
-        <ClientesCriticos />
+        <ClientesCriticos
+          clients={criticalClientsData.clients}
+          isLoading={criticalClientsData.isLoading}
+          period={criticalClientsData.period}
+          setPeriod={criticalClientsData.setPeriod}
+        />
       </div>
     </div>
   );

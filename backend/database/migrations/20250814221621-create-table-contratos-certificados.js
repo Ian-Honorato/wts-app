@@ -34,6 +34,10 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
+      data_renovacao: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       data_vencimento: {
         type: Sequelize.DATE,
         allowNull: true, //aqui pode ser nulo - contrato nao identificado

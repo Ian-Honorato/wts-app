@@ -53,10 +53,9 @@ function sanitizarCliente(data, isUpdate = false) {
     if (!sanitizedData.numero_contrato)
       errors.push("O número do contrato é obrigatório.");
   }
-  // NOVO BLOCO DE VALIDAÇÃO DE TELEFONE
+
   if (sanitizedData.telefone) {
     const cleanedTelefone = String(sanitizedData.telefone).replace(/\D/g, "");
-
     if (isUpdate) {
       if (cleanedTelefone.length < 10 || cleanedTelefone.length > 15) {
         errors.push("O número de telefone fornecido é inválido.");
@@ -75,9 +74,9 @@ function sanitizarCliente(data, isUpdate = false) {
       }
     }
   } else if (!isUpdate) {
-    // O telefone só é obrigatório na criação.
     errors.push("O telefone é obrigatório.");
   }
+
   if (sanitizedData.cpf_cnpj) {
     const cleanedCpfCnpj = String(sanitizedData.cpf_cnpj).replace(/\D/g, "");
     if (cleanedCpfCnpj.length === 11) {
@@ -90,6 +89,30 @@ function sanitizarCliente(data, isUpdate = false) {
     sanitizedData.cpf_cnpj = cleanedCpfCnpj;
   }
 
+  // Validação e conversão da data de renovação
+  if (
+    sanitizedData.data_renovacao &&
+    typeof sanitizedData.data_renovacao === "string"
+  ) {
+    const parts = sanitizedData.data_renovacao.split("-");
+    if (parts.length === 3) {
+      const [year, month, day] = parts.map(Number);
+      const dateObj = new Date(Date.UTC(year, month - 1, day));
+      if (!isNaN(dateObj.getTime())) {
+        sanitizedData.data_renovacao = dateObj;
+      } else {
+        errors.push(
+          "A data de Renovação é inválida. Use o formato AAAA-MM-DD."
+        );
+      }
+    } else {
+      errors.push(
+        "A data de Renovação está em um formato inválido. Use o formato AAAA-MM-DD."
+      );
+    }
+  }
+
+  // Validação e conversão da data de vencimento
   if (
     sanitizedData.data_vencimento &&
     typeof sanitizedData.data_vencimento === "string"
@@ -97,17 +120,18 @@ function sanitizarCliente(data, isUpdate = false) {
     const parts = sanitizedData.data_vencimento.split("-");
     if (parts.length === 3) {
       const [year, month, day] = parts.map(Number);
-      const dateObj = new Date(year, month - 1, day);
-      if (!isNaN(dateObj.getTime()) && dateObj.getDate() === day) {
+      // <-- MELHORIA: Use Date.UTC para consistência e evitar problemas de fuso horário
+      const dateObj = new Date(Date.UTC(year, month - 1, day));
+      if (!isNaN(dateObj.getTime())) {
         sanitizedData.data_vencimento = dateObj;
       } else {
         errors.push(
-          "A data de vencimento é inválida. Use o formato DD/MM/AAAA."
+          "A data de vencimento é inválida. Use o formato AAAA-MM-DD."
         );
       }
     } else {
       errors.push(
-        "A data de vencimento está em um formato inválido. Use o formato DD/MM/AAAA."
+        "A data de vencimento está em um formato inválido. Use o formato AAAA-MM-DD."
       );
     }
   }
@@ -153,6 +177,7 @@ class ClienteController {
       telefone,
       nome_certificado,
       numero_contrato,
+      data_renovacao,
       data_vencimento,
       status,
     } = sanitizedData;
@@ -206,6 +231,7 @@ class ClienteController {
         {
           numero_contrato,
           data_vencimento,
+          data_renovacao,
           status,
           cliente_id: novoCliente.id,
           usuario_id: req.userId,
@@ -251,6 +277,7 @@ class ClienteController {
       telefone,
       nome_certificado,
       numero_contrato,
+      data_renovacao,
       data_vencimento,
       status,
     } = sanitizedData;
@@ -315,6 +342,7 @@ class ClienteController {
       const contratoAtualizado = await contrato.update(
         {
           numero_contrato,
+          data_renovacao,
           data_vencimento,
           status,
           referencia_certificado: certificado
@@ -359,7 +387,7 @@ class ClienteController {
   }
 
   /**
-   * Lista todos os clientes (versão simplificada).
+   * Lista todos os clientes
    */
   async index(req, res) {
     try {
@@ -383,7 +411,12 @@ class ClienteController {
           {
             model: ContratoCertificado,
             as: "contratos",
-            attributes: ["numero_contrato", "data_vencimento", "status"],
+            attributes: [
+              "numero_contrato",
+              "data_vencimento",
+              "status",
+              "data_renovacao",
+            ],
             include: [
               {
                 model: Certificado,
@@ -409,41 +442,30 @@ class ClienteController {
       return errorHandler(e, res);
     }
   }
+
   async search(req, res) {
     try {
-      const { q } = req.query;
+      const { searchTerm = "" } = req.query;
 
-      if (!q) {
-        return res.status(400).json({
-          error: "O parâmetro de busca 'q' é obrigatório.",
-        });
+      if (!searchTerm) {
+        return res.json({ msg: "Nenhum cliente encontrado." });
       }
-      const cleanedQuery = q.replace(/\D/g, "");
-
+      const whereOptions = {
+        [Op.or]: [
+          { nome: { [Op.like]: `%${searchTerm}%` } },
+          { cpf_cnpj: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      };
       const clientes = await Cliente.findAll({
-        where: {
-          // A busca agora usa [Op.or]
-          [Op.or]: [
-            {
-              nome: {
-                [Op.like]: `%${q}%`,
-              },
-            },
-            {
-              cpf_cnpj: {
-                [Op.like]: `%${cleanedQuery}%`,
-              },
-            },
-          ],
-        },
-        limit: 10,
-        attributes: ["id", "nome", "cpf_cnpj"],
+        where: whereOptions,
         order: [["nome", "ASC"]],
+        limit: 10,
       });
 
       return res.json(clientes);
-    } catch (e) {
-      return errorHandler(e, res);
+    } catch (error) {
+      console.error("searchTerm Error:", error);
+      return res.status(500).json({ error: "Erro ao buscar clientes." });
     }
   }
 
@@ -506,10 +528,9 @@ class ClienteController {
         };
       });
 
-      // A resposta final é enviada aqui, uma única vez, após o loop
       return res.json({ Contratos_criticos: contratosCriticos });
     } catch (e) {
-      return handleError(e, res); // Corrigido para chamar handleError
+      return handleError(e, res);
     }
   }
 
@@ -524,7 +545,12 @@ class ClienteController {
           {
             model: ContratoCertificado,
             as: "contratos",
-            attributes: ["numero_contrato", "data_vencimento", "status"],
+            attributes: [
+              "numero_contrato",
+              "data_vencimento",
+              "status",
+              "data_renovacao",
+            ],
             include: [
               {
                 model: Certificado,
