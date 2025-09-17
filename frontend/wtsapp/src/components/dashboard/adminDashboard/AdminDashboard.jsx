@@ -1,4 +1,3 @@
-// src/pages/dashboard/AdminDashboard.jsx
 import React from "react";
 import styles from "./adminDashboard.module.css";
 
@@ -7,13 +6,17 @@ import StatCard from "../windgets/statCard";
 import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
 import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
+import RenovationsCard from "../renovationsCard/renovationsCard";
 
 const AdminDashboard = ({
   summaryData,
   criticalClientsData,
   renovationsData,
+  filters,
+  setFilters,
+  handleSearch,
 }) => {
-  console.log(renovationsData);
+  // Condições de carregamento e de dados vazios
   if (criticalClientsData.isLoading) {
     return (
       <div className={styles.statusMessage}>
@@ -22,7 +25,6 @@ const AdminDashboard = ({
     );
   }
   if (!summaryData || summaryData.totalClients === 0) {
-    // Se nenhuma informaç
     return (
       <div className={styles.statusMessage}>
         Nenhum cliente cadastrado no momento.
@@ -30,8 +32,10 @@ const AdminDashboard = ({
     );
   }
 
+  // Extração de dados das props
   const { totalClients, upcomingExpirations, contractsByStatus, topPartners } =
     summaryData;
+
   const totalRenovados = renovationsData?.totalRenovados || 0;
 
   return (
@@ -48,7 +52,14 @@ const AdminDashboard = ({
         value={upcomingExpirations["31-60 dias"]}
         icon="🗓️"
       />
-      <StatCard title="Renovados no Período" value={totalRenovados} icon="🔄" />
+
+      {/* Card de renovados agora é o nosso componente customizado */}
+      <RenovationsCard
+        value={totalRenovados}
+        filters={filters}
+        setFilters={setFilters}
+        handleSearch={handleSearch}
+      />
 
       {/* Linha de Gráficos */}
       <div className={styles.widget}>

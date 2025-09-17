@@ -22,6 +22,8 @@ const AdminHeader = ({
   onOpenImportModal,
   onOpenUserModal,
   onOpenListUserModal,
+  onOpenParceiroModal,
+  onOpenListParceiroModal,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toggleSidebar = () => {
@@ -53,6 +55,16 @@ const AdminHeader = ({
     e.preventDefault();
     toggleSidebar();
     onOpenImportModal();
+  };
+  const handleCadastrarParceiro = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenParceiroModal();
+  };
+  const handleListarParceiro = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenListParceiroModal();
   };
   return (
     <>
@@ -137,7 +149,14 @@ const AdminHeader = ({
                 </summary>
                 <ul>
                   <li>
-                    <a href="#">Listar</a>
+                    <a href="#" onClick={handleCadastrarParceiro}>
+                      Cadastrar
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" onClick={handleListarParceiro}>
+                      Listar
+                    </a>
                   </li>
                   <li>
                     <a href="#">Financeiro</a>

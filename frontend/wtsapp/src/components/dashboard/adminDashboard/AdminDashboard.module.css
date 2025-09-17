@@ -2,7 +2,6 @@
 
 .dashboardGrid {
   display: grid;
-  /* Cria um layout flexível que tenta colocar 3 colunas se houver espaço */
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
 }
@@ -15,6 +14,5 @@
 }
 
 .fullWidth {
-  /* Faz o widget ocupar todas as colunas da linha em que está */
   grid-column: 1 / -1;
 }

@@ -120,7 +120,7 @@ class DashboardController {
               model: Parceiro,
               as: "parceiro_indicador",
               attributes: ["nome_escritorio"],
-              required: true, // Garante que apenas clientes com parceiros sejam contados
+              required: true,
             },
           ],
           group: [
@@ -156,27 +156,45 @@ class DashboardController {
     try {
       const { data_inicio, data_fim } = req.query;
 
+      // --- CORREÇÃO AQUI ---
+      // Declarar as variáveis de data no escopo externo
+      let startDate;
+      let endDate;
+
+      const parseDate = (dateString) => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+          return new Date(dateString + "T00:00:00");
+        }
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+          const [day, month, year] = dateString.split("/");
+          return new Date(`${year}-${month}-${day}T00:00:00`);
+        }
+        return null;
+      };
+
+      if (data_inicio && data_fim) {
+        // Se o frontend enviar datas (o padrão agora), nós as usamos.
+        startDate = parseDate(data_inicio);
+        endDate = parseDate(data_fim);
+      } else {
+        // Se, por algum motivo, as datas não vierem, o backend tem seu próprio padrão (mês atual).
+        // Isso torna a API robusta.
+        const hoje = new Date();
+        startDate = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        endDate = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+      }
+
       const whereOptions = {
         status: "Renovado",
       };
 
-      const parseDate = (dateString) => {
-        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return null;
-        const [day, month, year] = dateString.split("/");
-        return new Date(`${year}-${month}-${day}T00:00:00`);
-      };
-
-      if (data_inicio && data_fim) {
-        const startDate = parseDate(data_inicio);
-        const endDate = parseDate(data_fim);
-
-        if (startDate && endDate) {
-          endDate.setHours(23, 59, 59, 999);
-
-          whereOptions.updated_at = {
-            [Op.between]: [startDate, endDate],
-          };
-        }
+      // Esta verificação agora funciona, pois startDate e endDate existem neste escopo.
+      if (startDate && endDate) {
+        endDate.setHours(23, 59, 59, 999);
+        whereOptions.updated_at = {
+          // Lembre-se de confirmar esta coluna
+          [Op.between]: [startDate, endDate],
+        };
       }
 
       const contractsRenovation = await ContratoCertificado.findAll({
@@ -184,7 +202,6 @@ class DashboardController {
         where: whereOptions,
       });
 
-      // Retorna apenas o número total
       const totalCount = contractsRenovation[0]?.get("count") || 0;
       return res.json({ totalRenovados: totalCount });
     } catch (e) {

@@ -2,19 +2,28 @@ import { useState } from "react";
 
 export function useModalManager() {
   const [modalState, setModalState] = useState({
+    // Flags de visibilidade de modais
     isClientModalOpen: false,
     isListClientsModalOpen: false,
     isDetailsModalOpen: false,
     isImportModalOpen: false,
     isUserModalOpen: false,
     isListUsersModalOpen: false,
-    editingUser: null,
-    selectedClientId: null,
-    editingClient: null,
+    isParceiroModalOpen: false,
+    isListParceirosModalOpen: false,
+    isParceiroDetailsModalOpen: false,
     responseModal: { isOpen: false, type: "", message: "" },
+
+    // Dados para os modais
+    editingUser: null,
+    editingClient: null,
+    editingParceiro: null,
+    selectedClientId: null,
+    selectedParceiroId: null,
   });
 
   const modalHandlers = {
+    // --- Handlers de Usuário ---
     openUserModal: (userData = null) => {
       setModalState((prev) => ({
         ...prev,
@@ -22,25 +31,20 @@ export function useModalManager() {
         isUserModalOpen: true,
       }));
     },
-    openListUsersModal: () => {
-      setModalState((prev) => ({
-        ...prev,
-        isListUsersModalOpen: true,
-      }));
-    },
-    closeListUsersModal: () => {
-      setModalState((prev) => ({
-        ...prev,
-        isListUsersModalOpen: false,
-      }));
-    },
     closeUserModal: () =>
       setModalState((prev) => ({
         ...prev,
         isUserModalOpen: false,
-        editingUser: null, // Limpa o usuário ao fechar
+        editingUser: null,
       })),
+    openListUsersModal: () => {
+      setModalState((prev) => ({ ...prev, isListUsersModalOpen: true }));
+    },
+    closeListUsersModal: () => {
+      setModalState((prev) => ({ ...prev, isListUsersModalOpen: false }));
+    },
 
+    // --- Handlers de Cliente ---
     openClientModal: (clientData = null) =>
       setModalState((prev) => ({
         ...prev,
@@ -69,10 +73,68 @@ export function useModalManager() {
         isDetailsModalOpen: false,
         selectedClientId: null,
       })),
+
+    // --- Handlers de Parceiro ---
+    openParceiroModal: (parceiroData = null) => {
+      if (modalState.isListParceirosModalOpen) {
+        setModalState((prev) => ({ ...prev, isListParceirosModalOpen: false }));
+        setTimeout(() => {
+          setModalState((prev) => ({
+            ...prev,
+            editingParceiro: parceiroData,
+            isParceiroModalOpen: true,
+          }));
+        }, 300);
+      } else {
+        setModalState((prev) => ({
+          ...prev,
+          editingParceiro: parceiroData,
+          isParceiroModalOpen: true,
+        }));
+      }
+    },
+
+    closeParceiroModal: () =>
+      setModalState((prev) => ({
+        ...prev,
+        isParceiroModalOpen: false,
+        editingParceiro: null,
+      })),
+    openListParceirosModal: () =>
+      setModalState((prev) => ({ ...prev, isListParceirosModalOpen: true })),
+    closeListParceirosModal: () =>
+      setModalState((prev) => ({ ...prev, isListParceirosModalOpen: false })),
+    openParceiroDetails: (parceiroId) => {
+      if (modalState.isListParceirosModalOpen) {
+        setModalState((prev) => ({ ...prev, isListParceirosModalOpen: false }));
+        setTimeout(() => {
+          setModalState((prev) => ({
+            ...prev,
+            selectedParceiroId: parceiroId,
+            isParceiroDetailsModalOpen: true,
+          }));
+        }, 300);
+      } else {
+        setModalState((prev) => ({
+          ...prev,
+          selectedParceiroId: parceiroId,
+          isParceiroDetailsModalOpen: true,
+        }));
+      }
+    },
+    closeParceiroDetails: () =>
+      setModalState((prev) => ({
+        ...prev,
+        isParceiroDetailsModalOpen: false,
+        selectedParceiroId: null,
+      })),
+
+    // --- Handlers Gerais ---
     openImportModal: () =>
       setModalState((prev) => ({ ...prev, isImportModalOpen: true })),
     closeImportModal: () =>
       setModalState((prev) => ({ ...prev, isImportModalOpen: false })),
+
     showResponseModal: (type, message) =>
       setModalState((prev) => ({
         ...prev,
@@ -83,6 +145,7 @@ export function useModalManager() {
         ...prev,
         responseModal: { ...prev.responseModal, isOpen: false },
       })),
+
     closeAll: () =>
       setModalState((prev) => ({
         ...prev,
@@ -92,6 +155,9 @@ export function useModalManager() {
         isImportModalOpen: false,
         isUserModalOpen: false,
         isListUsersModalOpen: false,
+        isParceiroModalOpen: false,
+        isListParceirosModalOpen: false,
+        isParceiroDetailsModalOpen: false,
       })),
   };
 

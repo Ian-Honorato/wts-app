@@ -1,0 +1,124 @@
+/* ======================================== */
+/* ESTRUTURA DO MODAL (BASEADO EM CLIENTES) */
+/* ======================================== */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modalContent {
+  background-color: var(--white-color);
+  padding: 0; /* O padding será aplicado nos containers internos */
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 700px; /* Um pouco menor que o de clientes, pois tem menos colunas */
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.header h2 {
+  color: var(--text-color);
+}
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-light-color);
+}
+
+/* ======================================== */
+/* ESTILOS DA TABELA                        */
+/* ======================================== */
+.tableContainer {
+  padding: 1.5rem; /* Adiciona espaçamento interno */
+  overflow-y: auto;
+}
+
+.dataTable {
+  /* Nome genérico para a tabela */
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dataTable th {
+  font-weight: 600;
+  color: var(--text-light-color);
+}
+
+/* Efeito de linhas zebradas, igual ao modal de clientes */
+.dataTable tbody tr:nth-child(even) {
+  background-color: var(--background-light-color);
+}
+
+/* ======================================== */
+/* ESTILOS DOS BOTÕES DE AÇÃO               */
+/* ======================================== */
+.actionsCell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end; /* Alinha os botões à direita */
+  width: 140px;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+/* Cores individuais para cada botão */
+.actionButton.show {
+  color: #3498db;
+}
+.actionButton.update {
+  color: #f39c12;
+}
+.actionButton.delete {
+  color: #e74c3c;
+}
+
+.actionButton:hover {
+  background-color: #f0f0f0;
+}
+
+/* ======================================== */
+/* MENSAGENS DE STATUS                      */
+/* ======================================== */
+.statusMessage,
+.emptyMessage {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-light-color);
+}
+.error {
+  color: #e74c3c;
+}

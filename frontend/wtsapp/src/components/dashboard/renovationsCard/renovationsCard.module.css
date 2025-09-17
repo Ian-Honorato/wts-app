@@ -1,0 +1,69 @@
+.renovationsWidget {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #e0e0e0;
+}
+
+.statSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statIcon {
+  font-size: 2.5rem;
+  color: #3498db;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #34495e;
+}
+
+.statTitle {
+  font-size: 1rem;
+  color: #7f8c8d;
+  align-self: flex-end;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+  white-space: nowrap;
+}
+
+.filterSection {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 0.5rem;
+  align-items: center;
+  border-top: 1px solid #ecf0f1;
+  padding-top: 1rem;
+}
+
+.filterInput {
+  flex-grow: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.searchButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.searchButton:hover {
+  background-color: #2980b9;
+}

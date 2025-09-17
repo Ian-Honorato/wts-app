@@ -17,7 +17,6 @@ const fetchCriticalClients = async (period) => {
     { days: period },
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  //console.log("dados do contrato", data.Contratos_criticos);
   return data.Contratos_criticos;
 };
 const fetchRenovationsData = async (filters) => {
@@ -33,14 +32,27 @@ const fetchRenovationsData = async (filters) => {
   console.log("REcebendo dados", data);
   return data;
 };
+// Função auxiliar para formatar Date -> "YYYY-MM-DD" (que o <input type="date"> precisa)
+const formatDateToYMD = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
+const hoje = new Date();
+const primeiroDiaDoMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+const ultimoDiaDoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+// Cria o objeto de estado inicial formatado
+const initialState = {
+  data_inicio: formatDateToYMD(primeiroDiaDoMes),
+  data_fim: formatDateToYMD(ultimoDiaDoMes),
+};
 export function useDashboardData(user) {
   const [criticalPeriod, setCriticalPeriod] = useState("10");
-  const [filters, setFilters] = useState({ data_inicio: "", data_fim: "" });
-  const [activeFilters, setActiveFilters] = useState({
-    data_inicio: "",
-    data_fim: "",
-  });
+  const [filters, setFilters] = useState(initialState);
+  const [activeFilters, setActiveFilters] = useState(initialState);
 
   const { data: sumarioData, isLoading: isSumarioLoading } = useQuery({
     queryKey: ["sumarioData"],

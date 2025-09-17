@@ -1,0 +1,140 @@
+/* Estrutura principal do Modal (backdrop e conteúdo) */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: backdropFadeIn 0.3s ease-out;
+}
+
+.modalContent {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Cabeçalho do Modal */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #95a5a6;
+  transition: color 0.2s;
+}
+
+.closeButton:hover {
+  color: #34495e;
+}
+
+/* Estilos do Formulário */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputGroup label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.inputGroup input[type="text"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Garante que o padding não quebre o layout */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.inputGroup input[type="text"]:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Botão de Envio */
+.submitButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #3498db; /* Mesmo azul dos outros botões */
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+
+.submitButton:hover {
+  background-color: #2980b9;
+}
+
+.submitButton:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+/* Mensagem de Erro */
+.errorMessage {
+  color: #e74c3c; /* Vermelho para erro */
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Animações (opcional, mas dá um toque profissional) */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

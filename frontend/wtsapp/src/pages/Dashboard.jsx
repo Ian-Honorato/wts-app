@@ -10,7 +10,7 @@ import { useDashboardData } from "../hooks/useDashboardData";
 import AdminHeader from "../components/dashboard/adminHeader/AdminHeader.jsx";
 import UserHeader from "../components/dashboard/userHeader/UserHeader.jsx";
 import AdminDashboard from "../components/dashboard/adminDashboard/AdminDashboard.jsx";
-import ClientesCriticos from "../components/dashboard/clientesCriticos/clientesCriticos.jsx";
+import ClientesCriticos from "../components/dashboard/clientesCriticos/ClientesCriticos.jsx";
 
 // Modais
 import ClientModal from "../components/dashboard/clientModal/ClientModal.jsx";
@@ -20,6 +20,9 @@ import ResponseModal from "../components/dashboard/responseModal/ResponseModal.j
 import ImportXMLModal from "../components/dashboard/importXMLModal/ImportXMLModal.jsx";
 import UserModal from "../components/dashboard/userModal/UserModal.jsx";
 import ListUsersModal from "../components/dashboard/ListUsersModal/ListUsersModal.jsx";
+import ParceiroModal from "../components/dashboard/parceiroModal/ParceiroModal.jsx";
+import ListParceirosModal from "../components/dashboard/listParceirosModal/ListParceirosModal.jsx";
+import ParceiroDetailsModal from "../components/dashboard/parceiroDetailsModal/ParceiroDetailsModal.jsx";
 
 const Dashboard = () => {
   const { user, isLoading: isAuthLoading, logout } = useAuth();
@@ -30,7 +33,10 @@ const Dashboard = () => {
     isDataLoading,
     criticalPeriod,
     setCriticalPeriod,
-    totalRenovados,
+    filters,
+    setFilters,
+    handleSearch,
+    renovationsData,
   } = useDashboardData(user);
   //console.log("sumarioData", sumarioData);
   const handleSubmitFeedback = (type, message) => {
@@ -55,6 +61,8 @@ const Dashboard = () => {
           onOpenImportModal={modalHandlers.openImportModal}
           onOpenUserModal={modalHandlers.openUserModal}
           onOpenListUserModal={modalHandlers.openListUsersModal}
+          onOpenParceiroModal={modalHandlers.openParceiroModal}
+          onOpenListParceiroModal={modalHandlers.openListParceirosModal}
         />
       ) : (
         <UserHeader user={user} onLogout={logout} />
@@ -70,9 +78,10 @@ const Dashboard = () => {
               period: criticalPeriod,
               setPeriod: setCriticalPeriod,
             }}
-            renovationsData={{
-              totalRenovados,
-            }}
+            renovationsData={renovationsData}
+            filters={filters}
+            setFilters={setFilters}
+            handleSearch={handleSearch}
           />
         ) : (
           <ClientesCriticos
@@ -128,6 +137,26 @@ const Dashboard = () => {
         onClose={modalHandlers.closeResponseModal}
         type={modalState.responseModal.type}
         message={modalState.responseModal.message}
+      />
+      <ParceiroModal
+        isOpen={modalState.isParceiroModalOpen}
+        onClose={modalHandlers.closeParceiroModal}
+        onFeedback={handleSubmitFeedback}
+        editingParceiro={modalState.editingParceiro}
+      />
+      <ListParceirosModal
+        isOpen={modalState.isListParceirosModalOpen}
+        onClose={modalHandlers.closeListParceirosModal}
+        onShowDetails={modalHandlers.openParceiroDetails}
+        onOpenUpdateModal={modalHandlers.openParceiroModal}
+        onFeedback={handleSubmitFeedback}
+      />
+      <ParceiroDetailsModal
+        isOpen={modalState.isParceiroDetailsModalOpen}
+        onClose={modalHandlers.closeParceiroDetails}
+        parceiroId={modalState.selectedParceiroId}
+        onShowDetails={modalHandlers.openParceiroDetails}
+        onOpenUpdateModal={modalHandlers.openParceiroModal}
       />
     </div>
   );
