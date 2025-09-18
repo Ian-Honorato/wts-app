@@ -21,10 +21,15 @@ class Certificado extends Model {
   }
 
   static associate(models) {
-    // Um tipo de certificado pode estar em muitos contratos
+    // Relação existente (mantida)
     this.hasMany(models.ContratoCertificado, {
       foreignKey: "referencia_certificado",
       as: "contratos",
+    });
+
+    this.hasMany(models.PagamentoCertificado, {
+      foreignKey: "tipo_certificado_id",
+      as: "pagamentos_detalhes",
     });
   }
 }

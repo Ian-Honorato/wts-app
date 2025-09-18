@@ -4,21 +4,25 @@ class PagamentoParceiro extends Model {
   static init(sequelize) {
     super.init(
       {
-        data_pagamento: {
-          type: DataTypes.DATE,
+        mes_referencia: {
+          type: DataTypes.DATEONLY,
           allowNull: false,
         },
-        valor_pago: {
+
+        valor_total: {
           type: DataTypes.DECIMAL(10, 2),
           allowNull: false,
         },
-        quantidade_clientes: {
-          type: DataTypes.INTEGER,
+
+        status: {
+          type: DataTypes.ENUM("Pendente", "Pago"),
           allowNull: false,
+          defaultValue: "Pendente",
         },
-        percentual_pagamento: {
-          type: DataTypes.FLOAT,
-          allowNull: false,
+
+        data_pagamento: {
+          type: DataTypes.DATE,
+          allowNull: true,
         },
       },
       {
@@ -31,11 +35,15 @@ class PagamentoParceiro extends Model {
     return this;
   }
 
-  // A associação está perfeita como você fez.
   static associate(models) {
     this.belongsTo(models.Parceiro, {
       foreignKey: "parceiro_id",
       as: "parceiro",
+    });
+
+    this.hasMany(models.PagamentoCertificado, {
+      foreignKey: "pagamento_id",
+      as: "certificados",
     });
   }
 }

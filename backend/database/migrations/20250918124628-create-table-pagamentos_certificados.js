@@ -1,37 +1,42 @@
 "use strict";
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("pagamentos_parceiros", {
+    await queryInterface.createTable("pagamentos_certificados", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      parceiro_id: {
+      pagamento_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: "parceiros", key: "id" },
+        references: { model: "pagamentos_parceiros", key: "id" },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      mes_referencia: {
-        type: Sequelize.DATEONLY,
+      tipo_certificado_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: "certificados", key: "id" },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
+      },
+      quantidade: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      valor_certificado: {
+        type: Sequelize.DECIMAL(10, 2),
+      },
+      percentual_comissao: {
+        type: Sequelize.FLOAT,
         allowNull: false,
       },
       valor_total: {
         type: Sequelize.DECIMAL(10, 2),
-        allowNull: false,
       },
-      status: {
-        type: Sequelize.ENUM("Pendente", "Pago"),
-        allowNull: false,
-        defaultValue: "Pendente",
-      },
-      data_pagamento: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
+
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -43,6 +48,6 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.dropTable("pagamentos_parceiros");
+    await queryInterface.dropTable("pagamentos_certificados");
   },
 };
