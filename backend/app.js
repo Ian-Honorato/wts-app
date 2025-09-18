@@ -6,7 +6,7 @@ import usuariosRoutes from "./Routes/usuarioRoutes.js";
 import clientesRoutes from "./Routes/clienteRoutes.js";
 import parceirosRoutes from "./Routes/parceiroRoutes.js";
 import certificadosRoutes from "./Routes/certificadoRoutes.js";
-import pagamentoParceiroRoutes from "./Routes/pagamentoParceiroRoutes.js";
+import pagamentoRoutes from "./Routes/pagamentoRoutes.js";
 import uploadRoutes from "./Routes/uploadRoutes.js";
 import dashboardRoutes from "./Routes/dashboardRoutes.js";
 class App {
@@ -24,9 +24,9 @@ class App {
     this.app.use("/clientes", clientesRoutes);
     this.app.use("/parceiros", parceirosRoutes);
     this.app.use("/certificados", certificadosRoutes);
-    this.app.use("/pagamentos", pagamentoParceiroRoutes);
     this.app.use("/upload", uploadRoutes);
     this.app.use("/dashboard", dashboardRoutes);
+    this.app.use("/pagamentos", pagamentoRoutes);
   }
 }
 export default new App().app;
