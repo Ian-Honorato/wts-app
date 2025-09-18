@@ -12,6 +12,7 @@ export function useModalManager() {
     isParceiroModalOpen: false,
     isListParceirosModalOpen: false,
     isParceiroDetailsModalOpen: false,
+    isFinanceiroModalOpen: false,
     responseModal: { isOpen: false, type: "", message: "" },
 
     // Dados para os modais
@@ -128,6 +129,12 @@ export function useModalManager() {
         isParceiroDetailsModalOpen: false,
         selectedParceiroId: null,
       })),
+    // --- Handlers de Financeiro ---
+
+    openFinanceiroModal: () =>
+      setModalState((prev) => ({ ...prev, isFinanceiroModalOpen: true })),
+    closeFinanceiroModal: () =>
+      setModalState((prev) => ({ ...prev, isFinanceiroModalOpen: false })),
 
     // --- Handlers Gerais ---
     openImportModal: () =>
@@ -158,6 +165,7 @@ export function useModalManager() {
         isParceiroModalOpen: false,
         isListParceirosModalOpen: false,
         isParceiroDetailsModalOpen: false,
+        isFinanceiroModalOpen: false,
       })),
   };
 

@@ -24,6 +24,7 @@ const AdminHeader = ({
   onOpenListUserModal,
   onOpenParceiroModal,
   onOpenListParceiroModal,
+  onOpenFinanceiroModal,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toggleSidebar = () => {
@@ -66,6 +67,13 @@ const AdminHeader = ({
     toggleSidebar();
     onOpenListParceiroModal();
   };
+
+  const handleOpenFinanceiro = (e) => {
+    e.preventDefault();
+    toggleSidebar();
+    onOpenFinanceiroModal();
+  };
+
   return (
     <>
       {isSidebarOpen && (
@@ -159,7 +167,9 @@ const AdminHeader = ({
                     </a>
                   </li>
                   <li>
-                    <a href="#">Financeiro</a>
+                    <a href="#" onClick={handleOpenFinanceiro}>
+                      Financeiro
+                    </a>
                   </li>
                 </ul>
               </details>

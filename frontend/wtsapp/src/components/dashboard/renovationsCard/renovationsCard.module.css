@@ -57,7 +57,7 @@
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
-  background-color: #3498db;
+  background-color: #0a9396;
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -65,5 +65,5 @@
 }
 
 .searchButton:hover {
-  background-color: #2980b9;
+  background-color: #005f73;
 }

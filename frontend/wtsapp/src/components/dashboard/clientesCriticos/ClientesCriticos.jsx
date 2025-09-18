@@ -1,7 +1,6 @@
 import React from "react";
 import styles from "./clientesCriticos.module.css";
 
-// O componente agora usa APENAS as props que recebe
 const ClientesCriticos = ({ clients, isLoading, period, setPeriod }) => {
   const handleSendMessage = () => {
     alert("Funcionalidade de enviar mensagem em massa ainda não implementada.");

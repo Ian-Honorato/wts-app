@@ -1,5 +1,10 @@
 // 1. Importa o modelo 'Parceiro' a partir do inicializador central
-import { Parceiro } from "../Models/index.js";
+import {
+  Cliente,
+  Parceiro,
+  ContratoCertificado,
+  Certificado,
+} from "../Models/index.js";
 
 // Importando os tipos de erro específicos do Sequelize para tratamento
 import {
@@ -120,39 +125,40 @@ class ParceiroController {
       const { id } = req.params;
 
       const parceiro = await Parceiro.findByPk(id, {
-        // Inclui os clientes associados
-        include: {
-          model: Cliente,
-          as: "clientes_indicados",
-          attributes: ["id", "nome", "cpf_cnpj"],
-          // Para cada cliente, inclui os contratos associados
-          include: {
-            model: ContratoCertificado,
-            as: "contratos",
-            attributes: ["id", "numero_contrato", "data_vencimento", "status"],
+        include: [
+          {
+            model: Cliente,
+            as: "clientes_indicados",
+            attributes: ["id", "nome", "cpf_cnpj"],
+            include: [
+              {
+                model: ContratoCertificado,
+                as: "contratos",
+                attributes: [
+                  "id",
+                  "numero_contrato",
+                  "data_vencimento",
+                  "status",
+                  "data_renovacao",
+                ],
+                include: [
+                  {
+                    model: Certificado,
+                    as: "certificado",
+                    attributes: ["nome_certificado"],
+                  },
+                ],
+              },
+            ],
           },
-        },
+        ],
       });
 
       if (!parceiro) {
-        return res.status(404).json({ error: "Parceiro não encontrado." });
+        return res.status(404).json({ error: "Parceiro nao encontrado." });
       }
 
-      const clientesIndicados = parceiro.clientes_indicados || [];
-      const todosOsContratos = clientesIndicados.flatMap(
-        (cliente) => cliente.contratos || []
-      );
-
-      const response = {
-        parceiro: {
-          id: parceiro.id,
-          nome_escritorio: parceiro.nome_escritorio,
-        },
-        quantidade_clientes_indicados: clientesIndicados.length,
-        contratos_associados: todosOsContratos,
-      };
-
-      return res.json(response);
+      return res.status(200).json(parceiro);
     } catch (e) {
       return handleError(e, res);
     }

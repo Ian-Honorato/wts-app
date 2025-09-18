@@ -16,6 +16,13 @@ router.post("/", loginRequired, parceiroController.store);
 // Exibe um parceiro específico
 router.get("/:id", loginRequired, parceiroController.show);
 
+// Lista todos os contratos de um parceiro
+router.get(
+  "/:id/contratos",
+  loginRequired,
+  parceiroController.contratosByParceiro
+);
+
 // Atualiza um parceiro
 router.put("/:id", loginRequired, parceiroController.update);
 

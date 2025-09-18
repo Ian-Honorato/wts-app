@@ -1,10 +1,10 @@
-/* Usando as variáveis globais que você definiu no :root */
+/* Estilo geral do Modal */
 .backdrop {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -13,26 +13,33 @@
 }
 
 .modalContent {
-  background: var(--white-color);
-  border-radius: 12px;
-  box-shadow: var(--box-shadow-light);
+  background: #fdfdfd;
   width: 90%;
-  max-width: 600px;
+  max-width: 800px;
   max-height: 90vh;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
 }
 
+/* Header */
 .header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
 }
+
 .header h2 {
   margin: 0;
-  color: var(--primary-dark-color);
+  font-size: 1.25rem;
+  color: #2d3748;
+}
+
+.header h2 strong {
+  color: #0a9396;
 }
 
 .closeButton {
@@ -40,128 +47,156 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #95a5a6;
+  color: #888;
+  transition: color 0.2s;
 }
 
+.closeButton:hover {
+  color: #333;
+}
+
+/* Conteúdo Principal */
 .detailsContainer {
   padding: 1.5rem;
   overflow-y: auto;
 }
 
-.partnerName {
-  color: var(--primary-dark-color);
-  margin-bottom: 1.5rem;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
+.error {
+  color: #d9534f;
 }
 
-.statsGrid {
+/* Grid de Resumo */
+.summaryGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1.5rem;
 }
 
-.statItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.summaryCard {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-left: 5px solid #0a9396;
+  border-radius: 8px;
   padding: 1rem;
-  background-color: var(--background-light-color);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #2d3748;
+}
+
+.summaryCard h3 {
+  margin: 0;
+  font-size: 2rem;
+  color: #2d3748;
+}
+
+.summaryCard p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Seção de Certificados */
+.certificatesSection {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
   border-radius: 8px;
 }
-
-.statValue {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
+.certificatesSection h4 {
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
 }
-
-.statLabel {
-  font-size: 0.9rem;
-  color: var(--text-light-color);
-  margin-top: 0.25rem;
-}
-
-.sectionTitle {
-  font-size: 1.1rem;
-  color: var(--text-color);
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.typeList {
+.certificatesSection ul {
   list-style: none;
   padding: 0;
-  margin-bottom: 2rem;
-  border: 1px solid var(--border-color);
+  margin: 0;
+  columns: 2;
+  gap: 1rem;
+}
+.certificatesSection li {
+  padding: 0.25rem 0;
+}
+
+/* Botões de Toggle */
+.toggleButtons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.toggleButton {
+  flex-grow: 1;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #2d3748;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+.toggleButton:hover {
+  background-color: #f0f0f0;
+  border-color: #aaa;
+}
+
+.toggleButton.active {
+  background-color: #0a9396;
+  color: white;
+  border-color: #005f73;
+}
+
+/* Lista de Clientes */
+.clientListWrapper {
+  animation: fadeIn 0.8s ease;
+}
+
+.clientTableContainer {
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.typeList li {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border-color);
+.clientRow {
+  border-bottom: 1px solid #e0e0e0;
 }
-.typeList li:last-child {
+.clientRow:last-child {
   border-bottom: none;
 }
 
-.typeList li span {
-  color: var(--text-light-color);
-}
-
-.typeList li strong {
-  color: var(--text-color);
-  font-weight: 600;
-}
-
-.actionsFooter {
+.clientHeader {
   display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
 }
 
-.editButton,
-.paymentButton {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  color: var(--white-color);
-  cursor: pointer;
-  font-weight: bold;
+.contractDetails {
+  padding: 0.5rem 1.5rem 1rem 1.5rem;
+  background-color: #fff;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.contractDetails p {
+  margin: 0.25rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.editButton {
-  background-color: #f39c12; /* Laranja */
-}
-
-.paymentButton {
-  background-color: #27ae60;
-}
-
-.paymentButton:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.statusMessage {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-light-color);
-}
-.error {
-  color: #e74c3c;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
