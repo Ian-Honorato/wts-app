@@ -74,99 +74,58 @@ class PagamentoController {
           .json({ errors: ["Parceiro e mês de referência são obrigatórios."] });
       }
 
-      const mes = new Date(mes_referencia);
-      const inicioMes = new Date(mes.getFullYear(), mes.getMonth(), 1);
-      const fimMes = new Date(
-        mes.getFullYear(),
-        mes.getMonth() + 1,
-        0,
-        23,
-        59,
-        59
+      const [ano, mes] = mes_referencia.split("-").map(Number);
+      const inicioMes = new Date(ano, mes - 1, 1);
+      const fimMes = new Date(ano, mes, 0, 23, 59, 59);
+
+      console.log(
+        "Buscando entre:",
+        inicioMes.toISOString(),
+        "e",
+        fimMes.toISOString()
       );
 
-      // --- PASSO 1: BUSCAR TUDO QUE FOI RENOVADO ---
       const contratosRenovados = await ContratoCertificado.findAll({
-        attributes: [
-          "referencia_certificado", // O ID do tipo de certificado
-          // Conta quantas vezes cada tipo de certificado foi renovado
-          [
-            sequelize.fn("COUNT", sequelize.col("ContratoCertificado.id")),
-            "total_renovado",
-          ],
-        ],
-        include: [
-          {
-            model: Cliente,
-            as: "cliente",
-            attributes: [],
-            where: { referencia_parceiro: parceiro_id },
-          },
-        ],
         where: {
           status: "Renovado",
           data_renovacao: { [Op.between]: [inicioMes, fimMes] },
         },
-        group: ["referencia_certificado"],
-        raw: true, // Retorna dados puros, mais fáceis de manipular
-      });
-
-      const renovacoesMap = new Map(
-        contratosRenovados.map((item) => [
-          item.referencia_certificado,
-          parseInt(item.total_renovado, 10),
-        ])
-      );
-
-      // --- PASSO 2: BUSCAR TUDO QUE JÁ FOI PAGO PARA ESSE MÊS ---
-      const pagamentosFeitos = await PagamentoCertificado.findAll({
-        attributes: [
-          "tipo_certificado_id",
-          [sequelize.fn("SUM", sequelize.col("quantidade")), "quantidade_paga"],
-        ],
+        // Correção: Um único array de 'include'
         include: [
           {
-            model: PagamentoParceiro,
-            as: "pagamento",
-            attributes: [],
-            where: {
-              parceiro_id: parceiro_id,
-              mes_referencia: inicioMes,
-            },
+            model: Cliente,
+            as: "cliente",
+            required: true,
+            include: [
+              {
+                model: Parceiro,
+                as: "parceiro_indicador",
+                required: true,
+                where: { id: parceiro_id },
+              },
+            ],
+          },
+          {
+            model: Certificado,
+            as: "certificado",
+            required: true,
           },
         ],
-        group: ["tipo_certificado_id"],
-        raw: true,
+        order: [["data_renovacao", "ASC"]],
       });
 
-      const pagosMap = new Map(
-        pagamentosFeitos.map((item) => [
-          item.tipo_certificado_id,
-          parseInt(item.quantidade_paga, 10),
-        ])
-      );
+      const detalheClientes = [];
 
-      // --- PASSO 3: CALCULAR AS PENDÊNCIAS ---
-      const pendencias = [];
-      for (const [certId, totalRenovado] of renovacoesMap.entries()) {
-        const quantidadePaga = pagosMap.get(certId) || 0;
-        const quantidadePendente = totalRenovado - quantidadePaga;
-
-        if (quantidadePendente > 0) {
-          // Busca o nome do certificado para enriquecer a resposta
-          const certificado = await Certificado.findByPk(certId);
-          pendencias.push({
-            tipo_certificado_id: certId,
-            nome_certificado: certificado.nome_certificado,
-            quantidade_pendente: quantidadePendente,
-            // Valores que o frontend usará para preencher o formulário
-            valor_un_sugerido: 150.0, // Lógica para buscar esse valor viria aqui
-            percentual_sugerido: 0.07, // Lógica para buscar esse valor viria aqui
-          });
-        }
+      for (const contrato of contratosRenovados) {
+        detalheClientes.push({
+          cliente_nome: contrato.cliente.nome,
+          numero_contrato: contrato.numero_contrato,
+          data_renovacao: contrato.data_renovacao,
+          certificado_nome: contrato.certificado.nome_certificado,
+        });
       }
 
-      return res.json(pendencias);
+      return res.status(200).json(detalheClientes);
     } catch (err) {
       return errorHandler(err, res);
     }
