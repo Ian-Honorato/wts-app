@@ -10,4 +10,5 @@ const router = new Router();
 router.get("/", loginRequired, pagamentoController.index);
 
 router.get("/pendentes", loginRequired, pagamentoController.buscarPendentes);
+
 export default router;

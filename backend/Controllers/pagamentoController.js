@@ -26,35 +26,40 @@ import { errorHandler, handleError } from "../Util/errorHandler.js";
 class PagamentoController {
   async index(req, res) {
     try {
-      const { data_inicio, data_fim } = req.query;
+      const { mes } = req.query;
 
-      if (!data_inicio || !data_fim) {
+      if (!mes || mes < 1 || mes > 12) {
         return res.json([]);
       }
 
+      const ano_atual = new Date().getFullYear();
+
+      const data_inicio = new Date(ano_atual, mes - 1, 1);
+      data_inicio.setHours(0, 0, 0, 0);
+
+      const data_fim = new Date(ano_atual, mes, 0);
+      data_fim.setHours(23, 59, 59, 999);
+
       const parceiros = await Parceiro.findAll({
-        attributes: ["id", "nome_escritorio"], // Seleciona apenas os campos que precisamos do parceiro
+        attributes: ["id", "nome_escritorio"],
         include: {
           model: Cliente,
           as: "clientes_indicados",
-          attributes: [], // Não precisamos dos dados do cliente na resposta final
-          required: true, // Garante que só parceiros com clientes venham (INNER JOIN)
+          attributes: [],
+          required: true,
           include: {
             model: ContratoCertificado,
             as: "contratos",
-            attributes: [], // Não precisamos dos dados do contrato na resposta final
-            required: true, // Garante que só clientes com contratos venham (INNER JOIN)
+            attributes: [],
+            required: true,
             where: {
-              // ANÁLISE: A data relevante aqui é a de RENOVAÇÃO, não de pagamento.
-              // CORREÇÃO: Alterado para 'data_renovacao' e status 'Renovado'.
               status: "Renovado",
               data_renovacao: {
-                [Op.between]: [new Date(data_inicio), new Date(data_fim)],
+                [Op.between]: [data_inicio, data_fim],
               },
             },
           },
         },
-        // Agrupa pelo ID do parceiro para garantir que cada parceiro apareça apenas uma vez.
         group: ["Parceiro.id"],
       });
 
@@ -68,29 +73,37 @@ class PagamentoController {
     try {
       const { parceiro_id, mes_referencia } = req.query;
 
-      if (!parceiro_id || !mes_referencia) {
-        return res
-          .status(400)
-          .json({ errors: ["Parceiro e mês de referência são obrigatórios."] });
+      // SUGESTÃO: Validação unificada para clareza
+      if (
+        !parceiro_id ||
+        !mes_referencia ||
+        mes_referencia < 1 ||
+        mes_referencia > 12
+      ) {
+        return res.status(400).json({
+          errors: [
+            "Parâmetros 'parceiro_id' e 'mes_referencia' (1-12) são obrigatórios.",
+          ],
+        });
       }
 
-      const [ano, mes] = mes_referencia.split("-").map(Number);
-      const inicioMes = new Date(ano, mes - 1, 1);
-      const fimMes = new Date(ano, mes, 0, 23, 59, 59);
+      const ano_atual = new Date().getFullYear();
 
-      console.log(
-        "Buscando entre:",
-        inicioMes.toISOString(),
-        "e",
-        fimMes.toISOString()
-      );
+      // CORREÇÃO: Usar 'mes_referencia' ao invés de 'mes'
+      const data_inicio = new Date(ano_atual, mes_referencia - 1, 1);
+      data_inicio.setHours(0, 0, 0, 0);
 
+      // CORREÇÃO: Usar 'mes_referencia' ao invés de 'mes'
+      const data_fim = new Date(ano_atual, mes_referencia, 0);
+      data_fim.setHours(23, 59, 59, 999);
+
+      // ---BUSCAR A LISTA COMPLETA E DETALHADA DOS CONTRATOS ---
+      // A sua consulta principal não precisa de alterações, pois já usa as variáveis corrigidas.
       const contratosRenovados = await ContratoCertificado.findAll({
         where: {
           status: "Renovado",
-          data_renovacao: { [Op.between]: [inicioMes, fimMes] },
+          data_renovacao: { [Op.between]: [data_inicio, data_fim] },
         },
-        // Correção: Um único array de 'include'
         include: [
           {
             model: Cliente,
@@ -114,19 +127,54 @@ class PagamentoController {
         order: [["data_renovacao", "ASC"]],
       });
 
-      const detalheClientes = [];
+      // O restante do seu código para processar os dados já está correto.
+      // Apenas precisamos garantir que ele retorne um resultado no final.
+
+      if (contratosRenovados.length === 0) {
+        return res.status(200).json({
+          mes_referencia: mes_referencia,
+          resumoCertificados: [],
+          detalheClientes: [],
+        });
+      }
+
+      // A sua lógica de processamento que estava aqui (vou recriá-la baseado no contexto anterior)
+      const detalhesClientes = [];
+      const certificadosMap = new Map();
 
       for (const contrato of contratosRenovados) {
-        detalheClientes.push({
+        detalhesClientes.push({
           cliente_nome: contrato.cliente.nome,
           numero_contrato: contrato.numero_contrato,
           data_renovacao: contrato.data_renovacao,
           certificado_nome: contrato.certificado.nome_certificado,
         });
+
+        const certId = contrato.certificado.id;
+        const certNome = contrato.certificado.nome_certificado;
+
+        if (!certificadosMap.has(certId)) {
+          certificadosMap.set(certId, {
+            tipo_certificado_id: certId,
+            nome: certNome,
+            quantidade: 0,
+          });
+        }
+        certificadosMap.get(certId).quantidade += 1;
       }
 
-      return res.status(200).json(detalheClientes);
+      const resumoCertificados = Array.from(certificadosMap.values());
+
+      // "CONCERTANDO" O RETORNO FINAL
+      const respostaFinal = {
+        mes_referencia: mes_referencia, // Garante que o mês correto seja retornado
+        resumoCertificados: resumoCertificados,
+        detalheClientes: detalhesClientes,
+      };
+
+      return res.status(200).json(respostaFinal);
     } catch (err) {
+      // Supondo que você tenha uma função errorHandler
       return errorHandler(err, res);
     }
   }
