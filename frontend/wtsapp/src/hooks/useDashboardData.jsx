@@ -29,7 +29,6 @@ const fetchRenovationsData = async (filters) => {
     `http://localhost:3001/dashboard/renovations?${params.toString()}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  console.log("REcebendo dados", data);
   return data;
 };
 // Função auxiliar para formatar Date -> "YYYY-MM-DD" (que o <input type="date"> precisa)

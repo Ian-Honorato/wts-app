@@ -49,6 +49,13 @@ class ContratoCertificado extends Model {
       as: "responsavel",
     });
 
+    // LINHA INCORRETA REMOVIDA
+
+    this.hasMany(models.PagamentoCertificado, {
+      foreignKey: "contrato_certificado_id",
+      as: "pagamentos_comissao",
+    });
+
     this.belongsTo(models.Certificado, {
       foreignKey: "referencia_certificado",
       as: "certificado",

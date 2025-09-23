@@ -60,18 +60,27 @@ const importClientApi = async (formData) => {
 // Mutations Hooks
 // ================================================================
 
+// Função centralizada para invalidar todos os caches relacionados
+const invalidandoQueries = (queryClient) => {
+  console.log("Invalidando todos os caches relevantes...");
+  queryClient.invalidateQueries({ queryKey: ["clients"] });
+  queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
+  queryClient.invalidateQueries({ queryKey: ["renovationsData"] });
+  queryClient.invalidateQueries({
+    predicate: (query) => query.queryKey[0] === "criticalClients",
+  });
+  queryClient.invalidateQueries({ queryKey: ["parceiros"] });
+  queryClient.invalidateQueries({ queryKey: ["certificadosPendentes"] });
+};
+
 export function useUpdateClientMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: updateClientApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-
-      queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === "criticalClients",
-      });
+    onSuccess: () => invalidandoQueries(queryClient),
+    onError: (error) => {
+      console.log("Erro na mutação:", error);
     },
   });
 }
@@ -79,13 +88,9 @@ export function useCreateClientMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createClientApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-
-      queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === "criticalClients",
-      });
+    onSuccess: () => invalidandoQueries(queryClient),
+    onError: (error) => {
+      console.log("Erro na mutação:", error);
     },
   });
 }
@@ -93,13 +98,9 @@ export function useImportClientMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: importClientApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-
-      queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === "criticalClients",
-      });
+    onSuccess: () => invalidandoQueries(queryClient),
+    onError: (error) => {
+      console.log("Erro na mutação:", error);
     },
   });
 }
@@ -107,16 +108,9 @@ export function useDeleteClientMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteClientApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
-
-      queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === "criticalClients",
-      });
-    },
+    onSuccess: () => invalidandoQueries(queryClient),
     onError: (error) => {
-      console.log(error);
+      console.log("Erro na mutação:", error);
     },
   });
 }

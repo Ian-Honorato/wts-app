@@ -1,79 +1,151 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styles from "./financeiroModal.module.css";
+import { useCreatePagamentoCertificados } from "../../../hooks/useFinanceiroMutation";
 
-const DetalhesParceiro = ({ certificadosData, isLoading }) => {
+// MELHORIA 3b: Constante para o valor padrão, evitando "números mágicos"
+const DEFAULT_COMMISSION_PERCENTAGE = 7;
+
+const DetalhesParceiro = ({
+  certificadosData,
+  isLoading,
+  onFeedback,
+  voltar,
+}) => {
   // --- ESTADOS ---
   const [certificadoAbertoId, setCertificadoAbertoId] = useState(null);
-
-  // Estado para controlar o item selecionado no <select>
   const [certificadoSelecionadoId, setCertificadoSelecionadoId] = useState("");
-
-  // Estados para os inputs do formulário
-  const [quantidade, setQuantidade] = useState(0);
   const [valorUnitario, setValorUnitario] = useState(0);
   const [percentual, setPercentual] = useState(0);
+  const [quantidade, setQuantidade] = useState(0);
 
-  // Estados para os valores calculados
-  const [comissaoUnitaria, setComissaoUnitaria] = useState("0.00");
-  const [comissaoTotal, setComissaoTotal] = useState("0.00");
+  const { mutateAsync, isPending } = useCreatePagamentoCertificados();
+
+  // --- FUNÇÕES AUXILIARES ---
+
+  // MELHORIA 3a: Função centralizada para resetar o formulário
+  const resetForm = () => {
+    setCertificadoSelecionadoId("");
+    setQuantidade(0);
+    setValorUnitario(0);
+    setPercentual(0);
+  };
 
   // --- EFEITOS ---
-
-  // EFEITO 1: Popula o formulário quando um certificado é selecionado
   useEffect(() => {
     if (certificadoSelecionadoId && certificadosData?.resumoCertificados) {
-      const certSelecionado = certificadosData.resumoCertificados.find(
+      const cert = certificadosData.resumoCertificados.find(
         (c) => c.tipo_certificado_id.toString() === certificadoSelecionadoId
       );
-
-      if (certSelecionado) {
-        // Assume-se que a API retorna 'valor_unitario' e 'percentual_comissao'
-        // Se os nomes forem diferentes, ajuste aqui.
-        setQuantidade(certSelecionado.quantidade || 0);
-        setValorUnitario(certSelecionado.valor_unitario || 0);
-        setPercentual(certSelecionado.percentual_comissao || 0);
+      if (cert) {
+        setQuantidade(cert.quantidade || 0);
+        setValorUnitario(cert.valor_unitario || 0);
+        setPercentual(
+          cert.percentual_comissao || DEFAULT_COMMISSION_PERCENTAGE
+        );
       }
     } else {
-      // Reseta o formulário se nada for selecionado
-      setQuantidade(0);
-      setValorUnitario(0);
-      setPercentual(0);
+      resetForm();
     }
   }, [certificadoSelecionadoId, certificadosData]);
 
-  // EFEITO 2: Recalcula tudo de forma reativa quando qualquer input de valor muda
-  useEffect(() => {
-    const vUnitario = parseFloat(valorUnitario) || 0;
-    const perc = parseFloat(percentual) || 0;
-    const qtd = parseInt(quantidade, 10) || 0;
+  // --- VALORES DERIVADOS E MEMOIZADOS ---
 
-    // Calcula comissão para uma unidade
-    const comissaoUn = vUnitario * (perc / 100);
-    setComissaoUnitaria(comissaoUn.toFixed(2));
+  // MELHORIA 1: Cálculos derivados feitos diretamente, sem useEffect ou useState extra.
+  const vUnitario = parseFloat(valorUnitario) || 0;
+  const perc = parseFloat(percentual) || 0;
+  const qtd = parseInt(quantidade, 10) || 0;
+  const comissaoUnitariaCalculada = vUnitario * (perc / 100);
+  const comissaoTotalCalculada = comissaoUnitariaCalculada * qtd;
 
-    // Calcula comissão total (unidade * quantidade)
-    const comissaoTot = comissaoUn * qtd;
-    setComissaoTotal(comissaoTot.toFixed(2));
-  }, [quantidade, valorUnitario, percentual]); // Roda sempre que um desses valores mudar
+  // Extrai os dados com segurança, provendo um objeto vazio como fallback.
+  const { resumoCertificados = [], detalheClientes = [] } =
+    certificadosData || {};
+
+  // MELHORIA 2: Otimização com useMemo para agrupar clientes e evitar re-cálculos.
+  const clientesAgrupados = useMemo(() => {
+    return detalheClientes.reduce((acc, cliente) => {
+      const nomeCertificado = cliente.certificado_nome;
+      if (!acc[nomeCertificado]) {
+        acc[nomeCertificado] = [];
+      }
+      acc[nomeCertificado].push(cliente);
+      return acc;
+    }, {});
+  }, [detalheClientes]); // Apenas re-calcula se 'detalheClientes' mudar.
 
   // --- FUNÇÕES DE CONTROLE ---
-
   const handleToggleClientes = (certId) => {
     setCertificadoAbertoId(certificadoAbertoId === certId ? null : certId);
   };
 
-  // --- RENDERIZAÇÃO ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!certificadoSelecionadoId) {
+      onFeedback("error", "Por favor, selecione um tipo de certificado.");
+      return;
+    }
+
+    //Encontrar o objeto do certificado selecionado para obter o nome
+    const certificadoSelecionado = resumoCertificados.find(
+      (cert) => cert.tipo_certificado_id.toString() === certificadoSelecionadoId
+    );
+
+    if (!certificadoSelecionado) {
+      onFeedback("Certificado selecionado não encontrado.", "error");
+      return;
+    }
+    const nomeCertificadoSelecionado = certificadoSelecionado.nome;
+
+    // Passo 2: Filtrar os detalhes dos clientes/contratos pelo nome e extrair os IDs
+    const contratosIds = detalheClientes
+      .filter(
+        (cliente) => cliente.certificado_nome === nomeCertificadoSelecionado
+      )
+      .map((cliente) => cliente.contrato_certificado_id);
+
+    // Verificação para garantir que temos IDs para enviar
+    if (contratosIds.length === 0) {
+      onFeedback(
+        "Nenhum contrato encontrado para este tipo de certificado.",
+        "error"
+      );
+      return;
+    }
+
+    const pagamentoData = {
+      tipo_certificado_id: certificadoSelecionadoId,
+      valor_unitario: vUnitario,
+      percentual_comissao: perc,
+      quantidade: qtd,
+      contratos_referencia: contratosIds,
+      comissao_unitaria: comissaoUnitariaCalculada,
+      comissao_total: comissaoTotalCalculada,
+    };
+    console.log("Dados do pagamento a serem enviados:", pagamentoData);
+    console.log("IDs dos contratos:", contratosIds);
+
+    // Chamada à mutação para criar o pagamento
+    try {
+      const resultado = await mutateAsync(pagamentoData);
+      if (resultado) {
+        onFeedback("success", "Pagamento criado com sucesso!");
+        voltar();
+        resetForm();
+      }
+    } catch (error) {
+      onFeedback("error", "Erro ao criar pagamento. Tente novamente.");
+      console.error("Erro ao criar pagamento:", error.errors || error);
+    }
+  };
 
   if (isLoading)
     return <p className={styles.centeredMessage}>Carregando detalhes...</p>;
   if (!certificadosData)
     return <p className={styles.centeredMessage}>Nenhum dado encontrado.</p>;
 
-  const { resumoCertificados, detalheClientes } = certificadosData;
-
   return (
     <div className={styles.detalhesGrid}>
-      {/* Coluna da Esquerda: Lista de Certificados (sem alteração) */}
+      {/* Coluna da Esquerda: Lista de Certificados */}
       <div className={styles.certificadosResumo}>
         <h4>Certificados Renovados</h4>
         <ul>
@@ -91,11 +163,10 @@ const DetalhesParceiro = ({ certificadosData, isLoading }) => {
               </div>
               {certificadoAbertoId === cert.tipo_certificado_id && (
                 <ul className={styles.clientesLista}>
-                  {detalheClientes
-                    .filter((cliente) => cliente.certificado_nome === cert.nome)
-                    .map((cliente, index) => (
-                      <li key={index}>{cliente.cliente_nome}</li>
-                    ))}
+                  {/* MELHORIA 2 em ação: busca rápida no objeto agrupado */}
+                  {clientesAgrupados[cert.nome]?.map((cliente, index) => (
+                    <li key={index}>{cliente.cliente_nome}</li>
+                  )) || <li>Nenhum cliente encontrado.</li>}
                 </ul>
               )}
             </li>
@@ -103,16 +174,17 @@ const DetalhesParceiro = ({ certificadosData, isLoading }) => {
         </ul>
       </div>
 
-      {/* Coluna da Direita: Formulário de Comissão (MODIFICADO) */}
+      {/* Coluna da Direita: Formulário de Comissão*/}
       <div className={styles.comissaoForm}>
         <h4>Calcular Comissão</h4>
-        <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
             <label>Tipo certificado:</label>
             <select
               value={certificadoSelecionadoId}
               onChange={(e) => setCertificadoSelecionadoId(e.target.value)}
               className={styles.select}
+              required
             >
               <option value="">Selecione um tipo...</option>
               {resumoCertificados.map((cert) => (
@@ -138,6 +210,7 @@ const DetalhesParceiro = ({ certificadosData, isLoading }) => {
               value={valorUnitario}
               onChange={(e) => setValorUnitario(e.target.value)}
               placeholder="0.00"
+              step="0.01"
             />
           </div>
 
@@ -151,19 +224,36 @@ const DetalhesParceiro = ({ certificadosData, isLoading }) => {
             />
           </div>
 
-          {/* NOVO LAYOUT PARA OS TOTAIS */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
               <label>Comissão Unitária (R$)</label>
-              <input type="text" value={comissaoUnitaria} readOnly disabled />
+              {/* MELHORIA 1 em ação: usando a variável calculada */}
+              <input
+                type="text"
+                value={comissaoUnitariaCalculada.toFixed(2)}
+                readOnly
+                disabled
+              />
             </div>
             <div className={styles.inputGroup}>
               <label>Comissão Total (R$)</label>
-              <input type="text" value={comissaoTotal} readOnly disabled />
+              {/* MELHORIA 1 em ação: usando a variável calculada */}
+              <input
+                type="text"
+                value={comissaoTotalCalculada.toFixed(2)}
+                readOnly
+                disabled
+              />
             </div>
           </div>
 
-          <button className={styles.submitButton}>Confirmar Operação</button>
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={isPending}
+          >
+            {isPending ? "Confirmando..." : "Confirmar Operação"}
+          </button>
         </form>
       </div>
     </div>

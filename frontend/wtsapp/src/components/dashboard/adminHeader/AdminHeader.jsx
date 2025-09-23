@@ -166,10 +166,26 @@ const AdminHeader = ({
                       Listar
                     </a>
                   </li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details>
+                <summary>
+                  <FontAwesomeIcon
+                    icon={faUserCircle}
+                    className={styles.menuIcon}
+                  />
+                  Financeiro
+                </summary>
+                <ul>
                   <li>
                     <a href="#" onClick={handleOpenFinanceiro}>
-                      Financeiro
+                      Cadastrar pagamento
                     </a>
+                  </li>
+                  <li>
+                    <a href="#">Listar Pagamentos</a>
                   </li>
                 </ul>
               </details>

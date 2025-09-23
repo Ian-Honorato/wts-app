@@ -5,7 +5,6 @@ import {
   Parceiro,
   Certificado,
   ContratoCertificado,
-  PagamentoCertificado,
   PagamentoParceiro,
 } from "../Models/index.js";
 
@@ -179,7 +178,11 @@ class PagamentoController {
     }
   }
 
-  async ConfirmarPagamento(req, res) {}
+  async ConfirmarPagamento(req, res) {
+    const { data } = req.body;
+
+    return res.status(200).json({ message: "ok" });
+  }
 
   async atualizarPagamento(req, res) {}
 

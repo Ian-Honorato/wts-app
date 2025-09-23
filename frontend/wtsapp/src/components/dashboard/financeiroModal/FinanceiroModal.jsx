@@ -13,7 +13,7 @@ import {
 import ListaParceiros from "./ListaParceiros";
 import DetalhesParceiro from "./DetalhesParceiro";
 
-const FinanceiroModal = ({ isOpen, onClose }) => {
+const FinanceiroModal = ({ isOpen, onClose, onFeedback }) => {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
   const [parceiroSelecionado, setParceiroSelecionado] = useState(null);
 
@@ -65,6 +65,8 @@ const FinanceiroModal = ({ isOpen, onClose }) => {
             <DetalhesParceiro
               certificadosData={certificadosData}
               isLoading={isLoadingCertificados}
+              onFeedback={onFeedback}
+              voltar={handleVoltar}
             />
           ) : (
             <ListaParceiros

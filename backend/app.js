@@ -26,7 +26,7 @@ class App {
     this.app.use("/certificados", certificadosRoutes);
     this.app.use("/upload", uploadRoutes);
     this.app.use("/dashboard", dashboardRoutes);
-    this.app.use("/pagamentos", pagamentoRoutes);
+    this.app.use("/financeiro", pagamentoRoutes);
   }
 }
 export default new App().app;
