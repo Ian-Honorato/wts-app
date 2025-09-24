@@ -14,10 +14,9 @@ class PagamentoParceiro extends Model {
           allowNull: false,
         },
 
-        status: {
-          type: DataTypes.ENUM("Pendente", "Pago"),
+        quantidade: {
+          type: DataTypes.INTEGER,
           allowNull: false,
-          defaultValue: "Pendente",
         },
 
         data_pagamento: {

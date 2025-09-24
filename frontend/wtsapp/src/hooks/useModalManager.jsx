@@ -13,6 +13,7 @@ export function useModalManager() {
     isListParceirosModalOpen: false,
     isParceiroDetailsModalOpen: false,
     isFinanceiroModalOpen: false,
+    isFinanceiroListarModalOpen: false,
     responseModal: { isOpen: false, type: "", message: "" },
 
     // Dados para os modais
@@ -130,7 +131,14 @@ export function useModalManager() {
         selectedParceiroId: null,
       })),
     // --- Handlers de Financeiro ---
+    openFinanceiroListarModal: () =>
+      setModalState((prev) => ({ ...prev, isFinanceiroListarModalOpen: true })),
 
+    closeFinanceiroListarModal: () =>
+      setModalState((prev) => ({
+        ...prev,
+        isFinanceiroListarModalOpen: false,
+      })),
     openFinanceiroModal: () =>
       setModalState((prev) => ({ ...prev, isFinanceiroModalOpen: true })),
     closeFinanceiroModal: () =>

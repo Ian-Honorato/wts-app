@@ -24,6 +24,7 @@ import ParceiroModal from "../components/dashboard/parceiroModal/ParceiroModal.j
 import ListParceirosModal from "../components/dashboard/listParceirosModal/ListParceirosModal.jsx";
 import ParceiroDetailsModal from "../components/dashboard/parceiroDetailsModal/ParceiroDetailsModal.jsx";
 import FinanceiroModal from "../components/dashboard/financeiroModal/FinanceiroModal.jsx";
+import FinanceiroListarModal from "../components/dashboard/financeiroListarModal/FinanceiroListarModal.jsx";
 const Dashboard = () => {
   const { user, isLoading: isAuthLoading, logout } = useAuth();
   const { modalState, modalHandlers } = useModalManager();
@@ -64,6 +65,7 @@ const Dashboard = () => {
           onOpenParceiroModal={modalHandlers.openParceiroModal}
           onOpenListParceiroModal={modalHandlers.openListParceirosModal}
           onOpenFinanceiroModal={modalHandlers.openFinanceiroModal}
+          onOpenListarFianceiroModal={modalHandlers.openFinanceiroListarModal}
         />
       ) : (
         <UserHeader user={user} onLogout={logout} />
@@ -163,6 +165,12 @@ const Dashboard = () => {
         isOpen={modalState.isFinanceiroModalOpen}
         onOpenFinanceiroModal={modalHandlers.openFinanceiroModal}
         onClose={modalHandlers.closeFinanceiroModal}
+        onFeedback={handleSubmitFeedback}
+      />
+      <FinanceiroListarModal
+        isOpen={modalState.isFinanceiroListarModalOpen}
+        onOpenFinanceiroListarModal={modalState.openFinandeiroListarModal}
+        onClose={modalHandlers.closeFinanceiroListarModal}
         onFeedback={handleSubmitFeedback}
       />
     </div>

@@ -6,6 +6,7 @@ import {
   Certificado,
   ContratoCertificado,
   PagamentoParceiro,
+  PagamentoCertificado,
 } from "../Models/index.js";
 
 import { Op } from "sequelize";
@@ -72,7 +73,6 @@ class PagamentoController {
     try {
       const { parceiro_id, mes_referencia } = req.query;
 
-      // SUGESTÃO: Validação unificada para clareza
       if (
         !parceiro_id ||
         !mes_referencia ||
@@ -88,16 +88,13 @@ class PagamentoController {
 
       const ano_atual = new Date().getFullYear();
 
-      // CORREÇÃO: Usar 'mes_referencia' ao invés de 'mes'
       const data_inicio = new Date(ano_atual, mes_referencia - 1, 1);
       data_inicio.setHours(0, 0, 0, 0);
 
-      // CORREÇÃO: Usar 'mes_referencia' ao invés de 'mes'
       const data_fim = new Date(ano_atual, mes_referencia, 0);
       data_fim.setHours(23, 59, 59, 999);
 
       // ---BUSCAR A LISTA COMPLETA E DETALHADA DOS CONTRATOS ---
-      // A sua consulta principal não precisa de alterações, pois já usa as variáveis corrigidas.
       const contratosRenovados = await ContratoCertificado.findAll({
         where: {
           status: "Renovado",
@@ -126,9 +123,6 @@ class PagamentoController {
         order: [["data_renovacao", "ASC"]],
       });
 
-      // O restante do seu código para processar os dados já está correto.
-      // Apenas precisamos garantir que ele retorne um resultado no final.
-
       if (contratosRenovados.length === 0) {
         return res.status(200).json({
           mes_referencia: mes_referencia,
@@ -136,14 +130,13 @@ class PagamentoController {
           detalheClientes: [],
         });
       }
-
-      // A sua lógica de processamento que estava aqui (vou recriá-la baseado no contexto anterior)
       const detalhesClientes = [];
       const certificadosMap = new Map();
 
       for (const contrato of contratosRenovados) {
         detalhesClientes.push({
           cliente_nome: contrato.cliente.nome,
+          contrato_certificado_id: contrato.id,
           numero_contrato: contrato.numero_contrato,
           data_renovacao: contrato.data_renovacao,
           certificado_nome: contrato.certificado.nome_certificado,
@@ -164,29 +157,278 @@ class PagamentoController {
 
       const resumoCertificados = Array.from(certificadosMap.values());
 
-      // "CONCERTANDO" O RETORNO FINAL
       const respostaFinal = {
-        mes_referencia: mes_referencia, // Garante que o mês correto seja retornado
+        mes_referencia: mes_referencia,
         resumoCertificados: resumoCertificados,
         detalheClientes: detalhesClientes,
       };
 
       return res.status(200).json(respostaFinal);
     } catch (err) {
-      // Supondo que você tenha uma função errorHandler
       return errorHandler(err, res);
     }
   }
 
-  async ConfirmarPagamento(req, res) {
-    const { data } = req.body;
+  async criarPagamento(req, res) {
+    // =================================================================================
+    // ETAPA 1: PREPARAÇÃO E VALIDAÇÃO DOS DADOS
+    // =================================================================================
+    try {
+      const {
+        parceiro_id,
+        mes_referencia,
+        contratos_referencia,
+        valor_unitario,
+        percentual_comissao,
+        comissao_unitaria: comissao_unitaria_frontend,
+        comissao_total: comissao_total_frontend,
+      } = req.body;
 
-    return res.status(200).json({ message: "ok" });
+      // Validação de dados essenciais
+      if (
+        !parceiro_id ||
+        !mes_referencia ||
+        !contratos_referencia ||
+        !contratos_referencia.length
+      ) {
+        return res.status(400).json({ error: "Dados essenciais ausentes." });
+      }
+
+      // Preparação da data de referência
+      const anoAtual = new Date().getFullYear();
+      const mesReferenciaFormatado = new Date(anoAtual, mes_referencia - 1, 1);
+
+      // Recálculo da comissão no backend
+      const comissaoUnitaria_backend =
+        parseFloat(valor_unitario) * (parseFloat(percentual_comissao) / 100);
+      const comissaoTotal_backend =
+        comissaoUnitaria_backend * contratos_referencia.length;
+
+      // Validação de discrepância entre frontend e backend
+      const diferencaTotal = Math.abs(
+        comissaoTotal_backend - parseFloat(comissao_total_frontend)
+      );
+      if (diferencaTotal > 0.01) {
+        return res.status(400).json({
+          error: "Discrepância nos valores de comissão.",
+          backend_calculado: { total: comissaoTotal_backend },
+          frontend_enviado: { total: comissao_total_frontend },
+        });
+      }
+
+      // =================================================================================
+      // ETAPA 2: TRANSAÇÃO NO BANCO DE DADOS
+      // =================================================================================
+
+      // A partir daqui, todas as operações são envolvidas em uma transação.
+      const resultado = await sequelize.transaction(async (t) => {
+        // --- 2.1: Encontra ou Cria a "Fatura" principal para o parceiro no mês. ---
+        const [pagamentoParceiro, foiCriado] =
+          await PagamentoParceiro.findOrCreate({
+            where: {
+              parceiro_id: parceiro_id,
+              mes_referencia: mesReferenciaFormatado,
+            },
+            defaults: {
+              parceiro_id: parceiro_id,
+              mes_referencia: mesReferenciaFormatado,
+              valor_total: comissaoTotal_backend,
+              quantidade: contratos_referencia.length,
+              status: "Pendente",
+              data_pagamento: new Date(),
+            },
+            transaction: t,
+          });
+
+        // --- 2.2: Se a fatura já existia, atualiza os totais. ---
+        if (!foiCriado) {
+          pagamentoParceiro.valor_total =
+            parseFloat(pagamentoParceiro.valor_total) + comissaoTotal_backend;
+          pagamentoParceiro.quantidade += contratos_referencia.length;
+          await pagamentoParceiro.save({ transaction: t });
+        }
+
+        // --- 2.3: Prepara os dados dos "itens" da fatura (certificados individuais). ---
+        const dadosCertificados = contratos_referencia.map((contratoId) => ({
+          pagamento_id: pagamentoParceiro.id, // Associa ao ID da fatura principal
+          contrato_certificado_id: contratoId,
+          valor_certificado: valor_unitario,
+          percentual_comissao: percentual_comissao,
+          valor_total: comissaoUnitaria_backend,
+        }));
+
+        // --- 2.4: Insere todos os itens da fatura de uma vez. ---
+        await PagamentoCertificado.bulkCreate(dadosCertificados, {
+          transaction: t,
+        });
+
+        // Se todas as etapas acima funcionarem, a transação retornará o ID.
+        return { pagamentoParceiroId: pagamentoParceiro.id };
+      });
+
+      // =================================================================================
+      // ETAPA 3: SUCESSO - ENVIO DA RESPOSTA FINAL
+      // =================================================================================
+      // Se a transação foi concluída com sucesso, 'resultado' conterá o que retornamos.
+      return res.status(201).json({
+        message: "Pagamento registrado com sucesso!",
+        pagamentoParceiroId: resultado.pagamentoParceiroId,
+      });
+    } catch (error) {
+      // =================================================================================
+      // ETAPA 4: FALHA - A TRANSAÇÃO É REVERTIDA AUTOMATICAMENTE
+      // =================================================================================
+      // Se qualquer 'await' dentro do bloco de transação falhar, o Sequelize
+      // automaticamente fará o rollback e o erro será capturado aqui.
+      console.error("Erro na transação ao registrar pagamento:", error);
+      return res
+        .status(500)
+        .json({ error: "Ocorreu um erro interno ao processar o pagamento." });
+    }
+  }
+  async sumarioFinanceiro(req, res) {
+    try {
+      const { mes, ano } = req.query;
+
+      // Validação dos parâmetros de data
+      if (!mes || !ano) {
+        return res
+          .status(400)
+          .json({ error: "Os parâmetros 'mes' e 'ano' são obrigatórios." });
+      }
+
+      // Cria o intervalo de datas para a consulta
+      const data_inicio = new Date(ano, mes - 1, 1);
+      const data_fim = new Date(ano, mes, 0, 23, 59, 59); // Último dia, hora, minuto e segundo do mês
+
+      // Consulta principal que busca todos os pagamentos de parceiros no período
+      const pagamentosDoMes = await PagamentoParceiro.findAll({
+        where: {
+          mes_referencia: {
+            [Op.between]: [data_inicio, data_fim],
+          },
+        },
+        include: {
+          model: Parceiro,
+          as: "parceiro", // Assumindo que a associação se chama 'parceiro'
+          attributes: ["nome_escritorio"],
+          required: true,
+        },
+        order: [["valor_total", "DESC"]], // Ordena por maior comissão
+      });
+
+      // Se não houver dados, retorna uma resposta vazia e estruturada
+      if (!pagamentosDoMes || pagamentosDoMes.length === 0) {
+        return res.status(200).json({
+          kpis: {
+            totalComissao: 0,
+            totalRenovacoes: 0,
+            parceiroDestaque: "N/A",
+          },
+          topParceiros: [],
+          pagamentos: [],
+        });
+      }
+
+      // --- Processamento dos dados para montar a resposta ---
+
+      // 1. Cálculo dos KPIs
+      const kpis = pagamentosDoMes.reduce(
+        (acc, pagamento) => {
+          acc.totalComissao += parseFloat(pagamento.valor_total);
+          acc.totalRenovacoes += pagamento.quantidade;
+          return acc;
+        },
+        {
+          totalComissao: 0,
+          totalRenovacoes: 0,
+          parceiroDestaque: pagamentosDoMes[0].parceiro.nome_escritorio,
+        }
+      );
+
+      // 2. Dados para o gráfico (Top 5)
+      const topParceiros = pagamentosDoMes.slice(0, 5).map((pagamento) => ({
+        nome: pagamento.parceiro.nome_escritorio,
+        valor: parseFloat(pagamento.valor_total),
+      }));
+
+      // 3. Formatação da lista de pagamentos para a tabela principal
+      const pagamentosFormatados = pagamentosDoMes.map((pagamento) => ({
+        id: pagamento.id,
+        parceiro_nome: pagamento.parceiro.nome_escritorio,
+        mes_referencia: pagamento.mes_referencia,
+        quantidade: pagamento.quantidade,
+        valor_total: pagamento.valor_total,
+        status: pagamento.status,
+      }));
+
+      // Monta a resposta final
+      const resposta = {
+        kpis,
+        topParceiros,
+        pagamentos: pagamentosFormatados,
+      };
+
+      return res.status(200).json(resposta);
+    } catch (error) {
+      console.error("Erro ao gerar sumário financeiro:", error);
+      return res.status(500).json({ error: "Erro interno no servidor." });
+    }
   }
 
-  async atualizarPagamento(req, res) {}
+  async listarHistorico(req, res) {
+    try {
+      const { id } = req.params;
 
-  async listarHistorico(req, res) {}
+      if (!id) {
+        return res
+          .status(400)
+          .json({ error: "O ID do pagamento é obrigatório." });
+      }
+
+      const detalhesDoPagamento = await PagamentoCertificado.findAll({
+        where: {
+          pagamento_id: id,
+        },
+        include: [
+          {
+            model: ContratoCertificado,
+            as: "contrato",
+            attributes: ["numero_contrato", "data_renovacao"],
+            include: [
+              {
+                model: Cliente,
+                as: "cliente",
+                attributes: ["nome"],
+              },
+            ],
+          },
+        ],
+        order: [["id", "ASC"]],
+      });
+
+      if (!detalhesDoPagamento || detalhesDoPagamento.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Nenhum detalhe encontrado para este pagamento." });
+      }
+
+      // Formata a resposta para o frontend
+      const detalhesFormatados = detalhesDoPagamento.map((detalhe) => ({
+        id_item: detalhe.id,
+        numero_contrato: detalhe.contrato.numero_contrato,
+        cliente_nome: detalhe.contrato.cliente.nome,
+        valor_certificado: detalhe.valor_certificado,
+        percentual_comissao: detalhe.percentual_comissao,
+        valor_comissao: detalhe.valor_total,
+      }));
+
+      return res.status(200).json(detalhesFormatados);
+    } catch (error) {
+      console.error("Erro ao listar histórico de pagamento:", error);
+      return res.status(500).json({ error: "Erro interno no servidor." });
+    }
+  }
 }
 
 export default new PagamentoController();

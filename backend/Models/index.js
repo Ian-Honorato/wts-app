@@ -9,7 +9,7 @@ import MensagensEnviadas from "./MensagensEnviadas";
 import PagamentoParceiro from "./PagamentoParceiro";
 import Parceiro from "./Parceiro";
 import Certificado from "./Certificado";
-import PagamentoCertificado from "./PagamentoCertificados";
+import PagamentoCertificado from "./PagamentoCertificado";
 
 const models = [
   Usuario,

@@ -7,6 +7,8 @@ const DEFAULT_COMMISSION_PERCENTAGE = 7;
 
 const DetalhesParceiro = ({
   certificadosData,
+  mesReferencia,
+  parceiroId,
   isLoading,
   onFeedback,
   voltar,
@@ -113,6 +115,8 @@ const DetalhesParceiro = ({
     }
 
     const pagamentoData = {
+      mes_referencia: mesReferencia,
+      parceiro_id: parceiroId,
       tipo_certificado_id: certificadoSelecionadoId,
       valor_unitario: vUnitario,
       percentual_comissao: perc,

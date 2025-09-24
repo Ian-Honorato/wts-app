@@ -23,10 +23,9 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
       },
-      status: {
-        type: Sequelize.ENUM("Pendente", "Pago"),
+      quantidade: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: "Pendente",
       },
       data_pagamento: {
         type: Sequelize.DATE,

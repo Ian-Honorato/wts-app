@@ -67,6 +67,8 @@ const FinanceiroModal = ({ isOpen, onClose, onFeedback }) => {
               isLoading={isLoadingCertificados}
               onFeedback={onFeedback}
               voltar={handleVoltar}
+              mesReferencia={mes}
+              parceiroId={parceiroSelecionado.id}
             />
           ) : (
             <ListaParceiros
