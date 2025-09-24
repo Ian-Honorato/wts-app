@@ -4,7 +4,6 @@ class PagamentoCertificado extends Model {
   static init(sequelize) {
     super.init(
       {
-        // O campo 'quantidade' foi removido. Cada linha é um pagamento único.
         valor_certificado: {
           type: DataTypes.DECIMAL(10, 2),
           allowNull: true,
@@ -32,19 +31,15 @@ class PagamentoCertificado extends Model {
   }
 
   static associate(models) {
-    // Relação CORRETA: Um item de pagamento pertence a um lote/fatura (PagamentoParceiro).
     this.belongsTo(models.PagamentoParceiro, {
       foreignKey: "pagamento_id",
       as: "pagamento_parceiro",
     });
 
-    // Relação CORRIGIDA: Cada registro de pagamento agora se refere a um CONTRATO específico.
     this.belongsTo(models.ContratoCertificado, {
       foreignKey: "contrato_certificado_id",
       as: "contrato",
     });
-
-    // A associação incorreta com o model 'Certificado' foi removida.
   }
 }
 

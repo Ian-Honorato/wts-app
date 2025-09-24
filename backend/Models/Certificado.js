@@ -26,11 +26,6 @@ class Certificado extends Model {
       foreignKey: "referencia_certificado",
       as: "contratos",
     });
-
-    this.hasMany(models.PagamentoCertificado, {
-      foreignKey: "tipo_certificado_id",
-      as: "pagamentos_detalhes",
-    });
   }
 }
 

@@ -33,12 +33,31 @@ class PagamentoController {
       }
 
       const ano_atual = new Date().getFullYear();
-
       const data_inicio = new Date(ano_atual, mes - 1, 1);
       data_inicio.setHours(0, 0, 0, 0);
-
       const data_fim = new Date(ano_atual, mes, 0);
       data_fim.setHours(23, 59, 59, 999);
+
+      // --- CORREÇÃO AQUI: 'attributes' movido para fora da 'where' ---
+      const contatosPagos = await PagamentoCertificado.findAll({
+        where: {
+          created_at: {
+            // Ou a data que representa quando o pagamento foi feito
+            [Op.between]: [data_inicio, data_fim],
+          },
+        },
+        attributes: ["contrato_certificado_id"], // Posição correta
+      });
+
+      const contratosPagosIds = contatosPagos.map(
+        (pag) => pag.contrato_certificado_id
+      );
+
+      // Se não houver IDs pagos, a consulta com [Op.notIn]: [] pode falhar em alguns bancos.
+      // Garantimos que, se estiver vazio, a condição não quebre a query.
+      if (contratosPagosIds.length === 0) {
+        contratosPagosIds.push(0); // Adiciona um ID impossível para garantir que notIn funcione
+      }
 
       const parceiros = await Parceiro.findAll({
         attributes: ["id", "nome_escritorio"],
@@ -57,10 +76,12 @@ class PagamentoController {
               data_renovacao: {
                 [Op.between]: [data_inicio, data_fim],
               },
+              id: { [Op.notIn]: contratosPagosIds },
             },
           },
         },
         group: ["Parceiro.id"],
+        order: [["nome_escritorio", "ASC"]],
       });
 
       return res.json(parceiros);
@@ -73,6 +94,7 @@ class PagamentoController {
     try {
       const { parceiro_id, mes_referencia } = req.query;
 
+      // Sua validação de parâmetros está ótima.
       if (
         !parceiro_id ||
         !mes_referencia ||
@@ -86,19 +108,20 @@ class PagamentoController {
         });
       }
 
+      // Sua lógica de datas está perfeita.
       const ano_atual = new Date().getFullYear();
-
       const data_inicio = new Date(ano_atual, mes_referencia - 1, 1);
       data_inicio.setHours(0, 0, 0, 0);
-
       const data_fim = new Date(ano_atual, mes_referencia, 0);
       data_fim.setHours(23, 59, 59, 999);
 
-      // ---BUSCAR A LISTA COMPLETA E DETALHADA DOS CONTRATOS ---
+      // --- BUSCAR A LISTA, AGORA COM A VERIFICAÇÃO INTEGRADA ---
       const contratosRenovados = await ContratoCertificado.findAll({
         where: {
           status: "Renovado",
           data_renovacao: { [Op.between]: [data_inicio, data_fim] },
+
+          "$pagamentos_comissao.id$": null,
         },
         include: [
           {
@@ -119,6 +142,13 @@ class PagamentoController {
             as: "certificado",
             required: true,
           },
+
+          {
+            model: PagamentoCertificado,
+            as: "pagamentos_comissao",
+            attributes: [],
+            required: false,
+          },
         ],
         order: [["data_renovacao", "ASC"]],
       });
@@ -130,6 +160,7 @@ class PagamentoController {
           detalheClientes: [],
         });
       }
+
       const detalhesClientes = [];
       const certificadosMap = new Map();
 
@@ -140,6 +171,8 @@ class PagamentoController {
           numero_contrato: contrato.numero_contrato,
           data_renovacao: contrato.data_renovacao,
           certificado_nome: contrato.certificado.nome_certificado,
+
+          valor_comissao: contrato.valor_comissao_parceiro,
         });
 
         const certId = contrato.certificado.id;
@@ -376,6 +409,25 @@ class PagamentoController {
     }
   }
 
+  async listarPagamentos(req, res) {
+    const { parceiro_id } = req.params;
+    try {
+      if (!parceiro_id)
+        return res
+          .status(400)
+          .json({ error: "O ID do parceiro é obrigatório." });
+
+      const pagamentos = await pagamentoParceiro.findAll({
+        where: { parceiro_id },
+        order: [["mes_referencia", "DESC"]],
+        include: [
+          { model: Parceiro, as: "parceiro", attributes: ["nome_escritorio"] },
+        ],
+      });
+    } catch (error) {
+      return handleError(error, res);
+    }
+  }
   async listarHistorico(req, res) {
     try {
       const { id } = req.params;
@@ -394,8 +446,18 @@ class PagamentoController {
           {
             model: ContratoCertificado,
             as: "contrato",
-            attributes: ["numero_contrato", "data_renovacao"],
+            attributes: [
+              "numero_contrato",
+              "data_renovacao",
+              "referencia_certificado",
+            ],
+
             include: [
+              {
+                model: Certificado,
+                as: "certificado",
+                attributes: ["nome_certificado"],
+              },
               {
                 model: Cliente,
                 as: "cliente",
@@ -413,11 +475,12 @@ class PagamentoController {
           .json({ message: "Nenhum detalhe encontrado para este pagamento." });
       }
 
-      // Formata a resposta para o frontend
       const detalhesFormatados = detalhesDoPagamento.map((detalhe) => ({
         id_item: detalhe.id,
         numero_contrato: detalhe.contrato.numero_contrato,
         cliente_nome: detalhe.contrato.cliente.nome,
+
+        nome_certificado: detalhe.contrato.certificado.nome_certificado,
         valor_certificado: detalhe.valor_certificado,
         percentual_comissao: detalhe.percentual_comissao,
         valor_comissao: detalhe.valor_total,

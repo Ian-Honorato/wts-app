@@ -37,20 +37,19 @@ module.exports = {
       referencia_parceiro: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: "parceiros",
-          key: "id",
-        },
+        references: { model: "parceiros", key: "id" },
       },
       id_usuario: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "usuarios",
-          key: "id",
-        },
+        references: { model: "usuarios", key: "id" },
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
+      },
+      // --- ADICIONADO ---
+      deleted_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,

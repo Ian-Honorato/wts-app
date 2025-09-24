@@ -15,6 +15,7 @@ class Parceiro extends Model {
         tableName: "parceiros",
         timestamps: true,
         underscored: true,
+        paranoid: true,
       }
     );
     return this;
@@ -25,7 +26,6 @@ class Parceiro extends Model {
       foreignKey: "cadastrado_por_id",
       as: "cadastrado_por",
     });
-
     this.hasMany(models.PagamentoParceiro, {
       foreignKey: "parceiro_id",
       as: "pagamentos",

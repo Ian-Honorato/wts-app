@@ -24,9 +24,8 @@ module.exports = {
         comment: "Referencia o contrato específico que está sendo comissionado",
         references: { model: "contratos_certificados", key: "id" },
         onUpdate: "CASCADE",
-        onDelete: "RESTRICT", // RESTRICT para não permitir apagar um contrato se já houver pagamento associado.
+        onDelete: "RESTRICT",
       },
-      // Opcional: Pode ser mantido para registro histórico, mas o valor original está no contrato.
       valor_certificado: {
         type: Sequelize.DECIMAL(10, 2),
         comment: "Valor base do certificado na data do pagamento",
@@ -36,7 +35,6 @@ module.exports = {
         allowNull: false,
         comment: "Percentual de comissão aplicado",
       },
-      // O nome poderia ser mais específico, como 'valor_comissao'
       valor_total: {
         type: Sequelize.DECIMAL(10, 2),
         comment:
@@ -50,8 +48,6 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      // REMOVIDO: tipo_certificado_id
-      // REMOVIDO: quantidade
     });
   },
   async down(queryInterface) {

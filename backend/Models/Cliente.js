@@ -55,6 +55,33 @@ class Cliente extends Model {
         tableName: "clientes",
         timestamps: true,
         underscored: true,
+        paranoid: true,
+        hooks: {
+          beforeDestroy: async (cliente, options) => {
+            console.log(
+              `Hook beforeDestroy acionado para o cliente ID: ${cliente.id}`
+            );
+
+            const contratos =
+              await sequelize.models.ContratoCertificado.findAll({
+                where: { cliente_id: cliente.id },
+                transaction: options.transaction,
+              });
+
+            console.log(
+              `Encontrados ${contratos.length} contratos para soft-delete.`
+            );
+
+            const promises = contratos.map((contrato) =>
+              contrato.destroy({ transaction: options.transaction })
+            );
+
+            await Promise.all(promises);
+            console.log(
+              `Soft delete concluído para os contratos do cliente ID: ${cliente.id}`
+            );
+          },
+        },
       }
     );
     return this;

@@ -1,4 +1,5 @@
 "use strict";
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("parceiros", {
@@ -16,12 +17,14 @@ module.exports = {
       cadastrado_por_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: "usuarios",
-          key: "id",
-        },
+        references: { model: "usuarios", key: "id" },
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
+      },
+      // --- ADICIONADO ---
+      deleted_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -33,6 +36,7 @@ module.exports = {
       },
     });
   },
+
   async down(queryInterface) {
     await queryInterface.dropTable("parceiros");
   },

@@ -371,17 +371,36 @@ class ClienteController {
    * Exclui um cliente e retorna uma mensagem de sucesso.
    */
   async destroy(req, res) {
+    // 1. Inicia a transação
+    const t = await sequelize.transaction();
+
     try {
       const { id } = req.params;
-      const cliente = await Cliente.findByPk(id);
+
+      // É uma boa prática buscar o cliente dentro da transação também
+      const cliente = await Cliente.findByPk(id, { transaction: t });
 
       if (!cliente) {
+        // Se não encontrou, desfaz a transação (embora nada tenha sido feito)
+        await t.rollback();
         return res.status(404).json({ error: "Cliente não encontrado." });
       }
 
-      await cliente.destroy();
-      return res.json({ message: "Cliente excluído com sucesso." });
+      // 2. Executa a exclusão DENTRO da transação
+      // O hook 'beforeDestroy' será acionado aqui e usará a mesma transação 't'
+      await cliente.destroy({ transaction: t });
+
+      // 3. Se tudo ocorreu bem (cliente e contratos), confirma as alterações no banco
+      await t.commit();
+
+      return res.json({
+        message: "Cliente e seus contratos foram desativados com sucesso.",
+      });
     } catch (e) {
+      // 4. Se qualquer erro ocorreu, desfaz TODAS as alterações
+      await t.rollback();
+
+      // Agora pode chamar seu manipulador de erros
       return errorHandler(e, res);
     }
   }

@@ -12,20 +12,14 @@ module.exports = {
       cliente_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "clientes",
-          key: "id",
-        },
+        references: { model: "clientes", key: "id" },
         onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onDelete: "RESTRICT", // <<< ALTERADO de 'CASCADE' para 'RESTRICT' por segurança
       },
       usuario_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "usuarios",
-          key: "id",
-        },
+        references: { model: "usuarios", key: "id" },
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       },
@@ -40,7 +34,7 @@ module.exports = {
       },
       data_vencimento: {
         type: Sequelize.DATE,
-        allowNull: true, //aqui pode ser nulo - contrato nao identificado
+        allowNull: true,
       },
       status: {
         type: Sequelize.ENUM(
@@ -58,12 +52,14 @@ module.exports = {
       referencia_certificado: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: "certificados",
-          key: "id",
-        },
+        references: { model: "certificados", key: "id" },
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
+      },
+      // --- ADICIONADO ---
+      deleted_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,

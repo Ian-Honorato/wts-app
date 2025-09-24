@@ -24,6 +24,7 @@ const AdminHeader = ({
   onOpenListUserModal,
   onOpenParceiroModal,
   onOpenListParceiroModal,
+  onOpenFinanceiroModal,
   onOpenListarFianceiroModal,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -71,7 +72,7 @@ const AdminHeader = ({
   const handleOpenFinanceiro = (e) => {
     e.preventDefault();
     toggleSidebar();
-    onOpenListarFianceiroModal();
+    onOpenFinanceiroModal();
   };
 
   const handleOpenListarFinanceiro = (e) => {

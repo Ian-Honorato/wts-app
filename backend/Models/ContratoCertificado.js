@@ -36,6 +36,7 @@ class ContratoCertificado extends Model {
         tableName: "contratos_certificados",
         timestamps: true,
         underscored: true,
+        paranoid: true,
       }
     );
     return this;
