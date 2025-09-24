@@ -10,6 +10,11 @@ import { detailsClientApi } from "../../../hooks/useMutation";
 import { useDeleteClientMutation } from "../../../hooks/useMutation";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
+import {
+  formatarCpfCnpj,
+  formatarTelefone,
+} from "../../../hooks/util/Mascaras";
+
 const ClientDetailsModal = ({
   isOpen,
   onClose,
@@ -106,7 +111,8 @@ const ClientDetailsModal = ({
                     <strong>Nome:</strong> {details.nome}
                   </p>
                   <p>
-                    <strong>CPF/CNPJ:</strong> {details.cpf_cnpj}
+                    <strong>CPF/CNPJ:</strong>{" "}
+                    {formatarCpfCnpj(details.cpf_cnpj)}
                   </p>
                   <p>
                     <strong>Tipo:</strong> {details.tipo_cliente}
@@ -119,7 +125,8 @@ const ClientDetailsModal = ({
                     <strong>Email:</strong> {details.email || "N/A"}
                   </p>
                   <p>
-                    <strong>Telefone:</strong> {details.telefone}
+                    <strong>Telefone:</strong>{" "}
+                    {formatarTelefone(details.telefone)}
                   </p>
                 </div>
 

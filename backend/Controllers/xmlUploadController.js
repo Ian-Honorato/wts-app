@@ -110,6 +110,7 @@ class XmlUploadController {
 
           const clienteExistente = await Cliente.findOne({
             where: { cpf_cnpj },
+            paranoid: false,
             transaction: t,
           });
 
@@ -123,6 +124,7 @@ class XmlUploadController {
                 telefone: restOfData.telefone,
                 tipo_cliente: restOfData.tipo_cliente,
                 referencia_parceiro: parceiro.id,
+                deleted_at: null,
               },
               { transaction: t }
             );
@@ -137,7 +139,7 @@ class XmlUploadController {
                 {
                   numero_contrato: restOfData.numero_contrato,
                   data_vencimento: restOfData.data_vencimento,
-                  status: restOfData.status,
+                  //status: restOfData.status, comentado -> atraplhando o FInanceiro no filtro de busca por status.
                   referencia_certificado: certificado?.id,
                 },
                 { transaction: t }

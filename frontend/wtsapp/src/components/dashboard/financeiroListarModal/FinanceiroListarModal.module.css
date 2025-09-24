@@ -93,7 +93,8 @@
 .detalhesCard h4,
 .detalhesCard h5 {
   margin-top: 0;
-  color: #0b5e8b;
+  color: #005f73;
+  padding: 0.8rem 0;
 }
 
 .parceirosList {
@@ -120,7 +121,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #0b5e8b;
+  color: #005f73;
   font-size: 1rem;
 }
 
@@ -129,7 +130,7 @@
   margin-top: 1.5rem;
 }
 .apontamentosButton {
-  background-color: #0b5e8b;
+  background-color: #0a9396;
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -138,7 +139,7 @@
   transition: background-color 0.2s;
 }
 .apontamentosButton:hover {
-  background-color: #084a6e;
+  background-color: #005f73;
 }
 
 .detalhesHeader {

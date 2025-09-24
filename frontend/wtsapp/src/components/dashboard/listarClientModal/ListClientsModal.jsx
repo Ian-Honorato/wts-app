@@ -12,6 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useDeleteClientMutation } from "../../../hooks/useMutation";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
+import {
+  formatarCpfCnpj,
+  formatarTelefone,
+} from "../../../hooks/util/Mascaras";
+
 const fetchClients = async () => {
   const token = sessionStorage.getItem("token");
   const { data } = await axios.get("http://localhost:3001/clientes", {
@@ -204,7 +209,7 @@ const ListClientsModal = ({
                     <th>ID</th>
                     <th>Nome</th>
                     <th>CPF/CNPJ</th>
-                    <th>Contato</th>
+                    {/*  <th>Contato</th> */}
                     <th>Ações</th>
                   </tr>
                 </thead>
@@ -213,8 +218,8 @@ const ListClientsModal = ({
                     <tr key={client.id}>
                       <td>{client.id}</td>
                       <td>{client.nome}</td>
-                      <td>{client.cpf_cnpj}</td>
-                      <td>{client.telefone}</td>
+                      <td>{formatarCpfCnpj(client.cpf_cnpj)}</td>
+                      {/* <td>{formatarTelefone(client.telefone)}</td> */}
                       <td className={styles.actionsCell}>
                         <button
                           onClick={() => handleActionClick("show", client.id)}

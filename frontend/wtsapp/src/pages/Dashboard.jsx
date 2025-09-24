@@ -113,6 +113,7 @@ const Dashboard = () => {
         isOpen={modalState.isDetailsModalOpen}
         onClose={modalHandlers.closeDetailsModal}
         clientId={modalState.selectedClientId}
+        onFeedback={handleSubmitFeedback}
         onOpenUpdateModal={modalHandlers.openClientModal}
       />
       <ImportXMLModal

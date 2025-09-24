@@ -13,7 +13,7 @@ import {
 import FinanceiroSumarioModal from "./FinanceiroSumarioModal";
 
 // --- Subcomponente para os Detalhes ---
-// (Colocado aqui para manter o exemplo em um só arquivo, mas pode ficar separado)
+
 const DetalhesPagamento = ({ pagamento, detalhes, isLoading }) => {
   if (isLoading)
     return <div className={styles.detalhesCard}>Carregando...</div>;

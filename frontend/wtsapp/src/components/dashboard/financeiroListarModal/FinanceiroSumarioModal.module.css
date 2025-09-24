@@ -44,7 +44,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #34495e;
+  color: #005f73;
 }
 
 .closeButton {
@@ -57,7 +57,7 @@
 }
 
 .closeButton:hover {
-  color: #34495e;
+  color: #2d3748;
 }
 
 /* --- CONTEÚDO INTERNO DO MODAL FILHO (KPIs e Gráfico) --- */
