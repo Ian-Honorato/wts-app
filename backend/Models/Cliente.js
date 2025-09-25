@@ -56,6 +56,7 @@ class Cliente extends Model {
         timestamps: true,
         underscored: true,
         paranoid: true,
+        deletedAt: "deleted_at",
         hooks: {
           beforeDestroy: async (cliente, options) => {
             console.log(

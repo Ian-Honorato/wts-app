@@ -478,9 +478,12 @@ class PagamentoController {
 
       const detalhesFormatados = detalhesDoPagamento.map((detalhe) => ({
         id_item: detalhe.id,
-        numero_contrato: detalhe.contrato.numero_contrato,
-        cliente_nome: detalhe.contrato.cliente.nome,
-        nome_certificado: detalhe.contrato.certificado.nome_certificado,
+        numero_contrato:
+          detalhe?.contrato.numero_contrato ?? "Contrato Excluído",
+        cliente_nome:
+          detalhe?.contrato.cliente.nome ?? "Cliente Não Disponível",
+        nome_certificado:
+          detalhe.contrato?.certificado?.nome_certificado ?? "N/A",
         valor_certificado: detalhe.valor_certificado,
         percentual_comissao: detalhe.percentual_comissao,
         valor_comissao: detalhe.valor_total,

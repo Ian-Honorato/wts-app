@@ -13,17 +13,17 @@ import Footer from "../components/homePage/footer/footer";
 import LoginModal from "../components/homePage/LoginModal/loginModal.jsx";
 import ServiceModal from "../components/homePage/ServiceModal/serviceModal.jsx";
 
+//Efeito scroll
+import FadeInOnScroll from "../components/homePage/FadeInOnScroll/FadeInOnScroll.jsx";
+
 const HomePage = () => {
-  // O estado dos modais da HomePage continua aqui
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
-  // Consumindo o hook de autenticação e o de navegação
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // 2. CRIAR A FUNÇÃO DE DECISÃO
   const handleUserIconClick = () => {
     if (isAuthenticated) {
       navigate("/dashboard");
@@ -43,16 +43,21 @@ const HomePage = () => {
 
   return (
     <>
-      {/* 3. CONECTAR A NOVA FUNÇÃO AO HEADER */}
       <Header
         onUserIconClick={handleUserIconClick}
         onLoginClick={handleUserIconClick}
       />
 
       <main>
-        <Hero />
-        <Produtos onServiceClick={handleOpenServiceModal} />
-        <Contatos />
+        <FadeInOnScroll>
+          <Hero />
+        </FadeInOnScroll>
+        <FadeInOnScroll>
+          <Produtos onServiceClick={handleOpenServiceModal} />
+        </FadeInOnScroll>
+        <FadeInOnScroll>
+          <Contatos />
+        </FadeInOnScroll>
       </main>
       <Footer />
 

@@ -107,14 +107,18 @@ class XmlUploadController {
               { transaction: t }
             );
           }
-
-          const clienteExistente = await Cliente.findOne({
+          console.log("update ou create cliente");
+          const clienteExistente = await Cliente.unscoped().findOne({
             where: { cpf_cnpj },
             paranoid: false,
             transaction: t,
+            logging: console.log,
           });
 
           if (clienteExistente) {
+            if (clienteExistente.deleted_at) {
+              await clienteExistente.restore({ transaction: t });
+            }
             // SE O CLIENTE EXISTE -> ATUALIZA
             await clienteExistente.update(
               {
@@ -124,17 +128,20 @@ class XmlUploadController {
                 telefone: restOfData.telefone,
                 tipo_cliente: restOfData.tipo_cliente,
                 referencia_parceiro: parceiro.id,
-                deleted_at: null,
               },
               { transaction: t }
             );
 
             let contrato = await ContratoCertificado.findOne({
               where: { cliente_id: clienteExistente.id },
+              paranoid: false,
               transaction: t,
             });
 
             if (contrato) {
+              if (contrato.deleted_at) {
+                await contrato.restore({ transaction: t });
+              }
               await contrato.update(
                 {
                   numero_contrato: restOfData.numero_contrato,

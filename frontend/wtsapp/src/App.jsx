@@ -9,10 +9,8 @@ function App() {
   return (
     <>
       <Routes>
-        {/* Rota para o seu SPA de marketing/apresentação */}
         <Route path="/" element={<HomePage />} />
 
-        {/* Rota para sua aplicação logada */}
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </>

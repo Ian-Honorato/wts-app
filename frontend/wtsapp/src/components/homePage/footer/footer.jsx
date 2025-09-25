@@ -2,7 +2,6 @@ import React from "react";
 import styles from "./footer.module.css";
 
 const Footer = () => {
-  // Pega o ano atual dinamicamente
   const currentYear = new Date().getFullYear();
 
   return (

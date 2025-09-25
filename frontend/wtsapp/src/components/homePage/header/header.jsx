@@ -35,7 +35,6 @@ const Header = ({ onLoginClick, onUserIconClick }) => {
             </a>
           </div>
 
-          {/* Links para Desktop */}
           <div className={styles.links_container_desktop}>
             <ul className={styles.navMenu}>
               <li>
@@ -49,8 +48,6 @@ const Header = ({ onLoginClick, onUserIconClick }) => {
               </li>
             </ul>
           </div>
-
-          {/* Container de Ícones para DESKTOP (só tem o login) */}
           <div className={styles.login_container_desktop}>
             <a
               href="#"
@@ -62,7 +59,6 @@ const Header = ({ onLoginClick, onUserIconClick }) => {
             </a>
           </div>
 
-          {/* NOVO: Container de Ícones para MOBILE (login + menu) */}
           <div className={styles.icons_container_mobile}>
             <a
               href="#"
@@ -79,7 +75,6 @@ const Header = ({ onLoginClick, onUserIconClick }) => {
         </nav>
       </header>
 
-      {/* A Sidebar continua a mesma */}
       <nav
         className={`${styles.sidebar} ${
           isSidebarOpen ? styles.sidebarOpen : ""

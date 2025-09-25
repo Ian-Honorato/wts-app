@@ -2,12 +2,10 @@ import React from "react";
 
 // 1. Importe os estilos e a imagem
 import styles from "./hero.module.css";
-import heroBackground from "../../../assets/heroImage.jpg"; // Ajuste o caminho se necessário
+import heroBackground from "../../../assets/heroImage.jpg";
 
 const Hero = () => {
   return (
-    // 2. Aplicamos a imagem de fundo via 'style' inline.
-    // Isso é necessário porque o CSS não consegue acessar a variável 'heroBackground'.
     <section
       id="hero"
       className={styles.hero}

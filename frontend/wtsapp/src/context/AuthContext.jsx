@@ -10,7 +10,6 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Roda uma vez quando a aplicação carrega para verificar a sessão
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     const userDataString = sessionStorage.getItem("user");
@@ -18,11 +17,10 @@ export const AuthProvider = ({ children }) => {
     if (token && userDataString) {
       setUser(JSON.parse(userDataString));
     }
-    // É importante parar o loading mesmo se não houver usuário
+
     setIsLoading(false);
   }, []);
 
-  // Função de login que será usada pelo LoginModal
   const login = (userData, token) => {
     sessionStorage.setItem("token", token);
     sessionStorage.setItem("user", JSON.stringify(userData));
@@ -30,7 +28,6 @@ export const AuthProvider = ({ children }) => {
     navigate("/dashboard");
   };
 
-  // Função de logout que será usada pelos Headers
   const logout = () => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");

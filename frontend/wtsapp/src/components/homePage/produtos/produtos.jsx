@@ -14,7 +14,7 @@ const servicesData = [
     title: "Renovação de Certificados Digitais",
     description:
       "Garanta a continuidade e segurança das suas operações online com a renovação rápida e sem burocracia do seu e-CNPJ ou e-CPF.",
-    icon: faCalendarCheck, // Usando emojis como ícones temporários
+    icon: faCalendarCheck,
   },
   {
     title: "Abertura e Legalização de Empresas",

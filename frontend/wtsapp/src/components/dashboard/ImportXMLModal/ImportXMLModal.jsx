@@ -23,7 +23,13 @@ const ImportXMLModal = ({ isOpen, onClose, onFeedback }) => {
     mutate(formData, {
       onSuccess: (data) => {
         const { report } = data;
-        const successMessage = `Importação finalizada! ${report.successCount} clientes importados.`;
+        console.log("Importação concluída:", report);
+        const successMessage = `
+        Importação finalizada!
+          - Total de novos registros: ${report.successCount}
+          - Total de registros atualizados: ${report.updateCount}
+          - Total de erros: ${report.errorCount}
+        `;
         onFeedback("success", successMessage);
       },
       onError: (error) => {
