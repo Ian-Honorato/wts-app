@@ -1,4 +1,3 @@
-// Importa a conexão e os modelos a partir do inicializador central
 import {
   sequelize,
   Cliente,
@@ -9,7 +8,6 @@ import {
 
 import { Op } from "sequelize";
 
-// Importando os tipos de erro específicos do Sequelize
 import {
   ValidationError,
   UniqueConstraintError,
@@ -377,37 +375,26 @@ class ClienteController {
     try {
       const { id } = req.params;
 
-      // É uma boa prática buscar o cliente dentro da transação também
       const cliente = await Cliente.findByPk(id, { transaction: t });
 
       if (!cliente) {
-        // Se não encontrou, desfaz a transação (embora nada tenha sido feito)
         await t.rollback();
         return res.status(404).json({ error: "Cliente não encontrado." });
       }
-
-      // 2. Executa a exclusão DENTRO da transação
-      // O hook 'beforeDestroy' será acionado aqui e usará a mesma transação 't'
       await cliente.destroy({ transaction: t });
 
-      // 3. Se tudo ocorreu bem (cliente e contratos), confirma as alterações no banco
       await t.commit();
 
       return res.json({
         message: "Cliente e seus contratos foram desativados com sucesso.",
       });
     } catch (e) {
-      // 4. Se qualquer erro ocorreu, desfaz TODAS as alterações
       await t.rollback();
 
-      // Agora pode chamar seu manipulador de erros
       return errorHandler(e, res);
     }
   }
 
-  /**
-   * Lista todos os clientes
-   */
   async index(req, res) {
     try {
       const clientes = await Cliente.findAll({
@@ -419,9 +406,6 @@ class ClienteController {
     }
   }
 
-  /**
-   * Exibe os dados completos de um cliente específico.
-   */
   async show(req, res) {
     try {
       const { id } = req.params;
@@ -487,10 +471,6 @@ class ClienteController {
       return res.status(500).json({ error: "Erro ao buscar clientes." });
     }
   }
-
-  /**
-   * Encontra contratos com data de vencimento nos próximos 30 dias.
-   */
   async findByContract(req, res) {
     try {
       const { days } = req.body;
@@ -552,10 +532,6 @@ class ClienteController {
       return handleError(e, res);
     }
   }
-
-  /**
-   * Retorna uma lista de clientes com seus dados de contrato, certificado e parceiro.
-   */
   async findBasic(req, res) {
     try {
       const clientes = await Cliente.findAll({

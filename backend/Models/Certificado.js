@@ -21,7 +21,6 @@ class Certificado extends Model {
   }
 
   static associate(models) {
-    // Relação existente (mantida)
     this.hasMany(models.ContratoCertificado, {
       foreignKey: "referencia_certificado",
       as: "contratos",

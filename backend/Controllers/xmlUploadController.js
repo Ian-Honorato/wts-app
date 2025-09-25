@@ -1,5 +1,3 @@
-// src/app/controllers/xmlUploadController.js
-
 import { parseStringPromise } from "xml2js";
 import {
   sequelize,
@@ -69,7 +67,6 @@ class XmlUploadController {
             nome: rawData.cliente_bruto || `Linha ${lineNumber}`,
             details: errors,
           });
-          // continue;
         }
 
         try {
@@ -119,7 +116,7 @@ class XmlUploadController {
             if (clienteExistente.deleted_at) {
               await clienteExistente.restore({ transaction: t });
             }
-            // SE O CLIENTE EXISTE -> ATUALIZA
+
             await clienteExistente.update(
               {
                 nome: nome_cliente,
@@ -166,7 +163,6 @@ class XmlUploadController {
             }
             importReport.updateCount++;
           } else {
-            // SE O CLIENTE NÃO EXISTE -> CRIA
             const novoCliente = await Cliente.create(
               {
                 nome: nome_cliente,

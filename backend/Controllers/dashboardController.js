@@ -7,13 +7,8 @@ import {
 import { Op } from "sequelize";
 import { errorHandler } from "../Util/errorHandler.js";
 class DashboardController {
-  /**
-   * Agrega e resume os principais dados do sistema para o dashboard.
-   */
   async getSummary(req, res) {
     try {
-      // Usamos Promise.all para executar todas as consultas em paralelo para melhor performance
-
       const [
         totalClients,
         clientsByType,
@@ -155,9 +150,6 @@ class DashboardController {
   async getRenovationsByPeriod(req, res) {
     try {
       const { data_inicio, data_fim } = req.query;
-
-      // --- CORREÇÃO AQUI ---
-      // Declarar as variáveis de data no escopo externo
       let startDate;
       let endDate;
 
@@ -173,12 +165,9 @@ class DashboardController {
       };
 
       if (data_inicio && data_fim) {
-        // Se o frontend enviar datas (o padrão agora), nós as usamos.
         startDate = parseDate(data_inicio);
         endDate = parseDate(data_fim);
       } else {
-        // Se, por algum motivo, as datas não vierem, o backend tem seu próprio padrão (mês atual).
-        // Isso torna a API robusta.
         const hoje = new Date();
         startDate = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
         endDate = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
@@ -188,7 +177,6 @@ class DashboardController {
         status: "Renovado",
       };
 
-      // Esta verificação agora funciona, pois startDate e endDate existem neste escopo.
       if (startDate && endDate) {
         endDate.setHours(23, 59, 59, 999);
         whereOptions.updated_at = {

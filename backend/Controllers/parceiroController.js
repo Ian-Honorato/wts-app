@@ -1,4 +1,3 @@
-// 1. Importa o modelo 'Parceiro' a partir do inicializador central
 import {
   Cliente,
   Parceiro,
@@ -6,20 +5,14 @@ import {
   Certificado,
 } from "../Models/index.js";
 
-// Importando os tipos de erro específicos do Sequelize para tratamento
 import {
   ValidationError,
   UniqueConstraintError,
   ForeignKeyConstraintError,
 } from "sequelize";
 import { handleError } from "../Util/errorHandler.js";
-/**
- * Função auxiliar para centralizar o tratamento de erros.
- */
+
 class ParceiroController {
-  /**
-   * Cria um novo parceiro, associando-o ao usuário logado.
-   */
   async store(req, res) {
     try {
       const { nome_escritorio } = req.body;
@@ -31,7 +24,7 @@ class ParceiroController {
 
       const novoParceiro = await Parceiro.create({
         nome_escritorio,
-        cadastrado_por_id: req.userId, // Associa o parceiro ao usuário que o criou
+        cadastrado_por_id: req.userId,
       });
 
       return res.status(201).json(novoParceiro);
@@ -39,10 +32,6 @@ class ParceiroController {
       return handleError(e, res);
     }
   }
-
-  /**
-   * Lista todos os parceiros.
-   */
   async index(req, res) {
     try {
       const parceiros = await Parceiro.findAll({
@@ -54,9 +43,6 @@ class ParceiroController {
     }
   }
 
-  /**
-   * Exibe um parceiro específico.
-   */
   async show(req, res) {
     try {
       const { id } = req.params;
@@ -72,9 +58,6 @@ class ParceiroController {
     }
   }
 
-  /**
-   * Atualiza um parceiro existente.
-   */
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -98,9 +81,6 @@ class ParceiroController {
     }
   }
 
-  /**
-   * Exclui um parceiro.
-   */
   async destroy(req, res) {
     try {
       const { id } = req.params;
@@ -117,9 +97,6 @@ class ParceiroController {
     }
   }
 
-  /*
-   * Pagamento de um parceiro
-   */
   async contratosByParceiro(req, res) {
     try {
       const { id } = req.params;

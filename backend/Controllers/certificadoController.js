@@ -1,7 +1,5 @@
-// 1. Importa o modelo 'Certificado' a partir do inicializador central
 import { Certificado } from "../Models/index.js";
 
-// Importando os tipos de erro específicos do Sequelize para tratamento
 import {
   ValidationError,
   UniqueConstraintError,
@@ -10,9 +8,6 @@ import {
 
 import { handleError } from "../Util/errorHandler.js";
 class CertificadoController {
-  /**
-   * Cria um novo tipo de certificado.
-   */
   async store(req, res) {
     try {
       const { nome_certificado } = req.body;
@@ -25,14 +20,10 @@ class CertificadoController {
       const novoCertificado = await Certificado.create({ nome_certificado });
       return res.status(201).json(novoCertificado);
     } catch (e) {
-      // 2. Corrige a chamada para a função auxiliar (remove o 'this')
       return errorHandler(e, res);
     }
   }
 
-  /**
-   * Lista todos os tipos de certificados.
-   */
   async index(req, res) {
     try {
       const certificados = await Certificado.findAll({
@@ -44,9 +35,6 @@ class CertificadoController {
     }
   }
 
-  /**
-   * Exibe um tipo de certificado específico.
-   */
   async show(req, res) {
     try {
       const { id } = req.params;
@@ -62,9 +50,6 @@ class CertificadoController {
     }
   }
 
-  /**
-   * Atualiza um tipo de certificado existente.
-   */
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -89,10 +74,6 @@ class CertificadoController {
       return errorHandler(e, res);
     }
   }
-
-  /**
-   * Exclui um tipo de certificado.
-   */
   async destroy(req, res) {
     try {
       const { id } = req.params;

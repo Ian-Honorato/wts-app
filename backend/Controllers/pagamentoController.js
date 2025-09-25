@@ -11,16 +11,12 @@ import {
 
 import { Op } from "sequelize";
 
-// Importando os tipos de erro específicos do Sequelize
 import {
   ValidationError,
   UniqueConstraintError,
   ForeignKeyConstraintError,
 } from "sequelize";
 
-// ----------------------------------------------------------------------------
-// FUNÇÕES AUXILIARES
-// ----------------------------------------------------------------------------
 import { errorHandler, handleError } from "../Util/errorHandler.js";
 
 class PagamentoController {
@@ -38,7 +34,6 @@ class PagamentoController {
       const data_fim = new Date(ano_atual, mes, 0);
       data_fim.setHours(23, 59, 59, 999);
 
-      // --- CORREÇÃO AQUI: 'attributes' movido para fora da 'where' ---
       const contatosPagos = await PagamentoCertificado.findAll({
         where: {
           created_at: {
@@ -46,17 +41,14 @@ class PagamentoController {
             [Op.between]: [data_inicio, data_fim],
           },
         },
-        attributes: ["contrato_certificado_id"], // Posição correta
+        attributes: ["contrato_certificado_id"],
       });
 
       const contratosPagosIds = contatosPagos.map(
         (pag) => pag.contrato_certificado_id
       );
-
-      // Se não houver IDs pagos, a consulta com [Op.notIn]: [] pode falhar em alguns bancos.
-      // Garantimos que, se estiver vazio, a condição não quebre a query.
       if (contratosPagosIds.length === 0) {
-        contratosPagosIds.push(0); // Adiciona um ID impossível para garantir que notIn funcione
+        contratosPagosIds.push(0);
       }
 
       const parceiros = await Parceiro.findAll({
@@ -93,8 +85,6 @@ class PagamentoController {
   async buscarPendentes(req, res) {
     try {
       const { parceiro_id, mes_referencia } = req.query;
-
-      // Sua validação de parâmetros está ótima.
       if (
         !parceiro_id ||
         !mes_referencia ||
@@ -107,15 +97,11 @@ class PagamentoController {
           ],
         });
       }
-
-      // Sua lógica de datas está perfeita.
       const ano_atual = new Date().getFullYear();
       const data_inicio = new Date(ano_atual, mes_referencia - 1, 1);
       data_inicio.setHours(0, 0, 0, 0);
       const data_fim = new Date(ano_atual, mes_referencia, 0);
       data_fim.setHours(23, 59, 59, 999);
-
-      // --- BUSCAR A LISTA, AGORA COM A VERIFICAÇÃO INTEGRADA ---
       const contratosRenovados = await ContratoCertificado.findAll({
         where: {
           status: "Renovado",
@@ -203,9 +189,6 @@ class PagamentoController {
   }
 
   async criarPagamento(req, res) {
-    // =================================================================================
-    // ETAPA 1: PREPARAÇÃO E VALIDAÇÃO DOS DADOS
-    // =================================================================================
     try {
       const {
         parceiro_id,
@@ -226,18 +209,14 @@ class PagamentoController {
       ) {
         return res.status(400).json({ error: "Dados essenciais ausentes." });
       }
-
-      // Preparação da data de referência
       const anoAtual = new Date().getFullYear();
       const mesReferenciaFormatado = new Date(anoAtual, mes_referencia - 1, 1);
 
-      // Recálculo da comissão no backend
       const comissaoUnitaria_backend =
         parseFloat(valor_unitario) * (parseFloat(percentual_comissao) / 100);
       const comissaoTotal_backend =
         comissaoUnitaria_backend * contratos_referencia.length;
 
-      // Validação de discrepância entre frontend e backend
       const diferencaTotal = Math.abs(
         comissaoTotal_backend - parseFloat(comissao_total_frontend)
       );
@@ -249,13 +228,7 @@ class PagamentoController {
         });
       }
 
-      // =================================================================================
-      // ETAPA 2: TRANSAÇÃO NO BANCO DE DADOS
-      // =================================================================================
-
-      // A partir daqui, todas as operações são envolvidas em uma transação.
       const resultado = await sequelize.transaction(async (t) => {
-        // --- 2.1: Encontra ou Cria a "Fatura" principal para o parceiro no mês. ---
         const [pagamentoParceiro, foiCriado] =
           await PagamentoParceiro.findOrCreate({
             where: {
@@ -273,7 +246,6 @@ class PagamentoController {
             transaction: t,
           });
 
-        // --- 2.2: Se a fatura já existia, atualiza os totais. ---
         if (!foiCriado) {
           pagamentoParceiro.valor_total =
             parseFloat(pagamentoParceiro.valor_total) + comissaoTotal_backend;
@@ -281,7 +253,6 @@ class PagamentoController {
           await pagamentoParceiro.save({ transaction: t });
         }
 
-        // --- 2.3: Prepara os dados dos "itens" da fatura (certificados individuais). ---
         const dadosCertificados = contratos_referencia.map((contratoId) => ({
           pagamento_id: pagamentoParceiro.id, // Associa ao ID da fatura principal
           contrato_certificado_id: contratoId,
@@ -289,30 +260,17 @@ class PagamentoController {
           percentual_comissao: percentual_comissao,
           valor_total: comissaoUnitaria_backend,
         }));
-
-        // --- 2.4: Insere todos os itens da fatura de uma vez. ---
         await PagamentoCertificado.bulkCreate(dadosCertificados, {
           transaction: t,
         });
-
-        // Se todas as etapas acima funcionarem, a transação retornará o ID.
         return { pagamentoParceiroId: pagamentoParceiro.id };
       });
 
-      // =================================================================================
-      // ETAPA 3: SUCESSO - ENVIO DA RESPOSTA FINAL
-      // =================================================================================
-      // Se a transação foi concluída com sucesso, 'resultado' conterá o que retornamos.
       return res.status(201).json({
         message: "Pagamento registrado com sucesso!",
         pagamentoParceiroId: resultado.pagamentoParceiroId,
       });
     } catch (error) {
-      // =================================================================================
-      // ETAPA 4: FALHA - A TRANSAÇÃO É REVERTIDA AUTOMATICAMENTE
-      // =================================================================================
-      // Se qualquer 'await' dentro do bloco de transação falhar, o Sequelize
-      // automaticamente fará o rollback e o erro será capturado aqui.
       console.error("Erro na transação ao registrar pagamento:", error);
       return res
         .status(500)
@@ -323,18 +281,13 @@ class PagamentoController {
     try {
       const { mes, ano } = req.query;
 
-      // Validação dos parâmetros de data
       if (!mes || !ano) {
         return res
           .status(400)
           .json({ error: "Os parâmetros 'mes' e 'ano' são obrigatórios." });
       }
-
-      // Cria o intervalo de datas para a consulta
       const data_inicio = new Date(ano, mes - 1, 1);
-      const data_fim = new Date(ano, mes, 0, 23, 59, 59); // Último dia, hora, minuto e segundo do mês
-
-      // Consulta principal que busca todos os pagamentos de parceiros no período
+      const data_fim = new Date(ano, mes, 0, 23, 59, 59);
       const pagamentosDoMes = await PagamentoParceiro.findAll({
         where: {
           mes_referencia: {
@@ -343,14 +296,13 @@ class PagamentoController {
         },
         include: {
           model: Parceiro,
-          as: "parceiro", // Assumindo que a associação se chama 'parceiro'
+          as: "parceiro",
           attributes: ["nome_escritorio"],
           required: true,
         },
-        order: [["valor_total", "DESC"]], // Ordena por maior comissão
+        order: [["valor_total", "DESC"]],
       });
 
-      // Se não houver dados, retorna uma resposta vazia e estruturada
       if (!pagamentosDoMes || pagamentosDoMes.length === 0) {
         return res.status(200).json({
           kpis: {
@@ -363,9 +315,6 @@ class PagamentoController {
         });
       }
 
-      // --- Processamento dos dados para montar a resposta ---
-
-      // 1. Cálculo dos KPIs
       const kpis = pagamentosDoMes.reduce(
         (acc, pagamento) => {
           acc.totalComissao += parseFloat(pagamento.valor_total);
@@ -379,13 +328,11 @@ class PagamentoController {
         }
       );
 
-      // 2. Dados para o gráfico (Top 5)
       const topParceiros = pagamentosDoMes.slice(0, 5).map((pagamento) => ({
         nome: pagamento.parceiro.nome_escritorio,
         valor: parseFloat(pagamento.valor_total),
       }));
 
-      // 3. Formatação da lista de pagamentos para a tabela principal
       const pagamentosFormatados = pagamentosDoMes.map((pagamento) => ({
         id: pagamento.id,
         parceiro_nome: pagamento.parceiro.nome_escritorio,
@@ -395,7 +342,6 @@ class PagamentoController {
         status: pagamento.status,
       }));
 
-      // Monta a resposta final
       const resposta = {
         kpis,
         topParceiros,

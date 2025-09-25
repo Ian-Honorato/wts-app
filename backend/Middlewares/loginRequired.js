@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-// Corrigindo o import para usar o nome correto do model: 'Usuario'
 import Usuario from "../Models/Usuario.js";
 
 export default async (req, res, next) => {

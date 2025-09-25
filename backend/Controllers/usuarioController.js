@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Usuario } from "../Models/index.js";
 import { errorHandler } from "../Util/errorHandler.js";
-// Importando os tipos de erro específicos do Sequelize
+
 import {
   ValidationError,
   UniqueConstraintError,
@@ -10,9 +10,6 @@ import {
 } from "sequelize";
 
 class UsuarioController {
-  /**
-   * Cria um novo usuário (apenas administradores).
-   */
   async store(req, res) {
     if (req.userTipo !== "admin") {
       return res
@@ -62,9 +59,6 @@ class UsuarioController {
     }
   }
 
-  /**
-   * Atualiza os dados de um usuário existente.
-   */
   async update(req, res) {
     const { id: paramId } = req.params;
     if (req.userTipo !== "admin" && req.userId !== Number(paramId)) {
@@ -159,9 +153,6 @@ class UsuarioController {
     }
   }
 
-  /**
-   * Exibe os dados de um usuário específico (apenas administradores).
-   */
   async show(req, res) {
     if (req.userTipo !== "admin") {
       return res
@@ -185,9 +176,6 @@ class UsuarioController {
     }
   }
 
-  /**
-   * Lista todos os usuários (apenas administradores).
-   */
   async index(req, res) {
     if (req.userTipo !== "admin") {
       return res
@@ -205,9 +193,6 @@ class UsuarioController {
     }
   }
 
-  /**
-   * Autentica um usuário e retorna um token JWT.
-   */
   async login(req, res) {
     try {
       const { email, password } = req.body;
