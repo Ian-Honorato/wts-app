@@ -1,7 +1,8 @@
 /* Estilos para a seção Hero */
 
 .hero {
-  height: 90vh; /* Ocupa 90% da altura da tela */
+  padding-top: 80px;
+  height: 100vh; /* Ocupa 90% da altura da tela */
   width: 100%;
   position: relative; /* Necessário para posicionar o overlay e o conteúdo */
   display: flex;

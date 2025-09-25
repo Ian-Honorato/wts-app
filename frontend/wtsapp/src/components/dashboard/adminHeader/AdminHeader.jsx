@@ -89,7 +89,7 @@ const AdminHeader = ({
 
       <header className={styles.adminHeader}>
         <div className={styles.container}>
-          <a href="/dashboard" className={styles.brand}>
+          <a href="/" className={styles.brand}>
             <img src={logo} alt="Logo" className={styles.logoImage} />
             <span>Painel Administrador</span>
           </a>

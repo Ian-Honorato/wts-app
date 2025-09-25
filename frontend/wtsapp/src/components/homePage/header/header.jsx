@@ -14,6 +14,7 @@ const Header = ({ onLoginClick, onUserIconClick }) => {
   };
 
   const handleLoginClick = (e) => {
+    console.log("acionou o botao");
     e.preventDefault();
     setIsSidebarOpen(false);
     onLoginClick();

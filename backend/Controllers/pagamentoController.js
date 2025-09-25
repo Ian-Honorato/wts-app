@@ -446,6 +446,7 @@ class PagamentoController {
           {
             model: ContratoCertificado,
             as: "contrato",
+            paranoid: false,
             attributes: [
               "numero_contrato",
               "data_renovacao",
@@ -479,7 +480,6 @@ class PagamentoController {
         id_item: detalhe.id,
         numero_contrato: detalhe.contrato.numero_contrato,
         cliente_nome: detalhe.contrato.cliente.nome,
-
         nome_certificado: detalhe.contrato.certificado.nome_certificado,
         valor_certificado: detalhe.valor_certificado,
         percentual_comissao: detalhe.percentual_comissao,

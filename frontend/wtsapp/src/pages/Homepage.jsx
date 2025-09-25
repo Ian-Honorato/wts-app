@@ -44,7 +44,10 @@ const HomePage = () => {
   return (
     <>
       {/* 3. CONECTAR A NOVA FUNÇÃO AO HEADER */}
-      <Header onUserIconClick={handleUserIconClick} />
+      <Header
+        onUserIconClick={handleUserIconClick}
+        onLoginClick={handleUserIconClick}
+      />
 
       <main>
         <Hero />

@@ -37,6 +37,7 @@ class ContratoCertificado extends Model {
         timestamps: true,
         underscored: true,
         paranoid: true,
+        deletedAt: "deleted_at",
       }
     );
     return this;
