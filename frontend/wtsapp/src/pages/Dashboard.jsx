@@ -53,47 +53,34 @@ const Dashboard = () => {
 
   return (
     <div>
-      {user.tipo_usuario === "admin" ? (
-        <AdminHeader
-          user={user}
-          onLogout={logout} // Vem do useAuth
-          onOpenClientModal={modalHandlers.openClientModal}
-          onOpenListClientsModal={modalHandlers.openListClientsModal}
-          onOpenImportModal={modalHandlers.openImportModal}
-          onOpenUserModal={modalHandlers.openUserModal}
-          onOpenListUserModal={modalHandlers.openListUsersModal}
-          onOpenParceiroModal={modalHandlers.openParceiroModal}
-          onOpenListParceiroModal={modalHandlers.openListParceirosModal}
-          onOpenFinanceiroModal={modalHandlers.openFinanceiroModal}
-          onOpenListarFianceiroModal={modalHandlers.openFinanceiroListarModal}
-        />
-      ) : (
-        <UserHeader user={user} onLogout={logout} />
-      )}
+      <AdminHeader
+        user={user}
+        onLogout={logout} // Vem do useAuth
+        onOpenClientModal={modalHandlers.openClientModal}
+        onOpenListClientsModal={modalHandlers.openListClientsModal}
+        onOpenImportModal={modalHandlers.openImportModal}
+        onOpenUserModal={modalHandlers.openUserModal}
+        onOpenListUserModal={modalHandlers.openListUsersModal}
+        onOpenParceiroModal={modalHandlers.openParceiroModal}
+        onOpenListParceiroModal={modalHandlers.openListParceirosModal}
+        onOpenFinanceiroModal={modalHandlers.openFinanceiroModal}
+        onOpenListarFianceiroModal={modalHandlers.openFinanceiroListarModal}
+      />
 
       <div style={{ padding: "2rem", backgroundColor: "#f4f7f6" }}>
-        {user.tipo_usuario === "admin" ? (
-          <AdminDashboard
-            summaryData={sumarioData}
-            criticalClientsData={{
-              clients: criticalClients,
-              isLoading: isDataLoading,
-              period: criticalPeriod,
-              setPeriod: setCriticalPeriod,
-            }}
-            renovationsData={renovationsData}
-            filters={filters}
-            setFilters={setFilters}
-            handleSearch={handleSearch}
-          />
-        ) : (
-          <ClientesCriticos
-            clients={criticalClients}
-            isLoading={isDataLoading}
-            period={criticalPeriod}
-            setPeriod={setCriticalPeriod}
-          />
-        )}
+        <AdminDashboard
+          summaryData={sumarioData}
+          criticalClientsData={{
+            clients: criticalClients,
+            isLoading: isDataLoading,
+            period: criticalPeriod,
+            setPeriod: setCriticalPeriod,
+          }}
+          renovationsData={renovationsData}
+          filters={filters}
+          setFilters={setFilters}
+          handleSearch={handleSearch}
+        />
       </div>
 
       <ClientModal

@@ -12,6 +12,7 @@ import {
   faUsers,
   faHandshake,
   faUserCircle,
+  faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
 
 const AdminHeader = ({
@@ -176,29 +177,33 @@ const AdminHeader = ({
                 </ul>
               </details>
             </li>
-            <li>
-              <details>
-                <summary>
-                  <FontAwesomeIcon
-                    icon={faUserCircle}
-                    className={styles.menuIcon}
-                  />
-                  Financeiro
-                </summary>
-                <ul>
-                  <li>
-                    <a href="#" onClick={handleOpenFinanceiro}>
-                      Cadastrar pagamento
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" onClick={handleOpenListarFinanceiro}>
-                      Apontamentos
-                    </a>
-                  </li>
-                </ul>
-              </details>
-            </li>
+
+            {user && user.tipo_usuario === "admin" && (
+              <li>
+                <details>
+                  <summary>
+                    <FontAwesomeIcon
+                      icon={faDollarSign} // Ícone atualizado para melhor semântica
+                      className={styles.menuIcon}
+                    />
+                    Financeiro
+                  </summary>
+                  <ul>
+                    <li>
+                      <a href="#" onClick={handleOpenFinanceiro}>
+                        Cadastrar pagamento
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" onClick={handleOpenListarFinanceiro}>
+                        Apontamentos
+                      </a>
+                    </li>
+                  </ul>
+                </details>
+              </li>
+            )}
+
             <li>
               <details>
                 <summary>
