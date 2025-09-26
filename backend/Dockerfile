@@ -1,51 +1,34 @@
 # --- Estágio 1: Builder ---
-# Usamos a imagem completa do Node para instalar dependências e copiar o código
 FROM node:20 AS builder
-
-# Define o fuso horário
-ENV TZ=America/Sao_Paulo
-
-# Define o diretório de trabalho
 WORKDIR /app
-
-# Copia os arquivos de manifesto de pacotes
 COPY package*.json ./
-
-# Instala SOMENTE as dependências de produção
+# Instala somente as dependências de produção para o build
 RUN npm install --omit=dev
-
-# Copia o restante do código-fonte
 COPY . .
+# Se houver um passo de build no seu backend (ex: TypeScript), adicione aqui.
+# Ex: RUN npm run build
 
 # --- Estágio 2: Production ---
-# Usamos uma imagem "slim", que é menor e mais segura
-FROM node:20-slim
-
-# Define o diretório de trabalho
+FROM node:20-alpine
 WORKDIR /app
 
-# Cria um usuário não-root chamado 'node' para executar a aplicação
-# Isso é uma prática de segurança fundamental para contêineres
-RUN addgroup --system --gid 1001 node && \
-    adduser --system --uid 1001 node
-
-# Copia as dependências instaladas e o código do estágio 'builder'
+# Copia as dependências de produção do estágio 'builder'
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app .
+# Copia o código-fonte da aplicação
+COPY --from=builder /app ./
 
-# Cria o diretório de uploads e define o usuário 'node' como proprietário
-RUN mkdir -p /app/uploads/xml && \
-    chown -R node:node /app
+# CORREÇÃO: Cria o usuário 'node' de uma forma mais segura e robusta
+RUN addgroup -S node && adduser -S -G node node
 
-# Muda para o usuário não-root 'node'
+# Define o proprietário dos arquivos para o usuário 'node'
+RUN chown -R node:node /app
+
+# Muda para o usuário não-root
 USER node
 
-# Expõe a porta em que a aplicação roda
+# Expõe a porta que a aplicação usa
 EXPOSE 3000
 
-# Define um healthcheck para que o Docker saiba se a aplicação está saudável
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD [ "node", "-e", "require('http').get('http://localhost:3000', (res) => process.exit(res.statusCode == 200 ? 0 : 1))" ]
-
-# Comando para iniciar a aplicação
+# O comando para iniciar a aplicação
 CMD [ "npm", "start" ]
+
