@@ -79,7 +79,7 @@ const Contatos = () => {
                     href="mailto:contato@suacontabilidade.com"
                     className={styles.contactLink}
                   >
-                    contato@suacontabilidade.com
+                    contato@valideja.com
                   </a>
                 </div>
               </li>
