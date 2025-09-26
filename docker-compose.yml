@@ -1,26 +1,21 @@
-# Versão 3.8 do Docker Compose
-version: "3.8"
+version: "3.9"
 
-# Definição dos serviços (contêineres) da aplicação
 services:
-  # Serviço do Banco de Dados MariaDB
   db:
     image: mariadb:10.11
     container_name: minha-api-db-mariadb
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    env_file: .env
     environment:
-      # As senhas agora são carregadas do arquivo .env para maior segurança
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${DB_DATABASE}
+      MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3307:3306" # Mapeia a porta do contêiner para a máquina host
     volumes:
-      - db-data-mariadb:/var/lib/mysql # Persiste os dados do banco
+      - db-data-mariadb:/var/lib/mysql
     networks:
-      - app-network # Conecta o serviço à nossa rede customizada
+      - app-network
     healthcheck:
       test:
         [
@@ -29,51 +24,37 @@ services:
           "ping",
           "-h",
           "localhost",
-          "-u",
-          "${DB_USER}",
+          "-u${DB_USER}",
           "-p${DB_PASSWORD}",
         ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Serviço do Backend (API Node.js)
   backend:
     build:
-      context: ./backend # Otimizado com multi-stage build
+      context: ./backend
       dockerfile: Dockerfile
     container_name: minha-api-backend
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy # Garante que o DB está pronto
-    env_file:
-      - ./backend/.env # Carrega as configurações da aplicação
+        condition: service_healthy
+    env_file: ./backend/.env # Mantém o .env específico do backend
     environment:
-      # Sobrescreve apenas o host do DB para o nome do serviço Docker
-      - DATABASE_HOST=db
+      DATABASE_HOST: db # Garante que o backend se conecte ao serviço 'db'
     networks:
       - app-network
 
-  # Serviço do Frontend
   frontend:
     build:
       context: ./frontend/wtsapp
       dockerfile: Dockerfile
     container_name: minha-api-frontend
     restart: unless-stopped
-    depends_on:
-      - backend
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
-  # Serviço do Nginx (Proxy Reverso)
   nginx:
     build:
       context: ./nginx
@@ -81,32 +62,18 @@ services:
     container_name: minha-api-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80" # Expõe somente a porta 80 (HTTP)
     depends_on:
-      frontend:
-        condition: service_healthy
+      - frontend
+      - backend
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - certbot-etc:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot:ro
     networks:
       - app-network
 
-  # Serviço do Certbot para certificados SSL
-  certbot:
-    image: certbot/certbot
-    container_name: minha-api-certbot
-    volumes:
-      - certbot-etc:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-
-# Definição dos volumes para persistência de dados
 volumes:
   db-data-mariadb:
-  certbot-etc:
 
-# Definição da rede customizada para a aplicação
 networks:
   app-network:
     driver: bridge
