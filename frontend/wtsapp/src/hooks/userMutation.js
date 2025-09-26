@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const API_URL = "http://localhost:3001/usuarios";
+const API_URL = "/api/usuarios";
 
 // --- Funções de API ---
 

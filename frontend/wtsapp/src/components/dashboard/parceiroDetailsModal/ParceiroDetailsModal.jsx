@@ -53,12 +53,9 @@ const ClientTable = ({ clients }) => (
 // --- Componente Principal do Modal ---
 const fetchParceiroDetails = async (parceiroId) => {
   const token = sessionStorage.getItem("token");
-  const { data } = await axios.get(
-    `http://localhost:3001/parceiros/${parceiroId}/contratos`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  const { data } = await axios.get(`/api/parceiros/${parceiroId}/contratos`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return data;
 };
 

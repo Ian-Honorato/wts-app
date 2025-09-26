@@ -7,31 +7,23 @@ import axios from "axios";
 
 const addParceiro = async (parceiroData) => {
   const token = sessionStorage.getItem("token");
-  const { data } = await axios.post(
-    "http://localhost:3001/parceiros",
-    parceiroData,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  const { data } = await axios.post("/api/parceiros", parceiroData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return data;
 };
 
 const updateParceiro = async ({ id, data }) => {
   const token = sessionStorage.getItem("token");
-  const response = await axios.put(
-    `http://localhost:3001/parceiros/${id}`,
-    data,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  const response = await axios.put(`/api/parceiros/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data;
 };
 
 const deleteParceiro = async (id) => {
   const token = sessionStorage.getItem("token");
-  await axios.delete(`http://localhost:3001/parceiros/${id}`, {
+  await axios.delete(`/api/parceiros/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };

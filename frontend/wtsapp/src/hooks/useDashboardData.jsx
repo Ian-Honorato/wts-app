@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const fetchSumarioData = async () => {
   const token = sessionStorage.getItem("token");
-  const { data } = await axios.get("http://localhost:3001/dashboard/sumario", {
+  const { data } = await axios.get("/api/dashboard/sumario", {
     headers: { Authorization: `Bearer ${token}` },
   });
   //console.log("dados do sumario", data);
@@ -13,7 +13,7 @@ const fetchSumarioData = async () => {
 const fetchCriticalClients = async (period) => {
   const token = sessionStorage.getItem("token");
   const { data } = await axios.post(
-    `http://localhost:3001/clientes/contratos`,
+    `/api/clientes/contratos`,
     { days: period },
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -26,7 +26,7 @@ const fetchRenovationsData = async (filters) => {
   if (filters.data_fim) params.append("data_fim", filters.data_fim);
 
   const { data } = await axios.get(
-    `http://localhost:3001/dashboard/renovations?${params.toString()}`,
+    `/api/dashboard/renovations?${params.toString()}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return data;
