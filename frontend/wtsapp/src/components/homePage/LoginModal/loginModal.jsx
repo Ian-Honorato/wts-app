@@ -10,7 +10,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../../../hooks/useAuth.js";
 
 const LoginModal = ({ isOpen, onClose }) => {
-  const default_url = "http://localhost:3001/";
+  const default_url = "/api/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

@@ -14,7 +14,7 @@ import { useDeleteParceiroMutation } from "../../../hooks/useParceiroMutation";
 
 const fetchParceiros = async () => {
   const token = sessionStorage.getItem("token");
-  const { data } = await axios.get("http://localhost:3001/parceiros", {
+  const { data } = await axios.get("/api/parceiros", {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data;

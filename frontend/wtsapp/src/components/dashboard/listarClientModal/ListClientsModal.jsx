@@ -19,7 +19,7 @@ import {
 
 const fetchClients = async () => {
   const token = sessionStorage.getItem("token");
-  const { data } = await axios.get("http://localhost:3001/clientes", {
+  const { data } = await axios.get("/api/clientes", {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data;
@@ -71,7 +71,7 @@ const ListClientsModal = ({
         //console.log("Buscando por:", searchTerm);
         const token = sessionStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:3001/clientes/search?searchTerm=${searchTerm}`,
+          `/api/clientes/search?searchTerm=${searchTerm}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setSearchResults(response.data);
@@ -104,12 +104,9 @@ const ListClientsModal = ({
     if (action === "update") {
       try {
         const token = sessionStorage.getItem("token");
-        const response = await axios.get(
-          `http://localhost:3001/clientes/${clientId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await axios.get(`/api/clientes/${clientId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         onClose();
         setTimeout(() => onOpenUpdateModal(response.data), 300);
       } catch (error) {
