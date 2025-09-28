@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./adminDashboard.module.css";
+import styles from "./AdminDashboard.module.css";
 
 // Importe os componentes que vão compor o painel
 import StatCard from "../windgets/statCard";
