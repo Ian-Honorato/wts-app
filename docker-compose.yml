@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy # Só inicia o backend quando o 'db' estiver saudável
+        condition: service_healthy # <<<--- ESTA É A CHAVE DA VITÓRIA
     env_file: ./backend/.env
     environment:
       DATABASE_HOST: db
@@ -76,12 +76,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-    # --- CORREÇÃO FINAL ---
     depends_on:
       - frontend
-      - backend # Garante que o Nginx só inicia quando ambos os serviços estiverem prontos
+      - backend
     volumes:
-      # Mapeia o nosso ficheiro de configuração para dentro do contentor
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - app-network
