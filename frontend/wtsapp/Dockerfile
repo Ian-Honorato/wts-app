@@ -1,3 +1,4 @@
+# --- Estágio Único e Simplificado ---
 # Utiliza a imagem oficial e completa do Node.js.
 FROM node:20
 
@@ -21,5 +22,5 @@ RUN npm install -g serve
 EXPOSE 3000
 
 # O comando para iniciar o servidor, servindo o conteúdo da pasta 'dist'.
-CMD ["serve", "-s", "dist"]
+CMD ["serve", "-s", "dist", "-l", "3000"]
 
