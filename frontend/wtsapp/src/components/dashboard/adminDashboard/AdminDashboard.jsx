@@ -31,6 +31,7 @@ const AdminDashboard = ({
       </div>
     );
   }
+  // registrando alteração
 
   // Extração de dados das props
   const { totalClients, upcomingExpirations, contractsByStatus, topPartners } =
