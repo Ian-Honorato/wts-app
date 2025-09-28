@@ -17,7 +17,7 @@ import {
 // ----------------------------------------------------------------------------
 // FUNÇÕES AUXILIARES
 // ----------------------------------------------------------------------------
-import { errorHandler, handleError } from "../Util/errorHandler.js";
+import { errorHandler } from "../Util/errorHandler.js";
 
 /**
  * Valida, sanitiza e formata os dados de entrada para um cliente.
