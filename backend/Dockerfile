@@ -1,31 +1,65 @@
 # --- Estágio 1: Builder ---
-# Utiliza uma imagem Node.js completa para instalar dependências.
+
 FROM node:20 AS builder
+
+# Define o diretório de trabalho dentro do contentor.
 WORKDIR /app
+
+# Copia os ficheiros de manifesto de pacotes para aproveitar o cache do Docker.
 COPY package*.json ./
-# Instala somente as dependências de produção.
-RUN npm install --omit=dev
+
+# Instala todas as dependências (incluindo as de desenvolvimento para o build).
+RUN npm install
+
+# Copia todo o código-fonte do frontend para o contentor.
 COPY . .
-# A linha 'RUN npm run build' foi removida daqui, pois não é necessária para este backend.
+# --- Estágio 1: Builder ---
+# Utiliza a imagem oficial do Node.js para instalar dependências e "buildar" o projeto.
+FROM node:20 AS builder
+
+# Define o diretório de trabalho dentro do contentor.
+WORKDIR /app
+
+# Copia os ficheiros de manifesto de pacotes para aproveitar o cache do Docker.
+COPY package*.json ./
+
+# Instala todas as dependências (incluindo as de desenvolvimento para o build).
+RUN npm install
+
+# Copia todo o código-fonte do frontend para o contentor.
+COPY . .
+
+# Executa o comando de build do Vite para gerar os ficheiros estáticos.
+RUN npm run build
 
 # --- Estágio 2: Production ---
-# Utiliza uma imagem Alpine, muito mais leve e segura para produção.
-FROM node:20-alpine
-WORKDIR /app
+# Utiliza uma imagem Nginx super leve e segura para servir os ficheiros.
+FROM nginx:stable-alpine
 
-# Copia as dependências de produção do estágio 'builder'.
-COPY --from=builder /app/node_modules ./node_modules
-# Copia o código-fonte da aplicação.
-COPY --from=builder /app ./
+# Copia os ficheiros estáticos gerados no estágio 'builder' (referenciado pelo índice 0)
+# para o diretório padrão onde o Nginx serve arquivos.
+COPY --from=0 /app/dist /usr/share/nginx/html # <-- CORREÇÃO: Usamos o índice 0
 
-# A imagem base 'node:20-alpine' já inclui um utilizador 'node' seguro.
-# Não precisamos de o criar, apenas de o usar.
-RUN chown -R node:node /app
-USER node
+# Expõe a porta 80, que é a porta padrão do Nginx.
+EXPOSE 80
 
-# Expõe a porta que a aplicação usa.
-EXPOSE 3000
+# O comando padrão do Nginx para iniciar o servidor.
+CMD ["nginx", "-g", "daemon off;"]
 
-# O comando para iniciar a aplicação.
-CMD [ "npm", "start" ]
+
+
+
+# --- Estágio 2: Production ---
+# Utiliza uma imagem Nginx super leve e segura para servir os ficheiros.
+FROM nginx:stable-alpine
+
+# Copia os ficheiros estáticos gerados no estágio 'builder' para o diretório padrão onde o Nginx serve arquivos.
+# A pasta de output do Vite é 'dist' por defeito.
+COPY --from=0 /app/dist /usr/share/nginx/html # <-- CORREÇÃO: Usamos o índice 0 em vez do nome 'builder'
+
+# Expõe a porta 80, que é a porta padrão do Nginx.
+EXPOSE 80
+
+# O comando padrão do Nginx para iniciar o servidor.
+CMD ["nginx", "-g", "daemon off;"]
 
