@@ -9,7 +9,6 @@ import PagamentoParceiro from "./PagamentoParceiro.js";
 import Parceiro from "./Parceiro.js";
 import Certificado from "./Certificado.js";
 import PagamentoCertificado from "./PagamentoCertificado.js";
-import PagamentoCertificado from "./PagamentoCertificado";
 
 const models = [
   Usuario,
