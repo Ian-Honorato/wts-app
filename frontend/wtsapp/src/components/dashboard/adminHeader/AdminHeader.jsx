@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import styles from "./adminHeader.module.css";
 import logo from "../../../assets/logo.png";
 
-// Ícones
+// Ícone
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
