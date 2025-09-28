@@ -1,33 +1,25 @@
-# --- Estágio 1: Builder ---
-# Utiliza a imagem oficial do Node.js para instalar dependências e "buildar" o projeto.
-FROM node:20 AS builder
+# Utiliza a imagem oficial e completa do Node.js.
+FROM node:20
 
-# Define o diretório de trabalho dentro do contentor.
+# Define o diretório de trabalho.
 WORKDIR /app
 
-# Copia os ficheiros de manifesto de pacotes para aproveitar o cache do Docker.
+# Copia os ficheiros de manifesto e instala TODAS as dependências.
 COPY package*.json ./
-
-# Instala todas as dependências (incluindo as de desenvolvimento para o build).
 RUN npm install
 
-# Copia todo o código-fonte do frontend para o contentor.
+# Copia o resto do código-fonte.
 COPY . .
 
-# Executa o comando de build do Vite para gerar os ficheiros estáticos.
+# Executa o build do Vite para gerar os ficheiros estáticos na pasta 'dist'.
 RUN npm run build
 
-# --- Estágio 2: Production ---
-# Utiliza uma imagem Nginx super leve e segura para servir os ficheiros.
-FROM nginx:stable-alpine
+# Instala um servidor estático simples de forma global.
+RUN npm install -g serve
 
-# Copia os ficheiros estáticos gerados no estágio 'builder' (referenciado pelo índice 0)
-# para o diretório padrão onde o Nginx serve arquivos.
-COPY --from=0 /app/dist /usr/share/nginx/html # <-- CORREÇÃO: Usamos o índice 0
+# Expõe a porta 3000, que é a porta padrão do 'serve'.
+EXPOSE 3000
 
-# Expõe a porta 80, que é a porta padrão do Nginx.
-EXPOSE 80
-
-# O comando padrão do Nginx para iniciar o servidor.
-CMD ["nginx", "-g", "daemon off;"]
+# O comando para iniciar o servidor, servindo o conteúdo da pasta 'dist'.
+CMD ["serve", "-s", "dist"]
 
