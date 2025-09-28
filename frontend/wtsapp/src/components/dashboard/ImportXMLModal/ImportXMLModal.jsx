@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "./importXMLModal.module.css";
+import styles from "./ImportXMLModal.module.css";
 
 import { useImportClientMutation } from "../../../hooks/useMutation";
 
