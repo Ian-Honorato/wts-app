@@ -10,7 +10,7 @@ import {
   UniqueConstraintError,
   ForeignKeyConstraintError,
 } from "sequelize";
-import { handleError } from "../Util/errorHandler.js";
+import { errorHandler } from "../Util/errorHandler.js";
 
 class ParceiroController {
   async store(req, res) {
@@ -29,7 +29,7 @@ class ParceiroController {
 
       return res.status(201).json(novoParceiro);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
   async index(req, res) {
@@ -39,7 +39,7 @@ class ParceiroController {
       });
       return res.json(parceiros);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -54,7 +54,7 @@ class ParceiroController {
 
       return res.json(parceiro);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -77,7 +77,7 @@ class ParceiroController {
       const parceiroAtualizado = await parceiro.update({ nome_escritorio });
       return res.json(parceiroAtualizado);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -93,7 +93,7 @@ class ParceiroController {
       await parceiro.destroy();
       return res.json({ message: "Parceiro excluído com sucesso." });
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -137,7 +137,7 @@ class ParceiroController {
 
       return res.status(200).json(parceiro);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 

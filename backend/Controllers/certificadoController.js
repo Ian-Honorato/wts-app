@@ -6,7 +6,7 @@ import {
   ForeignKeyConstraintError,
 } from "sequelize";
 
-import { handleError } from "../Util/errorHandler.js";
+import { errorHandler } from "../Util/errorHandler.js";
 class CertificadoController {
   async store(req, res) {
     try {

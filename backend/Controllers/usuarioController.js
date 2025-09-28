@@ -55,7 +55,7 @@ class UsuarioController {
         tipo_usuario: tipo,
       });
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -119,7 +119,7 @@ class UsuarioController {
 
       return res.json({ id: userId, nome: nomeUsuario, email: emailUsuario });
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -149,7 +149,7 @@ class UsuarioController {
       await usuario.destroy();
       return res.status(204).send();
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -172,7 +172,7 @@ class UsuarioController {
 
       return res.json(usuario);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 
@@ -189,7 +189,7 @@ class UsuarioController {
       });
       return res.json(usuarios);
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
 

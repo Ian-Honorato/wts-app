@@ -17,7 +17,7 @@ import {
   ForeignKeyConstraintError,
 } from "sequelize";
 
-import { errorHandler, handleError } from "../Util/errorHandler.js";
+import { errorHandler } from "../Util/errorHandler.js";
 
 class PagamentoController {
   async index(req, res) {
@@ -371,7 +371,7 @@ class PagamentoController {
         ],
       });
     } catch (error) {
-      return handleError(error, res);
+      return errorHandler(error, res);
     }
   }
   async listarHistorico(req, res) {
