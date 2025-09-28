@@ -40,9 +40,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: ./backend/.env # Mantém o .env específico do backend
+    env_file: ./backend/.env
     environment:
-      DATABASE_HOST: db # Garante que o backend se conecte ao serviço 'db'
+      DATABASE_HOST: db
     networks:
       - app-network
 
@@ -62,7 +62,7 @@ services:
     container_name: minha-api-nginx
     restart: unless-stopped
     ports:
-      - "80:80" # Expõe somente a porta 80 (HTTP)
+      - "80:80"
     depends_on:
       - frontend
       - backend
