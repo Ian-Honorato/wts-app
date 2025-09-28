@@ -3,9 +3,10 @@
 FROM node:20 AS builder
 
 WORKDIR /app
+
 COPY package*.json ./
 
-# Instala SOMENTE as dependências de produção.
+# Instala apenas dependências de produção.
 RUN npm install --only=production
 
 COPY . .
@@ -16,11 +17,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copia as dependências e o código do estágio 'builder'.
+# Copia as dependências de produção do estágio 'builder'.
 COPY --from=builder /app/node_modules ./node_modules
+# Copia o código-fonte da aplicação.
 COPY --from=builder /app ./
 
-# A imagem base 'alpine' já tem um utilizador 'node'. Vamos apenas usá-lo.
+# --- CORREÇÃO FINAL E PERMANENTE ---
+# Adiciona a permissão de execução ao sequelize-cli durante a construção da imagem.
+RUN chmod +x /app/node_modules/.bin/sequelize-cli
+
 # Define o proprietário dos ficheiros para o utilizador 'node'.
 RUN chown -R node:node /app
 
@@ -31,5 +36,5 @@ USER node
 EXPOSE 3000
 
 # O comando para iniciar a aplicação.
-CMD [ "npm", "start" ]
+CMD ["npm", "start"]
 
