@@ -8,14 +8,14 @@ import { useDashboardData } from "../hooks/useDashboardData";
 
 // Componentes
 import AdminHeader from "../components/dashboard/adminHeader/AdminHeader.jsx";
-import UserHeader from "../components/dashboard/userHeader/UserHeader.jsx";
+
 import AdminDashboard from "../components/dashboard/adminDashboard/AdminDashboard.jsx";
 import ClientesCriticos from "../components/dashboard/clientesCriticos/ClientesCriticos.jsx";
 
 // Modais
 import ClientModal from "../components/dashboard/clientModal/ClientModal.jsx";
 import ListClientsModal from "../components/dashboard/listarClientModal/ListClientsModal.jsx";
-import ClientDetailsModal from "../components/Dashboard/ClientDetailsModal.jsx";
+import ClientDetailsModal from "../components/dashboard/clientDetailsModal/ClientDetailsModal.jsx";
 import ResponseModal from "../components/dashboard/responseModal/ResponseModal.jsx";
 import ImportXMLModal from "../components/dashboard/importXMLModal/ImportXMLModal.jsx";
 import UserModal from "../components/dashboard/userModal/UserModal.jsx";
