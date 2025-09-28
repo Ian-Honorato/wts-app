@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import database from "../config/database.js";
+import database from "../Config/database.js";
 
 import Usuario from "./Usuario.js";
 import Cliente from "./Cliente.js";
