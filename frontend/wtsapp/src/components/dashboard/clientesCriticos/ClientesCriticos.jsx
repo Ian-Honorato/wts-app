@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./clientesCriticos.module.css";
+import styles from "./ClientesCriticos.module.css";
 
 const ClientesCriticos = ({ clients, isLoading, period, setPeriod }) => {
   const handleSendMessage = () => {
