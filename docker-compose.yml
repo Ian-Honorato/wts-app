@@ -1,19 +1,25 @@
 version: "3.9"
 
+# Define uma rede customizada para a aplicação, para melhor isolamento.
+networks:
+  app-network:
+    driver: bridge
+
 services:
+  # Serviço do Banco de Dados (MariaDB)
   db:
     image: mariadb:10.11
-    container_name: minha-api-db-mariadb
+    container_name: minha-api-db
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    env_file: .env
+    env_file: .env # Carrega as variáveis a partir de um ficheiro .env na raiz
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - db-data-mariadb:/var/lib/mysql
+      - db-data:/var/lib/mysql
     networks:
       - app-network
     healthcheck:
@@ -31,6 +37,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Serviço do Backend (API Node.js)
   backend:
     build:
       context: ./backend
@@ -40,21 +47,25 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: ./backend/.env
+    env_file: ./backend/.env # Carrega as variáveis de ambiente específicas da aplicação
     environment:
-      DATABASE_HOST: db
+      - DATABASE_HOST=db # Garante que a API se conecta ao serviço 'db'
     networks:
       - app-network
 
+  # Serviço do Frontend (Aplicação Vite/React)
   frontend:
     build:
       context: ./frontend/wtsapp
       dockerfile: Dockerfile
     container_name: minha-api-frontend
     restart: unless-stopped
+    depends_on:
+      - backend
     networks:
       - app-network
 
+  # Serviço do Nginx (Proxy Reverso)
   nginx:
     build:
       context: ./nginx
@@ -62,18 +73,12 @@ services:
     container_name: minha-api-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "80:80" # Expõe a porta 80 do Nginx para o mundo exterior
     depends_on:
       - frontend
-      - backend
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - app-network
 
+# Define o volume nomeado para persistir os dados do banco de forma segura.
 volumes:
-  db-data-mariadb:
-
-networks:
-  app-network:
-    driver: bridge
+  db-data:
