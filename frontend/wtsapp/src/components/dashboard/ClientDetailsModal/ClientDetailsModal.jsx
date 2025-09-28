@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import styles from "./clientDetailsModal.module.css";
+import styles from "./ClientDetailsModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
