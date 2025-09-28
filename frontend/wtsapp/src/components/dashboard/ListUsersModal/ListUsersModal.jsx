@@ -1,5 +1,5 @@
 // src/components/dashboard/listUsersModal/ListUsersModal.jsx
-import React, { useState } from "react"; // -> CORREÇÃO 1: Importar o useState
+import React, { useState } from "react";
 import modalStyles from "../clientModal/clientModal.module.css";
 import tableStyles from "./tableStyle.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

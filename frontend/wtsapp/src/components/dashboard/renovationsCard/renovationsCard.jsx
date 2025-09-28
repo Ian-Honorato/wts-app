@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./renovationsCard.module.css"; // Vamos criar este CSS a seguir
+import styles from "./renovationsCard.module.css";
 
 const RenovationsCard = ({ value, filters, setFilters, handleSearch }) => {
   return (

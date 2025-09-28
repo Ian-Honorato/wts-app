@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "../clientModal/clientModal.module.css"; // Estilo do modal base (reaproveitando)
+import styles from "../clientModal/clientModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 

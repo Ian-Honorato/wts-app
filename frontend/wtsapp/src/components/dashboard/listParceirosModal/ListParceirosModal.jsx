@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "./listParceirosModal.module.css";
+import styles from "./ListParceirosModal.module.css";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
