@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import "./App.css";
 
 // Importe apenas as PÁGINAS completas
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/Homepage.jsx";
 import Dashboard from "./pages/Dashboard";
 
 function App() {
