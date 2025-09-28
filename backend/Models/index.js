@@ -1,14 +1,14 @@
 import { Sequelize } from "sequelize";
 import database from "../config/database.js";
 
-// Import models
-import Usuario from "./Usuario";
-import Cliente from "./Cliente";
-import ContratoCertificado from "./ContratoCertificado";
-import MensagensEnviadas from "./MensagensEnviadas";
-import PagamentoParceiro from "./PagamentoParceiro";
-import Parceiro from "./Parceiro";
-import Certificado from "./Certificado";
+import Usuario from "./Usuario.js";
+import Cliente from "./Cliente.js";
+import ContratoCertificado from "./ContratoCertificado.js";
+import MensagensEnviadas from "./MensagensEnviadas.js";
+import PagamentoParceiro from "./PagamentoParceiro.js";
+import Parceiro from "./Parceiro.js";
+import Certificado from "./Certificado.js";
+import PagamentoCertificado from "./PagamentoCertificado.js";
 import PagamentoCertificado from "./PagamentoCertificado";
 
 const models = [
