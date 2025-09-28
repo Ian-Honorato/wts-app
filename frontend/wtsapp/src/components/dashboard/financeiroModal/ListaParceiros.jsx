@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./financeiroModal.module.css";
+import styles from "./FinanceiroModal.module.css";
 
 const ListaParceiros = ({
   parceiros,

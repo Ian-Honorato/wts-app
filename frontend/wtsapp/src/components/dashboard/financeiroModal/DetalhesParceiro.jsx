@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import styles from "./financeiroModal.module.css";
+import styles from "./FinanceiroModal.module.css";
 import { useCreatePagamentoCertificados } from "../../../hooks/useFinanceiroMutation";
 
 // MELHORIA 3b: Constante para o valor padrão, evitando "números mágicos"

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styles from "./financeiroModal.module.css";
+import styles from "./FinanceiroModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
