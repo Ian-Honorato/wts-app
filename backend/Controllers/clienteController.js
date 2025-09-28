@@ -529,7 +529,7 @@ class ClienteController {
 
       return res.json({ Contratos_criticos: contratosCriticos });
     } catch (e) {
-      return handleError(e, res);
+      return errorHandler(e, res);
     }
   }
   async findBasic(req, res) {
