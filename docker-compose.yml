@@ -1,9 +1,13 @@
 version: "3.9"
 
-# Define uma rede customizada para a aplicação, para melhor isolamento.
+# Define uma rede customizada para a aplicação, para melhor isolamento e comunicação.
 networks:
   app-network:
     driver: bridge
+
+# Define o volume nomeado para persistir os dados do banco de forma segura.
+volumes:
+  db-data:
 
 services:
   # Serviço do Banco de Dados (MariaDB)
@@ -46,10 +50,10 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy
-    env_file: ./backend/.env # Carrega as variáveis de ambiente específicas da aplicação
+        condition: service_healthy # Só inicia o backend quando o 'db' estiver saudável
+    env_file: ./backend/.env
     environment:
-      - DATABASE_HOST=db # Garante que a API se conecta ao serviço 'db'
+      DATABASE_HOST: db
     networks:
       - app-network
 
@@ -60,8 +64,6 @@ services:
       dockerfile: Dockerfile
     container_name: minha-api-frontend
     restart: unless-stopped
-    depends_on:
-      - backend
     networks:
       - app-network
 
@@ -73,12 +75,13 @@ services:
     container_name: minha-api-nginx
     restart: unless-stopped
     ports:
-      - "80:80" # Expõe a porta 80 do Nginx para o mundo exterior
+      - "80:80"
+    # --- CORREÇÃO FINAL ---
     depends_on:
       - frontend
+      - backend # Garante que o Nginx só inicia quando ambos os serviços estiverem prontos
+    volumes:
+      # Mapeia o nosso ficheiro de configuração para dentro do contentor
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - app-network
-
-# Define o volume nomeado para persistir os dados do banco de forma segura.
-volumes:
-  db-data:
