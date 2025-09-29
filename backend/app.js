@@ -9,11 +9,11 @@
 // Importações do Express e middlewares de segurança/utilidades
 import express from "express";
 import cors from "cors";
-import helmet from "helmet";
+// import helmet from "helmet"; // Desativado temporariamente
 import rateLimit from "express-rate-limit";
-import hpp from "hpp";
-//import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
+// import hpp from "hpp"; // Desativado temporariamente
+//import mongoSanitize from "express-mongo-sanitize"; // Já estava desativado
+// import xss from "xss-clean"; // Desativado temporariamente
 import morgan from "morgan";
 
 // Importações das rotas da aplicação
@@ -67,12 +67,12 @@ class App {
     };
     this.app.use(cors(corsOptions));
 
-    // --- Middlewares de Segurança ---
+    // --- Middlewares de Segurança (Temporariamente desativados) ---
 
-    //Define diversos headers HTTP de segurança
-    this.app.use(helmet());
+    // Define diversos headers HTTP de segurança
+    // this.app.use(helmet());
 
-    //Implementa um limitador de requisições (Rate Limiter)
+    // Implementa um limitador de requisições (Rate Limiter)
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // Janela de 15 minutos
       max: 200, // Limita cada IP a 200 requisições por janela
@@ -83,21 +83,21 @@ class App {
     });
     this.app.use(limiter);
 
-    //Limita o tamanho do corpo da requisição para prevenir ataques de DoS
+    // Limita o tamanho do corpo da requisição para prevenir ataques de DoS
     this.app.use(express.json({ limit: "10kb" }));
 
-    //Sanitiza os dados recebidos para prevenir NoSQL Injection
+    // Sanitiza os dados recebidos para prevenir NoSQL Injection
     // this.app.use(mongoSanitize());
 
     // Sanitiza os dados para prevenir ataques de Cross-Site Scripting (XSS)
-    this.app.use(xss());
+    // this.app.use(xss());
 
-    //Previne a poluição de parâmetros HTTP (HPP - HTTP Parameter Pollution)
-    this.app.use(hpp());
+    // Previne a poluição de parâmetros HTTP (HPP - HTTP Parameter Pollution)
+    // this.app.use(hpp());
 
     // --- Middlewares de Utilidade ---
 
-    //logger de requisições HTTP (apenas em ambiente de desenvolvimento)
+    // logger de requisições HTTP (apenas em ambiente de desenvolvimento)
     if (process.env.NODE_ENV === "development") {
       this.app.use(morgan("dev"));
     }
