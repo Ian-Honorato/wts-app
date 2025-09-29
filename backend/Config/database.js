@@ -1,4 +1,5 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 export default {
   dialect: process.env.DB_DIALECT || "mariadb",
