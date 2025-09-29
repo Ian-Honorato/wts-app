@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./clientModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useQueryClient } from "@tanstack/react-query";
 
 //hooks
 import {
@@ -35,6 +36,7 @@ const certificados = [
 ];
 
 const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
+  const queryClient = useQueryClient();
   // Estado inicial com todos os campos do formulário
   const [formData, setFormData] = useState({
     nome_cliente: "",
@@ -141,6 +143,8 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
         {
           onSuccess: () => {
             onFeedback("success", "Cliente atualizado com sucesso!");
+            onClose();
+            queryClient.invalidateQueries({ queryKey: ["clients"] });
           },
           onError: (error) => {
             const errorMessage =
@@ -153,6 +157,8 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       createMutation.mutate(mutationData, {
         onSuccess: () => {
           onFeedback("success", "Cliente cadastrado com sucesso!");
+          onClose();
+          queryClient.invalidateQueries({ queryKey: ["clients"] });
         },
         onError: (error) => {
           const errorMessage =
