@@ -1,6 +1,6 @@
 const { resolve } = require("path");
 module.exports = {
-  config: resolve(__dirname, "Config", "database.js"),
+  config: resolve(__dirname, "Config", "database.cjs"),
   "models-path": resolve(__dirname, "Models"),
   "migrations-path": resolve(__dirname, "database", "migrations"),
   "seeders-path": resolve(__dirname, "database", "seeds"),
