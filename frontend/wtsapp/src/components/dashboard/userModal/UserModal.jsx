@@ -19,7 +19,7 @@ const UserModal = ({ isOpen, onClose, onFeedback, userToEdit }) => {
     nome: "",
     email: "",
     senha: "",
-    tipo_usuario: "user", // Padrão é 'user' para novos cadastros
+    tipo_usuario: "usuario",
   });
   const [errors, setErrors] = useState({});
 
@@ -29,31 +29,27 @@ const UserModal = ({ isOpen, onClose, onFeedback, userToEdit }) => {
 
   const isUpdateMode = Boolean(userToEdit);
 
-  // Efeito para carregar ou limpar o formulário
   useEffect(() => {
     if (isOpen) {
       if (isUpdateMode) {
-        // Modo de edição: preenche o formulário com dados do usuário
         setFormData({
           nome: userToEdit.nome || "",
           email: userToEdit.email || "",
-          senha: "", // Deixamos a senha vazia por segurança
-          tipo_usuario: userToEdit.tipo_usuario || "user",
+          senha: "",
+          tipo_usuario: userToEdit.tipo_usuario || "usuario",
         });
       } else {
-        // Modo de criação: limpa o formulário
         setFormData({
           nome: "",
           email: "",
           senha: "",
-          tipo_usuario: "user",
+          tipo_usuario: "usuario",
         });
       }
-      setErrors({}); // Limpa os erros ao abrir o modal
+      setErrors({});
     }
   }, [isOpen, userToEdit, isUpdateMode]);
 
-  // Função de validação para os campos do usuário
   const validate = () => {
     const newErrors = {};
     if (!formData.nome) newErrors.nome = "O nome é obrigatório.";
@@ -78,7 +74,6 @@ const UserModal = ({ isOpen, onClose, onFeedback, userToEdit }) => {
     }
     setErrors({});
 
-    // Prepara os dados para o envio, tratando o campo de senha
     const dataToSend = { ...formData };
     if (isUpdateMode && !dataToSend.senha) {
       delete dataToSend.senha;
@@ -193,7 +188,7 @@ const UserModal = ({ isOpen, onClose, onFeedback, userToEdit }) => {
                 className={styles.input}
                 disabled={!canChangeUserType}
               >
-                <option value="user">Usuário</option>
+                <option value="usuario">Usuário</option>
                 <option value="admin">Administrador</option>
               </select>
               {!canChangeUserType && (

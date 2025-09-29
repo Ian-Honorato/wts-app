@@ -191,13 +191,15 @@ class DashboardController {
         include: [
           {
             model: Cliente,
-            attributes: ["nome"],
+            as: "cliente",
+            attributes: ["id", "nome"],
             required: true,
           },
         ],
         order: [["updated_at", "DESC"]],
       });
 
+      // A resposta permanece a mesma
       return res.json({
         totalRenovados: renovatedContracts.length,
         renovacoes: renovatedContracts,

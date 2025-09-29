@@ -1,7 +1,6 @@
 import React from "react";
 import styles from "./renovationsCard.module.css";
 
-// --- ALTERAÇÃO 1: Receber a nova prop 'renovacoes' ---
 const RenovationsCard = ({
   value,
   renovacoes = [],
@@ -37,7 +36,7 @@ const RenovationsCard = ({
         Buscar
       </button>
 
-      {/* --- ALTERAÇÃO 2: Seção para listar os clientes renovados --- */}
+      {/*Seção para listar os clientes renovados --- */}
       {renovacoes.length > 0 && (
         <div className={styles.resultsSection}>
           <h4 className={styles.resultsTitle}>Clientes Renovados</h4>
