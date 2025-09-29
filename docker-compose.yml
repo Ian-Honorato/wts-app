@@ -19,7 +19,7 @@ services:
     env_file: .env # Carrega as variáveis a partir de um ficheiro .env na raiz
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${DB_DATABASE} # <<< corrigido
+      MARIADB_DATABASE: ${DB_DATABASE}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
