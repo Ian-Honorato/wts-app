@@ -12,33 +12,33 @@ volumes:
 services:
   # Serviço do Banco de Dados (MariaDB)
   db:
-  image: mariadb:10.11
-  container_name: minha-api-db
-  restart: unless-stopped
-  command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-  environment:
-    MARIADB_ROOT_PASSWORD: rootpassword
-    MARIADB_DATABASE: contabilidadeapp
-    MARIADB_USER: docker
-    MARIADB_PASSWORD: docker
-  volumes:
-    - db-data:/var/lib/mysql
-  networks:
-    - app-network
-  healthcheck:
-    test:
-      [
-        "CMD",
-        "mysqladmin",
-        "ping",
-        "-h",
-        "localhost",
-        "-uroot",
-        "-prootpassword",
-      ]
-    interval: 10s
-    timeout: 5s
-    retries: 5
+    image: mariadb:10.11
+    container_name: minha-api-db
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: contabilidadeapp
+      MARIADB_USER: docker
+      MARIADB_PASSWORD: docker
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-prootpassword",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Serviço do Backend (API Node.js)
   backend:
@@ -49,10 +49,15 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy # <<<--- A CHAVE DA VITÓRIA
-    env_file: ./backend/.env
+        condition: service_healthy # Garante que o backend só sobe quando o DB está pronto
+    # REMOVIDO: env_file: ./backend/.env
+    # AS VARIÁVEIS AGORA ESTÃO AQUI, GARANTINDO A IGUALDADE COM O DB:
     environment:
       DATABASE_HOST: db
+      DATABASE_NAME: contabilidadeapp
+      DATABASE_USER: docker
+      DATABASE_PASSWORD: docker
+      # Adicione outras variáveis que seu backend precise, como DATABASE_PORT=3306, se necessário
     networks:
       - app-network
 
