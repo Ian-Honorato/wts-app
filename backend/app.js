@@ -12,7 +12,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import hpp from "hpp";
-import mongoSanitize from "express-mongo-sanitize";
+//import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import morgan from "morgan";
 
@@ -87,7 +87,7 @@ class App {
     this.app.use(express.json({ limit: "10kb" }));
 
     //Sanitiza os dados recebidos para prevenir NoSQL Injection
-    this.app.use(mongoSanitize());
+    // this.app.use(mongoSanitize());
 
     // Sanitiza os dados para prevenir ataques de Cross-Site Scripting (XSS)
     this.app.use(xss());
