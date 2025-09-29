@@ -41,10 +41,11 @@ const Dashboard = () => {
   } = useDashboardData(user);
   //console.log("sumarioData", sumarioData);
   const handleSubmitFeedback = (type, message) => {
-    modalHandlers.closeAll();
+    modalHandlers.showResponseModal(type, message);
+    /* modalHandlers.closeAll();
     setTimeout(() => {
       modalHandlers.showResponseModal(type, message);
-    }, 300);
+    }, 300); */
   };
 
   if (isAuthLoading || !user) {
