@@ -7,6 +7,12 @@ import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
 import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
 import RenovationsCard from "../renovationsCard/renovationsCard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faUsers,
+  faHourglassHalf,
+  faCalendarDays,
+} from "@fortawesome/free-solid-svg-icons";
 
 const AdminDashboard = ({
   summaryData,
@@ -45,16 +51,16 @@ const AdminDashboard = ({
   return (
     <div className={styles.dashboardGrid}>
       {/* Linha de Cards de KPI */}
-      <StatCard title="Total de Clientes" value={totalClients} icon="👥" />
+      <StatCard title="Total de Clientes" value={totalClients} icon={faUsers} />
       <StatCard
         title="Vencem em 30 dias"
         value={upcomingExpirations["Próximos 30 dias"]}
-        icon="⏳"
+        icon={faHourglassHalf}
       />
       <StatCard
         title="Vencem em 31-60 dias"
         value={upcomingExpirations["31-60 dias"]}
-        icon="🗓️"
+        icon={faCalendarDays}
       />
 
       {/* Card de renovados agora é o nosso componente customizado */}
