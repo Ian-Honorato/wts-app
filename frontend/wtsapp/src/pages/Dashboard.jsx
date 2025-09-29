@@ -80,6 +80,7 @@ const Dashboard = () => {
           filters={filters}
           setFilters={setFilters}
           handleSearch={handleSearch}
+          onShowDetails={modalHandlers.showClientDetails}
         />
       </div>
 

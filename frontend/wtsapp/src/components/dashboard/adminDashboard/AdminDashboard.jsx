@@ -15,6 +15,7 @@ const AdminDashboard = ({
   filters,
   setFilters,
   handleSearch,
+  onShowDetails,
 }) => {
   // Condições de carregamento e de dados vazios
   if (criticalClientsData.isLoading) {
@@ -32,7 +33,6 @@ const AdminDashboard = ({
     );
   }
   // registrando alteração
-
   // Extração de dados das props
   const { totalClients, upcomingExpirations, contractsByStatus, topPartners } =
     summaryData;
@@ -64,6 +64,7 @@ const AdminDashboard = ({
         filters={filters}
         setFilters={setFilters}
         handleSearch={handleSearch}
+        onClientClick={onShowDetails}
       />
 
       {/* Linha de Gráficos */}

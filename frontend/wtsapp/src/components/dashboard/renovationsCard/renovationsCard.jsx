@@ -1,17 +1,29 @@
 import React from "react";
 import styles from "./renovationsCard.module.css";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSync } from "@fortawesome/free-solid-svg-icons";
 const RenovationsCard = ({
   value,
   renovacoes = [],
   filters,
   setFilters,
   handleSearch,
+  onClientClick,
 }) => {
+  const handleClientClick = (clientId) => {
+    if (onClientClick) {
+      onClientClick(clientId);
+    }
+  };
+
   return (
     <div className={styles.renovationsWidget}>
       <div className={styles.statSection}>
-        <div className={styles.statIcon}>🔄</div>
+        <div className={styles.statIcon}>
+          {" "}
+          <FontAwesomeIcon icon={faSync} />
+        </div>
         <div className={styles.statValue}>{value}</div>
         <div className={styles.statTitle}>Renovados no Período</div>
       </div>
@@ -42,8 +54,13 @@ const RenovationsCard = ({
           <h4 className={styles.resultsTitle}>Clientes Renovados</h4>
           <ul className={styles.resultsList}>
             {renovacoes.map((renovacao) => (
-              <li key={renovacao.id} className={styles.resultsItem}>
-                {renovacao.Cliente?.nome || "Cliente não identificado"}
+              <li key={renovacao.cliente.id} className={styles.resultsItem}>
+                <button
+                  className={styles.clientButton}
+                  onClick={() => handleClientClick(renovacao.cliente.id)}
+                >
+                  {renovacao.cliente.nome}
+                </button>
               </li>
             ))}
           </ul>
