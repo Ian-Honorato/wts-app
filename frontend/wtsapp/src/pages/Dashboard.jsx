@@ -112,14 +112,14 @@ const Dashboard = () => {
         isOpen={modalState.isUserModalOpen}
         onClose={modalHandlers.closeUserModal}
         onFeedback={handleSubmitFeedback}
-        clientToEdit={modalState.editingUser}
+        userToEdit={modalState.editingUser}
       />
       <ListUsersModal
         isOpen={modalState.isListUsersModalOpen}
         onClose={modalHandlers.closeListUsersModal}
         onFeedback={handleSubmitFeedback}
         onOpenEditUserModal={(userData) => {
-          modalHandlers.closeListUsersModal();
+          //modalHandlers.closeListUsersModal();
           setTimeout(() => modalHandlers.openUserModal(userData), 300);
         }}
       />

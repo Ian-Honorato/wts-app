@@ -8,7 +8,7 @@ const StatusContratosChart = ({ data }) => {
   const options = {
     labels: data.map((item) => item.status),
     legend: { position: "bottom" },
-    // Adicionando cores personalizadas
+
     colors: ["#FFA500", "#3498db", "#2ecc71", "#e74c3c", "#95a5a6"],
   };
   const series = data.map((item) => parseInt(item.count, 10));

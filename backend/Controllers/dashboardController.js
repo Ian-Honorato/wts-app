@@ -185,13 +185,23 @@ class DashboardController {
         };
       }
 
-      const contractsRenovation = await ContratoCertificado.findAll({
-        attributes: [[sequelize.fn("COUNT", sequelize.col("id")), "count"]],
+      const renovatedContracts = await ContratoCertificado.findAll({
+        attributes: ["id", "updated_at"],
         where: whereOptions,
+        include: [
+          {
+            model: Cliente,
+            attributes: ["nome"],
+            required: true,
+          },
+        ],
+        order: [["updated_at", "DESC"]],
       });
 
-      const totalCount = contractsRenovation[0]?.get("count") || 0;
-      return res.json({ totalRenovados: totalCount });
+      return res.json({
+        totalRenovados: renovatedContracts.length,
+        renovacoes: renovatedContracts,
+      });
     } catch (e) {
       return errorHandler(e, res);
     }

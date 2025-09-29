@@ -88,7 +88,7 @@ const ListClientsModal = ({
   // --- HANDLERS DE EVENTOS ---
   const handleSelectClient = (client) => {
     setSearchResults([]);
-    onClose();
+    //onClose();
     setTimeout(() => {
       onShowDetails(client.id);
     }, 300);
@@ -96,7 +96,7 @@ const ListClientsModal = ({
 
   const handleActionClick = async (action, clientId) => {
     if (action === "show") {
-      onClose();
+      //onClose();
       setTimeout(() => onShowDetails(clientId), 300);
       return;
     }
@@ -107,7 +107,7 @@ const ListClientsModal = ({
         const response = await axios.get(`/api/clientes/${clientId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        onClose();
+        //onClose();
         setTimeout(() => onOpenUpdateModal(response.data), 300);
       } catch (error) {
         console.error("Erro ao buscar cliente para edição:", error);

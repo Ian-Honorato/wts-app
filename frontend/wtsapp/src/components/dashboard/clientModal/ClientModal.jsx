@@ -23,7 +23,7 @@ const statusEnumValidos = [
   "Cancelado",
 ];
 const certificados = [
-  "e-CNPJ",
+  "e-CNPJ A1",
   "e-CNPJ A3",
   "e-CNPJ A3 cartão",
   "e-CNPJ A3 token",

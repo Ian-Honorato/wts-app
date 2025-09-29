@@ -37,7 +37,10 @@ const AdminDashboard = ({
   const { totalClients, upcomingExpirations, contractsByStatus, topPartners } =
     summaryData;
 
-  const totalRenovados = renovationsData?.totalRenovados || 0;
+  const renovacoes = {
+    total: renovationsData ? renovationsData.length : 0,
+    list: renovationsData || [],
+  };
 
   return (
     <div className={styles.dashboardGrid}>
@@ -56,7 +59,8 @@ const AdminDashboard = ({
 
       {/* Card de renovados agora é o nosso componente customizado */}
       <RenovationsCard
-        value={totalRenovados}
+        value={renovacoes.total}
+        renovacoes={renovacoes.list} // Passa a lista de renovações
         filters={filters}
         setFilters={setFilters}
         handleSearch={handleSearch}

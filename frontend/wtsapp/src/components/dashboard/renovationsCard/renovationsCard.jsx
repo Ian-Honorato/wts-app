@@ -1,7 +1,14 @@
 import React from "react";
 import styles from "./renovationsCard.module.css";
 
-const RenovationsCard = ({ value, filters, setFilters, handleSearch }) => {
+// --- ALTERAÇÃO 1: Receber a nova prop 'renovacoes' ---
+const RenovationsCard = ({
+  value,
+  renovacoes = [],
+  filters,
+  setFilters,
+  handleSearch,
+}) => {
   return (
     <div className={styles.renovationsWidget}>
       <div className={styles.statSection}>
@@ -10,11 +17,9 @@ const RenovationsCard = ({ value, filters, setFilters, handleSearch }) => {
         <div className={styles.statTitle}>Renovados no Período</div>
       </div>
 
-      {/* Seção separada para os controles de filtro */}
       <div className={styles.filterSection}>
         <input
           type="date"
-          placeholder="Início periodo"
           value={filters.data_inicio}
           onChange={(e) =>
             setFilters({ ...filters, data_inicio: e.target.value })
@@ -23,7 +28,6 @@ const RenovationsCard = ({ value, filters, setFilters, handleSearch }) => {
         />
         <input
           type="date"
-          placeholder="Fim do periodo"
           value={filters.data_fim}
           onChange={(e) => setFilters({ ...filters, data_fim: e.target.value })}
           className={styles.filterInput}
@@ -32,6 +36,20 @@ const RenovationsCard = ({ value, filters, setFilters, handleSearch }) => {
       <button onClick={handleSearch} className={styles.searchButton}>
         Buscar
       </button>
+
+      {/* --- ALTERAÇÃO 2: Seção para listar os clientes renovados --- */}
+      {renovacoes.length > 0 && (
+        <div className={styles.resultsSection}>
+          <h4 className={styles.resultsTitle}>Clientes Renovados</h4>
+          <ul className={styles.resultsList}>
+            {renovacoes.map((renovacao) => (
+              <li key={renovacao.id} className={styles.resultsItem}>
+                {renovacao.Cliente?.nome || "Cliente não identificado"}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
