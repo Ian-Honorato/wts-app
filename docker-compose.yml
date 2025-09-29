@@ -12,34 +12,33 @@ volumes:
 services:
   # Serviço do Banco de Dados (MariaDB)
   db:
-    image: mariadb:10.11
-    container_name: minha-api-db
-    restart: unless-stopped
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    env_file: .env # Carrega as variáveis a partir de um ficheiro .env na raiz
-    environment:
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${DB_DATABASE}
-      MARIADB_USER: ${DB_USER}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - db-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u${DB_USER}",
-          "-p${DB_PASSWORD}",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  image: mariadb:10.11
+  container_name: minha-api-db
+  restart: unless-stopped
+  command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  environment:
+    MARIADB_ROOT_PASSWORD: rootpassword
+    MARIADB_DATABASE: contabilidadeapp
+    MARIADB_USER: docker
+    MARIADB_PASSWORD: docker
+  volumes:
+    - db-data:/var/lib/mysql
+  networks:
+    - app-network
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "mysqladmin",
+        "ping",
+        "-h",
+        "localhost",
+        "-uroot",
+        "-prootpassword",
+      ]
+    interval: 10s
+    timeout: 5s
+    retries: 5
 
   # Serviço do Backend (API Node.js)
   backend:
