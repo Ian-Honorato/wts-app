@@ -49,6 +49,7 @@
 }
 
 .ctaButton {
+  text-decoration: none;
   padding: 1rem 2.5rem;
   font-size: 1.1rem;
   font-weight: 600;

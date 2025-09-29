@@ -20,7 +20,14 @@ const Hero = () => {
         <p className={styles.subtitle}>
           Foque em crescer. Deixe a burocracia e os números com a gente.
         </p>
-        <button className={styles.ctaButton}>Entre em contato agora!</button>
+        <a
+          className={styles.ctaButton}
+          href="https://wa.me/5514991469270?text=Ol%C3%A1,%20Gostaria%20de%20agendar%20um%20hor%C3%A1rio!"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Entre em contato agora!
+        </a>
       </div>
     </section>
   );

@@ -1,17 +1,14 @@
-/* Proposta de CSS Moderno para renovationsCard.module.css */
-
 .renovationsWidget {
   background-color: #ffffff;
   padding: 1.5rem;
-  border-radius: 16px; /* Bordas mais arredondadas */
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05); /* Sombra mais suave */
+  border-radius: 16px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 1.25rem; /* Espaçamento entre as seções */
+  gap: 1.25rem;
   transition: all 0.3s ease;
 }
 
-/* Seção principal com o número */
 .statSection {
   display: flex;
   align-items: center;
@@ -22,20 +19,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem; /* Ícone um pouco menor e mais contido */
-  color: #0a9396; /* Cor principal */
-  background-color: rgba(
-    10,
-    147,
-    150,
-    0.1
-  ); /* Fundo com cor de destaque transparente */
+  font-size: 1.75rem;
+  color: #0a9396;
+  background-color: rgba(10, 147, 150, 0.1);
   width: 60px;
   height: 60px;
-  border-radius: 50%; /* Ícone circular */
+  border-radius: 50%;
 }
 
-/* Container para o valor e o título */
 .statInfo {
   display: flex;
   flex-direction: column;
@@ -43,32 +34,31 @@
 
 .statValue {
   font-size: 2.75rem;
-  font-weight: 800; /* Mais peso para maior destaque */
-  color: #2c3e50; /* Um cinza escuro, mais suave que preto puro */
+  font-weight: 800;
+  color: #2c3e50;
   line-height: 1;
 }
 
 .statTitle {
   font-size: 0.9rem;
-  color: #8a9bad; /* Um cinza azulado para o texto secundário */
+  color: #8a9bad;
   margin-top: 0.25rem;
   font-weight: 500;
 }
 
-/* Seção dos filtros de data */
 .filterSection {
   display: flex;
   flex-flow: row wrap;
   gap: 0.75rem;
   align-items: center;
-  border-top: 1px solid #f0f2f5; /* Linha divisória mais sutil */
+  border-top: 1px solid #f0f2f5;
   padding-top: 1.25rem;
 }
 
 .filterInput {
   flex-grow: 1;
   padding: 0.6rem 0.85rem;
-  border: 1px solid #dbe1e8; /* Borda mais clara */
+  border: 1px solid #dbe1e8;
   border-radius: 8px;
   font-size: 0.9rem;
   background-color: #fcfdff;
@@ -77,8 +67,8 @@
 
 .filterInput:focus {
   outline: none;
-  border-color: #0a9396; /* Borda com a cor de destaque ao focar */
-  box-shadow: 0 0 0 3px rgba(10, 147, 150, 0.15); /* "Anel de foco" para acessibilidade */
+  border-color: #0a9396;
+  box-shadow: 0 0 0 3px rgba(10, 147, 150, 0.15);
 }
 
 /* Botão de busca */
@@ -88,7 +78,7 @@
   border-radius: 8px;
   background-color: #0a9396;
   color: white;
-  font-weight: 600; /* Um pouco mais de peso na fonte */
+  font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -96,6 +86,75 @@
 
 .searchButton:hover {
   background-color: #005f73;
-  transform: translateY(-2px); /* Efeito de "elevar" o botão */
+  transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(10, 147, 150, 0.2);
+}
+
+.resultsSection {
+  width: 100%;
+  border-top: 1px solid #f0f2f5;
+  padding-top: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.resultsTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #526476;
+  margin-bottom: 0.75rem;
+  padding-left: 0.25rem;
+}
+
+.resultsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.resultsItem {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.clientButton {
+  background: none;
+  border: none;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #3e5269;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.clientButton:hover {
+  background-color: #0a9396;
+  color: #ffffff;
+  transform: translateX(5px);
+}
+
+.resultsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.resultsList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.resultsList::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.resultsList::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
 }

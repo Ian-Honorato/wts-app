@@ -6,7 +6,7 @@ const StatCard = ({ title, value, icon }) => {
   return (
     <div className={styles.statCard}>
       <div className={styles.iconWrapper}>
-        <span>
+        <span className={styles.statIcon}>
           <FontAwesomeIcon icon={icon} />
         </span>
       </div>

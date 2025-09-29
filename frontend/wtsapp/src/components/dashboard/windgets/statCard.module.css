@@ -20,3 +20,19 @@
   font-size: 0.9rem;
   color: var(--text-light-color);
 }
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem; /* Ícone um pouco menor e mais contido */
+  color: #0a9396; /* Cor principal */
+  background-color: rgba(
+    10,
+    147,
+    150,
+    0.1
+  ); /* Fundo com cor de destaque transparente */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* Ícone circular */
+}
