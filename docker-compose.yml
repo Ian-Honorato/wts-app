@@ -12,34 +12,34 @@ volumes:
 services:
   # Serviço do Banco de Dados (MariaDB)
   db:
-  image: mariadb:10.11
-  container_name: minha-api-db
-  restart: unless-stopped
-  command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-  env_file: .env
-  environment:
-    MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root} # define root caso não esteja no .env
-    MARIADB_DATABASE: ${DB_DATABASE}
-    MARIADB_USER: ${DB_USER}
-    MARIADB_PASSWORD: ${DB_PASSWORD}
-  volumes:
-    - db-data:/var/lib/mysql
-  networks:
-    - app-network
-  healthcheck:
-    test:
-      [
-        "CMD",
-        "mysqladmin",
-        "ping",
-        "-h",
-        "localhost",
-        "-u${DB_USER}",
-        "-p${DB_PASSWORD}",
-      ]
-    interval: 10s
-    timeout: 5s
-    retries: 5
+    image: mariadb:10.11
+    container_name: minha-api-db
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    env_file: .env # Carrega as variáveis a partir de um ficheiro .env na raiz
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_DATABASE} # <<< corrigido
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u${DB_USER}",
+          "-p${DB_PASSWORD}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Serviço do Backend (API Node.js)
   backend:
@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy # <<<--- ESTA É A CHAVE DA VITÓRIA
+        condition: service_healthy # <<<--- A CHAVE DA VITÓRIA
     env_file: ./backend/.env
     environment:
       DATABASE_HOST: db
