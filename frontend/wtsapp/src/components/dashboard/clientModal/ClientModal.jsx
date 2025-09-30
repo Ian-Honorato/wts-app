@@ -148,8 +148,8 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           },
           onError: (error) => {
             const errorMessage =
-              error.response?.data?.error || "Erro ao atualizar o cliente.";
-            onFeedback("error", errorMessage);
+              error.details.message || "Erro ao atualizar o cliente.";
+            onFeedback(errorMessage, "error");
           },
         }
       );
@@ -162,8 +162,8 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
         },
         onError: (error) => {
           const errorMessage =
-            error.response?.data?.error || "Erro ao cadastrar o cliente.";
-          onFeedback("error", errorMessage);
+            error.details.message || "Erro ao cadastrar o cliente.";
+          onFeedback(errorMessage, "error");
         },
       });
     }

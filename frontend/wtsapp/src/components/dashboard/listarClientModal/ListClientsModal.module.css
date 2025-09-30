@@ -126,7 +126,7 @@
   border-bottom: 1px solid var(--border-color);
 }
 .cpfCnpjCell {
-  width: 160px;
+  width: 170px;
 }
 .clientsTable th {
   font-weight: 600;
@@ -137,6 +137,7 @@
 }
 .actionsCell {
   display: flex;
+  height: 60px;
   gap: 0.5rem;
 }
 .actionButton {
