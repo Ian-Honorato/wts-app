@@ -108,7 +108,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           cpf_cnpj: "",
           representante: "",
           email_cliente: "",
-          ddi: "55", // Valor padrão
+          ddi: "55",
           ddd: "",
           telefoneNumero: "",
           nome_parceiro: "",
@@ -183,7 +183,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           },
           onError: (error) => {
             const userMessage = extractErrorMessage(error);
-            onFeedback("error", userMessage);
+            onFeedback("error", "testando erro");
           },
         }
       );
