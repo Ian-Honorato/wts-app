@@ -17,11 +17,35 @@ import {
   formatarTelefone,
 } from "../../../hooks/util/Mascaras";
 
-const fetchClients = async () => {
+// Array com os status para os filtros
+const statusValidos = [
+  "Todos",
+  "Agendado",
+  "Em contato",
+  "ESC Agendado",
+  "Não vai renovar",
+  "Sem dados CNTT",
+  "Vence em outro mês",
+  "Tickets",
+  "Ativo",
+  "Não identificado",
+  "Renovado",
+  "Cancelado",
+];
+
+const fetchClients = async ({ queryKey }) => {
+  const [_key, status] = queryKey;
   const token = sessionStorage.getItem("token");
-  const { data } = await axios.get("/api/clientes", {
+
+  let url = "/api/clientes";
+  if (status && status !== "Todos") {
+    url += `?status=${encodeURIComponent(status)}`;
+  }
+
+  const { data } = await axios.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
+
   return data;
 };
 
@@ -33,34 +57,34 @@ const ListClientsModal = ({
   onFeedback,
 }) => {
   // --- HOOKS E ESTADOS ---
+  const [activeStatus, setActiveStatus] = useState("Todos");
+
   const {
     data: clients = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["clients"],
+    queryKey: ["clients", activeStatus],
     queryFn: fetchClients,
     enabled: isOpen,
   });
 
   const deleteMutation = useDeleteClientMutation();
 
-  // Estados para o modal de confirmação
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
-
-  // Estados para a busca
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
   const min_searchLength = 3;
 
+  // --- EFEITOS ---
   useEffect(() => {
     if (!isOpen) {
       setSearchResults([]);
     }
   }, [isOpen]);
-  // --- EFEITOS ---
+
   useEffect(() => {
     if (searchTerm.trim().length < min_searchLength) {
       setSearchResults([]);
@@ -68,14 +92,12 @@ const ListClientsModal = ({
     }
     const delayDebounceFn = setTimeout(async () => {
       try {
-        //console.log("Buscando por:", searchTerm);
         const token = sessionStorage.getItem("token");
         const response = await axios.get(
           `/api/clientes/search?searchTerm=${searchTerm}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setSearchResults(response.data);
-        // console.log("Resultados da busca:", response.data);
       } catch (error) {
         console.error("Erro na busca:", error);
         setSearchResults([]);
@@ -88,7 +110,6 @@ const ListClientsModal = ({
   // --- HANDLERS DE EVENTOS ---
   const handleSelectClient = (client) => {
     setSearchResults([]);
-    //onClose();
     setTimeout(() => {
       onShowDetails(client.id);
     }, 300);
@@ -96,7 +117,6 @@ const ListClientsModal = ({
 
   const handleActionClick = async (action, clientId) => {
     if (action === "show") {
-      //onClose();
       setTimeout(() => onShowDetails(clientId), 300);
       return;
     }
@@ -107,7 +127,6 @@ const ListClientsModal = ({
         const response = await axios.get(`/api/clientes/${clientId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        //onClose();
         setTimeout(() => onOpenUpdateModal(response.data), 300);
       } catch (error) {
         console.error("Erro ao buscar cliente para edição:", error);
@@ -117,7 +136,6 @@ const ListClientsModal = ({
     }
 
     if (action === "delete") {
-      // -> Encontre o nome do cliente para uma mensagem mais amigável
       const client = clients.find((c) => c.id === clientId);
       if (client) {
         setClientToDelete({ id: client.id, nome: client.nome });
@@ -144,17 +162,23 @@ const ListClientsModal = ({
     }
   };
 
-  // handler para o cancelamento, para limpar o estado
   const handleCloseConfirmModal = () => {
     setIsConfirmModalOpen(false);
     setClientToDelete(null);
+  };
+
+  const handleExport = () => {
+    console.log("Funcionalidade de exportar a ser implementada.");
+    onFeedback(
+      "info",
+      "A funcionalidade de exportação será implementada em breve."
+    );
   };
 
   // --- RENDERIZAÇÃO ---
   if (!isOpen) return null;
 
   return (
-    // ->React.Fragment para renderizar múltiplos modais
     <>
       <div className={styles.backdrop} onClick={onClose}>
         <div
@@ -190,6 +214,22 @@ const ListClientsModal = ({
             )}
           </div>
 
+          {/* ÁREA DOS FILTROS DE STATUS */}
+          <div className={styles.statusFilters}>
+            {statusValidos.map((status) => (
+              <button
+                key={status}
+                className={`${styles.filterButton} ${
+                  activeStatus === status ? styles.active : ""
+                }`}
+                onClick={() => setActiveStatus(status)}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+
+          {/* CONTAINER DA TABELA COM SCROLL */}
           <div className={styles.tableContainer}>
             {isLoading ? (
               <p style={{ textAlign: "center", padding: "2rem" }}>
@@ -206,7 +246,6 @@ const ListClientsModal = ({
                     <th>ID</th>
                     <th>Nome</th>
                     <th>CPF/CNPJ</th>
-                    {/*  <th>Contato</th> */}
                     <th>Ações</th>
                   </tr>
                 </thead>
@@ -216,7 +255,6 @@ const ListClientsModal = ({
                       <td>{client.id}</td>
                       <td>{client.nome}</td>
                       <td>{formatarCpfCnpj(client.cpf_cnpj)}</td>
-                      {/* <td>{formatarTelefone(client.telefone)}</td> */}
                       <td className={styles.actionsCell}>
                         <button
                           onClick={() => handleActionClick("show", client.id)}
@@ -248,10 +286,16 @@ const ListClientsModal = ({
               </table>
             )}
           </div>
+
+          {/* FOOTER COM BOTÃO DE EXPORTAÇÃO */}
+          <div className={styles.footer}>
+            <button className={styles.exportButton} onClick={handleExport}>
+              Exportar Clientes (XLS)
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* -> Renderização do modal de confirmação com as props corretas */}
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={handleCloseConfirmModal}
