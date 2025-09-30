@@ -102,6 +102,22 @@
   margin-top: 1rem;
   margin-bottom: -1rem;
 }
+.phoneInputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.phoneDDI {
+  flex: 1;
+}
+
+.phoneDDD {
+  flex: 1;
+}
+
+.phoneNumber {
+  flex: 3;
+}
 
 @media (max-width: 768px) {
   .formGrid {

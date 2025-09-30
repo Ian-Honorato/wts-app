@@ -39,108 +39,107 @@ function sanitizarCliente(data, isUpdate = false) {
   const errors = [];
   const sanitizedData = { ...data };
 
+  // --- Validações de campos obrigatórios (apenas na criação) ---
   if (!isUpdate) {
     if (!sanitizedData.nome_cliente)
-      errors.push("O nome do cliente é obrigatório.");
-    if (!sanitizedData.cpf_cnpj) errors.push("O CPF/CNPJ é obrigatório.");
-    if (!sanitizedData.status) errors.push("O status é obrigatório.");
+      errors.push({
+        field: "nome_cliente",
+        message: "O nome do cliente é obrigatório.",
+      });
+    if (!sanitizedData.cpf_cnpj)
+      errors.push({ field: "cpf_cnpj", message: "O CPF/CNPJ é obrigatório." });
+    if (!sanitizedData.status)
+      errors.push({ field: "status", message: "O status é obrigatório." });
     if (!sanitizedData.nome_parceiro)
-      errors.push("O nome do parceiro é obrigatório.");
+      errors.push({
+        field: "nome_parceiro",
+        message: "O nome do parceiro é obrigatório.",
+      });
     if (!sanitizedData.nome_certificado)
-      errors.push("O nome do certificado é obrigatório.");
+      errors.push({
+        field: "nome_certificado",
+        message: "O nome do certificado é obrigatório.",
+      });
     if (!sanitizedData.numero_contrato)
-      errors.push("O número do contrato é obrigatório.");
+      errors.push({
+        field: "numero_contrato",
+        message: "O número do contrato é obrigatório.",
+      });
   }
 
+  // --- Validação do Telefone ---
   if (sanitizedData.telefone) {
     const cleanedTelefone = String(sanitizedData.telefone).replace(/\D/g, "");
-    if (isUpdate) {
-      if (cleanedTelefone.length < 10 || cleanedTelefone.length > 15) {
-        errors.push("O número de telefone fornecido é inválido.");
-      } else {
-        sanitizedData.telefone = cleanedTelefone;
-      }
+    if (cleanedTelefone.length < 12 || cleanedTelefone.length > 13) {
+      errors.push({
+        field: "telefone",
+        message:
+          "O formato do telefone enviado é inválido (deve ter 12 ou 13 dígitos).",
+      });
     } else {
-      if (cleanedTelefone.length === 10 || cleanedTelefone.length === 11) {
-        sanitizedData.telefone = "55" + cleanedTelefone;
-      } else if (cleanedTelefone.length >= 12 && cleanedTelefone.length <= 15) {
-        sanitizedData.telefone = cleanedTelefone;
-      } else {
-        errors.push(
-          "O telefone deve conter um DDD e 8 ou 9 dígitos, ou ser um número internacional válido."
-        );
-      }
+      sanitizedData.telefone = cleanedTelefone;
     }
   } else if (!isUpdate) {
-    errors.push("O telefone é obrigatório.");
+    errors.push({
+      field: "telefone",
+      message: "O campo telefone é obrigatório.",
+    });
   }
 
+  // --- Validação e Sanitização do CPF/CNPJ ---
   if (sanitizedData.cpf_cnpj) {
     const cleanedCpfCnpj = String(sanitizedData.cpf_cnpj).replace(/\D/g, "");
     if (cleanedCpfCnpj.length === 11) {
       sanitizedData.tipo_cliente = "Pessoa Física";
     } else if (cleanedCpfCnpj.length === 14) {
       sanitizedData.tipo_cliente = "Pessoa Jurídica";
-    } else {
-      errors.push("O CPF/CNPJ deve conter 11 ou 14 dígitos numéricos.");
+    } else if (cleanedCpfCnpj.length > 0) {
+      // Só dá erro se não estiver vazio e tiver tamanho errado
+      errors.push({
+        field: "cpf_cnpj",
+        message: "O CPF/CNPJ deve conter 11 ou 14 dígitos.",
+      });
     }
     sanitizedData.cpf_cnpj = cleanedCpfCnpj;
   }
 
-  // Validação e conversão da data de renovação
-  if (
-    sanitizedData.data_renovacao &&
-    typeof sanitizedData.data_renovacao === "string"
-  ) {
-    const parts = sanitizedData.data_renovacao.split("-");
-    if (parts.length === 3) {
-      const [year, month, day] = parts.map(Number);
-      const dateObj = new Date(Date.UTC(year, month - 1, day));
-      if (!isNaN(dateObj.getTime())) {
-        sanitizedData.data_renovacao = dateObj;
-      } else {
-        errors.push(
-          "A data de Renovação é inválida. Use o formato AAAA-MM-DD."
-        );
+  // --- Validação das Datas (a sua lógica já estava ótima) ---
+  const validateDate = (dateStr, fieldName) => {
+    if (dateStr && typeof dateStr === "string") {
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const [year, month, day] = parts.map(Number);
+        const dateObj = new Date(Date.UTC(year, month - 1, day));
+        if (!isNaN(dateObj.getTime())) {
+          return dateObj;
+        }
       }
-    } else {
-      errors.push(
-        "A data de Renovação está em um formato inválido. Use o formato AAAA-MM-DD."
-      );
+      errors.push({
+        field: fieldName,
+        message: `A data de ${fieldName.replace(
+          "data_",
+          ""
+        )} é inválida. Use AAAA-MM-DD.`,
+      });
     }
-  }
+    return dateStr;
+  };
 
-  // Validação e conversão da data de vencimento
-  if (
-    sanitizedData.data_vencimento &&
-    typeof sanitizedData.data_vencimento === "string"
-  ) {
-    const parts = sanitizedData.data_vencimento.split("-");
-    if (parts.length === 3) {
-      const [year, month, day] = parts.map(Number);
-      // <-- MELHORIA: Use Date.UTC para consistência e evitar problemas de fuso horário
-      const dateObj = new Date(Date.UTC(year, month - 1, day));
-      if (!isNaN(dateObj.getTime())) {
-        sanitizedData.data_vencimento = dateObj;
-      } else {
-        errors.push(
-          "A data de vencimento é inválida. Use o formato AAAA-MM-DD."
-        );
-      }
-    } else {
-      errors.push(
-        "A data de vencimento está em um formato inválido. Use o formato AAAA-MM-DD."
-      );
-    }
-  }
+  sanitizedData.data_renovacao = validateDate(
+    sanitizedData.data_renovacao,
+    "data_renovacao"
+  );
+  sanitizedData.data_vencimento = validateDate(
+    sanitizedData.data_vencimento,
+    "data_vencimento"
+  );
 
+  // --- Validação do Status ---
   if (
     sanitizedData.status &&
     !statusEnumValidos.includes(sanitizedData.status)
   ) {
-    errors.push(
-      `O status deve ser um dos seguintes: ${statusEnumValidos.join(", ")}`
-    );
+    errors.push({ field: "status", message: "O status fornecido é inválido." });
   }
 
   if (errors.length > 0) {
@@ -417,17 +416,16 @@ class ClienteController {
         order: [["nome", "ASC"]],
       };
 
-      // 3. Lógica de filtro CORRIGIDA usando include para fazer o JOIN
       if (status) {
         queryOptions.include = [
           {
             model: ContratoCertificado,
-            as: "contratos", // Usa o 'as' definido na associação do model Cliente
+            as: "contratos",
             where: {
-              status: status, // Filtra pela coluna 'status' na tabela de contratos
+              status: status,
             },
-            required: true, // Garante que será um INNER JOIN
-            attributes: [], // Otimização: não traz nenhum dado da tabela de contratos
+            required: true,
+            attributes: [],
           },
         ];
       }

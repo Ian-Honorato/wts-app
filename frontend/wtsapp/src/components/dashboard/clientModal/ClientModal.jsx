@@ -9,6 +9,7 @@ import {
   useUpdateClientMutation,
   useCreateClientMutation,
 } from "../../../hooks/useMutation";
+import { extractErrorMessage } from "../../../utils/errorUtils";
 
 const statusEnumValidos = [
   "Agendado",
@@ -37,13 +38,17 @@ const certificados = [
 
 const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   const queryClient = useQueryClient();
-  // Estado inicial com todos os campos do formulário
+
   const [formData, setFormData] = useState({
     nome_cliente: "",
     cpf_cnpj: "",
     representante: "",
     email_cliente: "",
-    telefone: "",
+    // --- Campos de telefone separados ---
+    ddi: "55",
+    ddd: "",
+    telefoneNumero: "",
+    // --- Fim da alteração ---
     nome_parceiro: "",
     nome_certificado: "",
     numero_contrato: "",
@@ -60,18 +65,31 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
 
   useEffect(() => {
     if (isOpen) {
-      if (isUpdateMode) {
+      if (isUpdateMode && clientToEdit) {
+        // Lógica para separar o telefone em DDI, DDD e Número
+        let ddi = "55";
+        let ddd = "";
+        let telefoneNumero = "";
+        const fullPhone = clientToEdit.telefone || "";
+
+        if (fullPhone.length === 12 || fullPhone.length === 13) {
+          ddi = fullPhone.substring(0, 2);
+          ddd = fullPhone.substring(2, 4);
+          telefoneNumero = fullPhone.substring(4);
+        }
+
         setFormData({
           nome_cliente: clientToEdit.nome,
           cpf_cnpj: clientToEdit.cpf_cnpj,
           representante: clientToEdit.representante || "",
           email_cliente: clientToEdit.email || "",
-          telefone: clientToEdit.telefone,
+          ddi,
+          ddd,
+          telefoneNumero,
           nome_parceiro: clientToEdit.parceiro_indicador?.nome_escritorio || "",
           nome_certificado:
             clientToEdit.contratos?.[0]?.certificado.nome_certificado || "",
           numero_contrato: clientToEdit.contratos?.[0]?.numero_contrato || "",
-          // Lógica de formatação já está correta
           data_renovacao: clientToEdit.contratos?.[0]?.data_renovacao
             ? new Date(clientToEdit.contratos[0].data_renovacao)
                 .toISOString()
@@ -85,12 +103,15 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           status: clientToEdit.contratos?.[0]?.status || "",
         });
       } else {
+        // Reset para o formulário de criação
         setFormData({
           nome_cliente: "",
           cpf_cnpj: "",
           representante: "",
           email_cliente: "",
-          telefone: "",
+          ddi: "55", // Valor padrão
+          ddd: "",
+          telefoneNumero: "",
           nome_parceiro: "",
           nome_certificado: "",
           numero_contrato: "",
@@ -104,12 +125,19 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   }, [isOpen, clientToEdit, isUpdateMode]);
 
   const validate = () => {
-    //console.log("Validando dados do formulário:", formData);
     const newErrors = {};
     if (!formData.nome_cliente)
       newErrors.nome_cliente = "O nome do cliente é obrigatório.";
     if (!formData.cpf_cnpj) newErrors.cpf_cnpj = "O CPF/CNPJ é obrigatório.";
-    if (!formData.telefone) newErrors.telefone = "O telefone é obrigatório.";
+
+    // Validação para os campos de telefone
+    if (!formData.ddi || !formData.ddd || !formData.telefoneNumero) {
+      newErrors.telefone =
+        "O telefone completo (DDI, DDD e número) é obrigatório.";
+    } else if (formData.telefoneNumero.length < 8) {
+      newErrors.telefone = "O número de telefone parece curto demais.";
+    }
+
     if (!formData.status) newErrors.status = "O status é obrigatório.";
     if (!formData.nome_parceiro)
       newErrors.nome_parceiro = "O nome do parceiro é obrigatório.";
@@ -130,12 +158,20 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     }
     setErrors({});
 
+    // Monta o telefone completo antes de enviar
+    const telefoneCompleto = `${formData.ddi}${formData.ddd}${formData.telefoneNumero}`;
+
     const mutationData = {
       ...formData,
-
+      telefone: telefoneCompleto, // Substitui os campos separados pelo completo
       data_renovacao: formData.data_renovacao || null,
       data_vencimento: formData.data_vencimento || null,
     };
+
+    // Remove as chaves separadas para não serem enviadas ao backend
+    delete mutationData.ddi;
+    delete mutationData.ddd;
+    delete mutationData.telefoneNumero;
 
     if (isUpdateMode) {
       updateMutation.mutate(
@@ -146,10 +182,10 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
             onClose();
             queryClient.invalidateQueries({ queryKey: ["clients"] });
           },
+          // --- ONERROR ATUALIZADO ---
           onError: (error) => {
-            const errorMessage =
-              error.response?.data?.error || "Erro ao atualizar o cliente.";
-            onFeedback("error", errorMessage);
+            const userMessage = extractErrorMessage(error);
+            onFeedback("error", userMessage);
           },
         }
       );
@@ -160,17 +196,26 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           onClose();
           queryClient.invalidateQueries({ queryKey: ["clients"] });
         },
+        // --- ONERROR ATUALIZADO ---
         onError: (error) => {
-          const errorMessage =
-            error.response?.data?.error || "Erro ao cadastrar o cliente.";
-          onFeedback("error", errorMessage);
+          const userMessage = extractErrorMessage(error);
+          onFeedback("error", userMessage);
         },
       });
     }
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Se for um dos campos de telefone, permite apenas números
+    if (name === "ddi" || name === "ddd" || name === "telefoneNumero") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData({ ...formData, [name]: numericValue });
+    } else {
+      // Para outros campos, o comportamento é o normal
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   if (!isOpen) return null;
@@ -186,7 +231,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
         </h2>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
-            {/* Campos existentes... (Nome, CPF/CNPJ, etc.) */}
             <div className={styles.formGroup}>
               <label htmlFor="nome_cliente">Nome / Razão Social *</label>
               <input
@@ -217,21 +261,45 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
               )}
             </div>
 
+            {/* --- Bloco do Telefone Alterado --- */}
             <div className={styles.formGroup}>
-              <label htmlFor="telefone">Telefone *</label>
-              <input
-                type="tel"
-                id="telefone"
-                name="telefone"
-                value={formData.telefone}
-                onChange={handleChange}
-                className={styles.input}
-              />
+              <label>Telefone *</label>
+              <div className={styles.phoneInputGroup}>
+                <input
+                  type="text"
+                  name="ddi"
+                  placeholder="55"
+                  value={formData.ddi}
+                  onChange={handleChange}
+                  className={`${styles.input} ${styles.phoneDDI}`}
+                  maxLength="2"
+                />
+                <input
+                  type="text"
+                  name="ddd"
+                  placeholder="DDD"
+                  value={formData.ddd}
+                  onChange={handleChange}
+                  className={`${styles.input} ${styles.phoneDDD}`}
+                  maxLength="2"
+                />
+                <input
+                  type="text"
+                  name="telefoneNumero"
+                  placeholder="Número"
+                  value={formData.telefoneNumero}
+                  onChange={handleChange}
+                  className={`${styles.input} ${styles.phoneNumber}`}
+                  maxLength="9"
+                />
+              </div>
               {errors.telefone && (
                 <p className={styles.errorMessage}>{errors.telefone}</p>
               )}
             </div>
+            {/* --- Fim do Bloco do Telefone --- */}
 
+            {/* ... restante do seu formulário (status, parceiro, etc.) ... */}
             <div className={styles.formGroup}>
               <label htmlFor="status">Status *</label>
               <select
