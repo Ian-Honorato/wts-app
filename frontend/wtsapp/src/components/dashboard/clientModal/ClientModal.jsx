@@ -183,6 +183,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           },
           onError: (error) => {
             const userMessage = extractErrorMessage(error);
+            console.log(error);
             onFeedback("error", userMessage);
           },
         }
