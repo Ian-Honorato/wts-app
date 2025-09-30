@@ -184,7 +184,21 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           onError: (error) => {
             const userMessage = extractErrorMessage(error);
 
-            onFeedback("error", userMessage);
+            // --- INÍCIO DO CÓDIGO DE DEPURAÇÃO TEMPORÁRIO ---
+
+            // Criamos uma mensagem de depuração detalhada.
+            // JSON.stringify é crucial para o caso de userMessage ser um objeto.
+            const debugMessage = `[DEBUG] Tipo: ${typeof userMessage} | Conteúdo: ${JSON.stringify(
+              userMessage
+            )}`;
+
+            // Exibimos a mensagem de depuração NO MODAL DE RESPOSTA.
+            onFeedback("error", debugMessage);
+
+            // --- FIM DO CÓDIGO DE DEPURAÇÃO ---
+
+            // A linha original seria esta, que está temporariamente desativada:
+            // onFeedback("error", userMessage);
           },
         }
       );
