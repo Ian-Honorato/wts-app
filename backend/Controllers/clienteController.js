@@ -39,35 +39,26 @@ function sanitizarCliente(data, isUpdate = false) {
   const errors = [];
   const sanitizedData = { ...data };
 
-  // --- Validações de campos obrigatórios (apenas na criação) ---
+  // --- Validação de campos obrigatórios (apenas na criação) ---
   if (!isUpdate) {
-    if (!sanitizedData.nome_cliente)
-      errors.push({
-        field: "nome_cliente",
-        message: "O nome do cliente é obrigatório.",
-      });
-    if (!sanitizedData.cpf_cnpj)
-      errors.push({ field: "cpf_cnpj", message: "O CPF/CNPJ é obrigatório." });
-    if (!sanitizedData.status)
-      errors.push({ field: "status", message: "O status é obrigatório." });
-    if (!sanitizedData.nome_parceiro)
-      errors.push({
-        field: "nome_parceiro",
-        message: "O nome do parceiro é obrigatório.",
-      });
-    if (!sanitizedData.nome_certificado)
-      errors.push({
-        field: "nome_certificado",
-        message: "O nome do certificado é obrigatório.",
-      });
-    if (!sanitizedData.numero_contrato)
-      errors.push({
-        field: "numero_contrato",
-        message: "O número do contrato é obrigatório.",
-      });
+    const camposObrigatorios = {
+      nome_cliente: "O nome do cliente é obrigatório.",
+      cpf_cnpj: "O CPF/CNPJ é obrigatório.",
+      status: "O status é obrigatório.",
+      nome_parceiro: "O nome do parceiro é obrigatório.",
+      nome_certificado: "O nome do certificado é obrigatório.",
+      numero_contrato: "O número do contrato é obrigatório.",
+      telefone: "O campo telefone é obrigatório.",
+    };
+
+    for (const [campo, mensagem] of Object.entries(camposObrigatorios)) {
+      if (!sanitizedData[campo] || String(sanitizedData[campo]).trim() === "") {
+        errors.push({ field: campo, message: mensagem });
+      }
+    }
   }
 
-  // --- Validação do Telefone ---
+  // --- Validação e Sanitização do Telefone ---
   if (sanitizedData.telefone) {
     const cleanedTelefone = String(sanitizedData.telefone).replace(/\D/g, "");
     if (cleanedTelefone.length < 12 || cleanedTelefone.length > 13) {
@@ -79,14 +70,9 @@ function sanitizarCliente(data, isUpdate = false) {
     } else {
       sanitizedData.telefone = cleanedTelefone;
     }
-  } else if (!isUpdate) {
-    errors.push({
-      field: "telefone",
-      message: "O campo telefone é obrigatório.",
-    });
   }
 
-  // --- Validação e Sanitização do CPF/CNPJ ---
+  // --- 3. Validação e Sanitização do CPF/CNPJ ---
   if (sanitizedData.cpf_cnpj) {
     const cleanedCpfCnpj = String(sanitizedData.cpf_cnpj).replace(/\D/g, "");
     if (cleanedCpfCnpj.length === 11) {
@@ -94,7 +80,6 @@ function sanitizarCliente(data, isUpdate = false) {
     } else if (cleanedCpfCnpj.length === 14) {
       sanitizedData.tipo_cliente = "Pessoa Jurídica";
     } else if (cleanedCpfCnpj.length > 0) {
-      // Só dá erro se não estiver vazio e tiver tamanho errado
       errors.push({
         field: "cpf_cnpj",
         message: "O CPF/CNPJ deve conter 11 ou 14 dígitos.",
@@ -103,28 +88,36 @@ function sanitizarCliente(data, isUpdate = false) {
     sanitizedData.cpf_cnpj = cleanedCpfCnpj;
   }
 
-  // --- Validação das Datas (a sua lógica já estava ótima) ---
+  // --- 4. Validação de Datas ---
   const validateDate = (dateStr, fieldName) => {
+    // Só valida se for uma string não vazia. Permite campos nulos.
     if (dateStr && typeof dateStr === "string") {
-      const parts = dateStr.split("-");
-      if (parts.length === 3) {
-        const [year, month, day] = parts.map(Number);
-        const dateObj = new Date(Date.UTC(year, month - 1, day));
-        if (!isNaN(dateObj.getTime())) {
-          return dateObj;
-        }
+      // Checa o formato AAAA-MM-DD
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        errors.push({
+          field: fieldName,
+          message: `Formato de data inválido. Use AAAA-MM-DD.`,
+        });
+        return dateStr;
+      }
+      const [year, month, day] = dateStr.split("-").map(Number);
+      const dateObj = new Date(Date.UTC(year, month - 1, day));
+      // Checa se a data é válida (ex: não é 31 de Fev)
+      if (
+        dateObj &&
+        dateObj.getUTCFullYear() === year &&
+        dateObj.getUTCMonth() === month - 1 &&
+        dateObj.getUTCDate() === day
+      ) {
+        return dateObj; // Retorna o objeto Date se for válido
       }
       errors.push({
         field: fieldName,
-        message: `A data de ${fieldName.replace(
-          "data_",
-          ""
-        )} é inválida. Use AAAA-MM-DD.`,
+        message: `A data de ${fieldName.replace("data_", "")} é inválida.`,
       });
     }
-    return dateStr; // Retorna o valor original se não for string ou for nulo
+    return dateStr; // Retorna o valor original (null, undefined ou já um objeto Date)
   };
-
   sanitizedData.data_renovacao = validateDate(
     sanitizedData.data_renovacao,
     "data_renovacao"
@@ -134,14 +127,13 @@ function sanitizarCliente(data, isUpdate = false) {
     "data_vencimento"
   );
 
-  // --- Validação do Status ---
+  // --- 5. Validação do Status ---
   if (
     sanitizedData.status &&
     !statusEnumValidos.includes(sanitizedData.status)
   ) {
     errors.push({ field: "status", message: "O status fornecido é inválido." });
   }
-
   if (errors.length > 0) {
     return { sanitizedData: null, errors };
   }
