@@ -19,6 +19,7 @@ import {
 
 // Array com os status para os filtros
 const statusValidos = [
+  "Todos",
   "Agendado",
   "Em contato",
   "Renovado",
@@ -254,7 +255,9 @@ const ListClientsModal = ({
                     <tr key={client.id}>
                       <td>{client.id}</td>
                       <td>{client.nome}</td>
-                      <td>{formatarCpfCnpj(client.cpf_cnpj)}</td>
+                      <td className={styles.cpfCnpjCell}>
+                        {formatarCpfCnpj(client.cpf_cnpj)}
+                      </td>
                       <td className={styles.actionsCell}>
                         <button
                           onClick={() => handleActionClick("show", client.id)}

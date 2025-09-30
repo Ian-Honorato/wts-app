@@ -120,9 +120,13 @@
 }
 .clientsTable th,
 .clientsTable td {
-  padding: 0.8rem;
+  height: 60px;
+  padding: 0.6rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
+}
+.cpfCnpjCell {
+  width: 160px;
 }
 .clientsTable th {
   font-weight: 600;
