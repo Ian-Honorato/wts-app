@@ -398,30 +398,38 @@ class ClienteController {
   async index(req, res) {
     try {
       const { status } = req.query;
+
+      // 2. A sua validação de status já está ótima e deve ser mantida.
       const statusValidos = [
         "Agendado",
         "Em contato",
-        "ESC Agendado",
-        "Não vai renovar",
-        "Sem dados CNTT",
-        "Vence em outro mês",
-        "Tickets",
-        "Ativo",
-        "Não identificado",
         "Renovado",
+        "Não identificado",
+        "Não vai renovar",
         "Cancelado",
+        "Ativo",
       ];
       if (status && !statusValidos.includes(status)) {
         return res.status(400).json({ error: "Status inválido fornecido." });
       }
+
       const queryOptions = {
         order: [["nome", "ASC"]],
       };
 
+      // 3. Lógica de filtro CORRIGIDA usando include para fazer o JOIN
       if (status) {
-        queryOptions.where = {
-          status_contrato: status,
-        };
+        queryOptions.include = [
+          {
+            model: ContratoCertificado,
+            as: "contratos", // Usa o 'as' definido na associação do model Cliente
+            where: {
+              status: status, // Filtra pela coluna 'status' na tabela de contratos
+            },
+            required: true, // Garante que será um INNER JOIN
+            attributes: [], // Otimização: não traz nenhum dado da tabela de contratos
+          },
+        ];
       }
 
       const clientes = await Cliente.findAll(queryOptions);

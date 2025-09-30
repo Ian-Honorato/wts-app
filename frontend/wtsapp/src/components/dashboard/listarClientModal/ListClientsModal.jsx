@@ -19,18 +19,13 @@ import {
 
 // Array com os status para os filtros
 const statusValidos = [
-  "Todos",
   "Agendado",
   "Em contato",
-  "Não vai renovar",
-  "ESC Agendado",
-  "Tickets",
-  "Sem dados CNTT",
-  "Ativo",
-  "Não identificado",
   "Renovado",
+  "Não identificado",
+  "Não vai renovar",
   "Cancelado",
-  "Vence em outro mês",
+  "Ativo",
 ];
 
 const fetchClients = async ({ queryKey }) => {
