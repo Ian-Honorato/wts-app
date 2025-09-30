@@ -9,7 +9,7 @@ import {
   useUpdateClientMutation,
   useCreateClientMutation,
 } from "../../../hooks/useMutation";
-import { extractErrorMessage } from "../../../utils/errorUtils";
+import { extractErrorMessage } from "../../../hooks/util/errorHandler";
 
 const statusEnumValidos = [
   "Agendado",
