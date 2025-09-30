@@ -41,6 +41,10 @@ const Dashboard = () => {
   } = useDashboardData(user);
   //console.log("sumarioData", sumarioData);
   const handleSubmitFeedback = (type, message) => {
+    console.log("--- DADOS RECEBIDOS PELO DASHBOARD ---");
+    console.log("Tipo do feedback:", type);
+    console.log("Tipo da mensagem:", typeof message);
+    console.log("Conteúdo da mensagem:", message);
     modalHandlers.showResponseModal(type, message);
     /* modalHandlers.closeAll();
     setTimeout(() => {
