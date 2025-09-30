@@ -22,15 +22,15 @@ const statusValidos = [
   "Todos",
   "Agendado",
   "Em contato",
-  "ESC Agendado",
   "Não vai renovar",
-  "Sem dados CNTT",
-  "Vence em outro mês",
+  "ESC Agendado",
   "Tickets",
+  "Sem dados CNTT",
   "Ativo",
   "Não identificado",
   "Renovado",
   "Cancelado",
+  "Vence em outro mês",
 ];
 
 const fetchClients = async ({ queryKey }) => {
@@ -62,6 +62,7 @@ const ListClientsModal = ({
   const {
     data: clients = [],
     isLoading,
+    isFetching,
     isError,
   } = useQuery({
     queryKey: ["clients", activeStatus],
@@ -240,7 +241,11 @@ const ListClientsModal = ({
                 Erro ao carregar clientes.
               </p>
             ) : (
-              <table className={styles.clientsTable}>
+              <table
+                className={`${styles.clientsTable} ${
+                  isFetching ? styles.isFetching : ""
+                }`}
+              >
                 <thead>
                   <tr>
                     <th>ID</th>

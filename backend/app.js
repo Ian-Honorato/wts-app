@@ -72,16 +72,16 @@ class App {
     // Define diversos headers HTTP de segurança
     // this.app.use(helmet());
 
-    // Implementa um limitador de requisições (Rate Limiter)
-    const limiter = rateLimit({
+    // limitador de requisições (Rate Limiter)
+    /*     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // Janela de 15 minutos
-      max: 200, // Limita cada IP a 200 requisições por janela
+      max: 1000, 
       message:
         "Muitas requisições enviadas deste IP, por favor, tente novamente após 15 minutos.",
       standardHeaders: true,
       legacyHeaders: false,
     });
-    this.app.use(limiter);
+    this.app.use(limiter); */
 
     // Limita o tamanho do corpo da requisição para prevenir ataques de DoS
     this.app.use(express.json({ limit: "10kb" }));

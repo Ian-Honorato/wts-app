@@ -397,9 +397,35 @@ class ClienteController {
 
   async index(req, res) {
     try {
-      const clientes = await Cliente.findAll({
+      const { status } = req.query;
+      const statusValidos = [
+        "Agendado",
+        "Em contato",
+        "ESC Agendado",
+        "Não vai renovar",
+        "Sem dados CNTT",
+        "Vence em outro mês",
+        "Tickets",
+        "Ativo",
+        "Não identificado",
+        "Renovado",
+        "Cancelado",
+      ];
+      if (status && !statusValidos.includes(status)) {
+        return res.status(400).json({ error: "Status inválido fornecido." });
+      }
+      const queryOptions = {
         order: [["nome", "ASC"]],
-      });
+      };
+
+      if (status) {
+        queryOptions.where = {
+          status_contrato: status,
+        };
+      }
+
+      const clientes = await Cliente.findAll(queryOptions);
+
       return res.json(clientes);
     } catch (e) {
       return errorHandler(e, res);
