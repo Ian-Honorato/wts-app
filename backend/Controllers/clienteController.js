@@ -122,7 +122,7 @@ function sanitizarCliente(data, isUpdate = false) {
         )} é inválida. Use AAAA-MM-DD.`,
       });
     }
-    return dateStr;
+    return dateStr; // Retorna o valor original se não for string ou for nulo
   };
 
   sanitizedData.data_renovacao = validateDate(
