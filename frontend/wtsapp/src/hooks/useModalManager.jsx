@@ -153,7 +153,7 @@ export function useModalManager() {
     showResponseModal: (type, message) =>
       setModalState((prev) => ({
         ...prev,
-        responseModal: { isOpen: true, type, message },
+        responseModal: { isOpen: true, type, message: String(message || "") },
       })),
     closeResponseModal: () =>
       setModalState((prev) => ({
