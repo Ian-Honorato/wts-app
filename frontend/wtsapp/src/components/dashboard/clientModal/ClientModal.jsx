@@ -425,7 +425,11 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
             </div>
           </div>
 
-          {apiError && <p className={styles.apiErrorMessage}>{apiError}</p>}
+          {apiError && (
+            <p className={styles.apiErrorMessage}>
+              {extractErrorMessage(apiError)}
+            </p>
+          )}
           <button
             type="submit"
             className={styles.submitButton}

@@ -54,7 +54,7 @@ const importClientApi = async (formData) => {
 
 // Função centralizada para invalidar todos os caches relacionados
 const invalidandoQueries = (queryClient) => {
-  console.log("Invalidando todos os caches relevantes...");
+  //console.log("Invalidando todos os caches relevantes...");
   queryClient.invalidateQueries({ queryKey: ["clients"] });
   queryClient.invalidateQueries({ queryKey: ["sumarioData"] });
   queryClient.invalidateQueries({ queryKey: ["renovationsData"] });
