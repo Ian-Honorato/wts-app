@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "./clientModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useQueryClient } from "@tanstack/react-query";
 
-//hooks
+// Hooks
 import {
   useUpdateClientMutation,
   useCreateClientMutation,
 } from "../../../hooks/useMutation";
 import { extractErrorMessage } from "../../../hooks/util/errorHandler.js";
+
 const statusEnumValidos = [
   "Agendado",
   "Em contato",
@@ -35,26 +36,24 @@ const certificados = [
   "e-CPF A3 token",
 ];
 
-const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
-  const queryClient = useQueryClient();
+const initialState = {
+  nome_cliente: "",
+  cpf_cnpj: "",
+  representante: "",
+  email_cliente: "",
+  ddi: "55",
+  ddd: "",
+  telefoneNumero: "",
+  nome_parceiro: "",
+  nome_certificado: "",
+  numero_contrato: "",
+  data_renovacao: "",
+  data_vencimento: "",
+  status: "",
+};
 
-  const [formData, setFormData] = useState({
-    nome_cliente: "",
-    cpf_cnpj: "",
-    representante: "",
-    email_cliente: "",
-    // --- Campos de telefone separados ---
-    ddi: "55",
-    ddd: "",
-    telefoneNumero: "",
-    // --- Fim da alteração ---
-    nome_parceiro: "",
-    nome_certificado: "",
-    numero_contrato: "",
-    data_renovacao: "",
-    data_vencimento: "",
-    status: "",
-  });
+const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
+  const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
 
   const createMutation = useCreateClientMutation();
@@ -65,13 +64,13 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   useEffect(() => {
     if (isOpen) {
       if (isUpdateMode && clientToEdit) {
-        // Lógica para separar o telefone em DDI, DDD e Número
-        let ddi = "55";
-        let ddd = "";
-        let telefoneNumero = "";
+        let ddi = "55",
+          ddd = "",
+          telefoneNumero = "";
         const fullPhone = clientToEdit.telefone || "";
 
-        if (fullPhone.length === 12 || fullPhone.length === 13) {
+        if (fullPhone.length >= 12) {
+          // Condição para telefone com DDI, DDD e número
           ddi = fullPhone.substring(0, 2);
           ddd = fullPhone.substring(2, 4);
           telefoneNumero = fullPhone.substring(4);
@@ -102,41 +101,26 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           status: clientToEdit.contratos?.[0]?.status || "",
         });
       } else {
-        // Reset para o formulário de criação
-        setFormData({
-          nome_cliente: "",
-          cpf_cnpj: "",
-          representante: "",
-          email_cliente: "",
-          ddi: "55",
-          ddd: "",
-          telefoneNumero: "",
-          nome_parceiro: "",
-          nome_certificado: "",
-          numero_contrato: "",
-          data_renovacao: "",
-          data_vencimento: "",
-          status: "",
-        });
+        setFormData(initialState);
       }
-      setErrors({});
-    }
-  }, [isOpen, clientToEdit, isUpdateMode]);
 
-  const validate = () => {
+      // Limpa erros de validação e reseta o estado das mutações para evitar persistência
+      setErrors({});
+      createMutation.reset();
+      updateMutation.reset();
+    }
+  }, [isOpen, clientToEdit, isUpdateMode, createMutation, updateMutation]);
+
+  const validate = useCallback(() => {
     const newErrors = {};
     if (!formData.nome_cliente)
       newErrors.nome_cliente = "O nome do cliente é obrigatório.";
     if (!formData.cpf_cnpj) newErrors.cpf_cnpj = "O CPF/CNPJ é obrigatório.";
-
-    // Validação para os campos de telefone
     if (!formData.ddi || !formData.ddd || !formData.telefoneNumero) {
-      newErrors.telefone =
-        "O telefone completo (DDI, DDD e número) é obrigatório.";
+      newErrors.telefone = "O telefone completo é obrigatório.";
     } else if (formData.telefoneNumero.length < 8) {
       newErrors.telefone = "O número de telefone parece curto demais.";
     }
-
     if (!formData.status) newErrors.status = "O status é obrigatório.";
     if (!formData.nome_parceiro)
       newErrors.nome_parceiro = "O nome do parceiro é obrigatório.";
@@ -144,30 +128,63 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       newErrors.nome_certificado = "O nome do certificado é obrigatório.";
     if (!formData.numero_contrato)
       newErrors.numero_contrato = "O número do contrato é obrigatório.";
-
+    if (
+      formData.email_cliente &&
+      !/\S+@\S+\.\S+/.test(formData.email_cliente)
+    ) {
+      newErrors.email_cliente = "O formato do e-mail é inválido.";
+    }
     return newErrors;
+  }, [formData]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (["ddi", "ddd", "telefoneNumero"].includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/[^0-9]/g, ""),
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const getMutationCallbacks = (successMessage) => ({
+    onSuccess: () => {
+      onFeedback("success", successMessage);
+      onClose();
+    },
+    onError: (error) => {
+      onFeedback("error", extractErrorMessage(error));
+      const fieldErrors = error?.response?.data?.errors;
+      if (fieldErrors && Array.isArray(fieldErrors)) {
+        const newErrors = {};
+        fieldErrors.forEach((err) => {
+          newErrors[err.field] = err.message;
+        });
+        setErrors(newErrors);
+      }
+    },
+  });
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    setErrors({});
 
-    // Monta o telefone completo antes de enviar
     const telefoneCompleto = `${formData.ddi}${formData.ddd}${formData.telefoneNumero}`;
-
     const mutationData = {
       ...formData,
-      telefone: telefoneCompleto, // Substitui os campos separados pelo completo
+      telefone: telefoneCompleto,
       data_renovacao: formData.data_renovacao || null,
       data_vencimento: formData.data_vencimento || null,
     };
-
-    // Remove as chaves separadas para não serem enviadas ao backend
     delete mutationData.ddi;
     delete mutationData.ddd;
     delete mutationData.telefoneNumero;
@@ -175,50 +192,19 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     if (isUpdateMode) {
       updateMutation.mutate(
         { ...mutationData, id: clientToEdit.id },
-        {
-          onSuccess: () => {
-            onFeedback("success", "Cliente atualizado com sucesso!");
-            onClose();
-            queryClient.invalidateQueries({ queryKey: ["clients"] });
-          },
-          onError: (error) => {
-            const userMessage = extractErrorMessage(error);
-            onFeedback("error", userMessage);
-          },
-        }
+        getMutationCallbacks("Cliente atualizado com sucesso!")
       );
     } else {
-      createMutation.mutate(mutationData, {
-        onSuccess: () => {
-          onFeedback("success", "Cliente cadastrado com sucesso!");
-          onClose();
-          queryClient.invalidateQueries({ queryKey: ["clients"] });
-        },
-        onError: (error) => {
-          const userMessage = extractErrorMessage(error);
-          onFeedback("error", userMessage);
-        },
-      });
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    // Se for um dos campos de telefone, permite apenas números
-    if (name === "ddi" || name === "ddd" || name === "telefoneNumero") {
-      const numericValue = value.replace(/[^0-9]/g, "");
-      setFormData({ ...formData, [name]: numericValue });
-    } else {
-      // Para outros campos, o comportamento é o normal
-      setFormData({ ...formData, [name]: value });
+      createMutation.mutate(
+        mutationData,
+        getMutationCallbacks("Cliente cadastrado com sucesso!")
+      );
     }
   };
 
   if (!isOpen) return null;
 
-  const isLoading = createMutation.isLoading || updateMutation.isLoading;
-  const apiError = createMutation.error || updateMutation.error;
+  const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -258,7 +244,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
               )}
             </div>
 
-            {/* --- Bloco do Telefone Alterado --- */}
             <div className={styles.formGroup}>
               <label>Telefone *</label>
               <div className={styles.phoneInputGroup}>
@@ -294,9 +279,22 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
                 <p className={styles.errorMessage}>{errors.telefone}</p>
               )}
             </div>
-            {/* --- Fim do Bloco do Telefone --- */}
 
-            {/* ... restante do seu formulário (status, parceiro, etc.) ... */}
+            <div className={styles.formGroup}>
+              <label htmlFor="email_cliente">E-mail</label>
+              <input
+                type="email"
+                id="email_cliente"
+                name="email_cliente"
+                value={formData.email_cliente}
+                onChange={handleChange}
+                className={styles.input}
+              />
+              {errors.email_cliente && (
+                <p className={styles.errorMessage}>{errors.email_cliente}</p>
+              )}
+            </div>
+
             <div className={styles.formGroup}>
               <label htmlFor="status">Status *</label>
               <select
@@ -398,21 +396,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="email_cliente">E-mail</label>
-              <input
-                type="email"
-                id="email_cliente"
-                name="email_cliente"
-                value={formData.email_cliente}
-                onChange={handleChange}
-                className={styles.input}
-              />
-              {errors.email_cliente && (
-                <p className={styles.errorMessage}>{errors.email_cliente}</p>
-              )}
-            </div>
-
-            <div className={styles.formGroup}>
               <label htmlFor="representante">Representante</label>
               <input
                 type="text"
@@ -425,11 +408,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
             </div>
           </div>
 
-          {apiError && (
-            <p className={styles.apiErrorMessage}>
-              {extractErrorMessage(apiError)}
-            </p>
-          )}
           <button
             type="submit"
             className={styles.submitButton}

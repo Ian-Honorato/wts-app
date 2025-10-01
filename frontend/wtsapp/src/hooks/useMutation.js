@@ -4,48 +4,66 @@ import axios from "axios";
 // REFERENTE AOS CLIENTES
 
 // ================================================================
-// API Functions
+// Constantes de Configuração da API
+// Centralizam a URL base e a lógica de autenticação.
+// ================================================================
+const baseUrl = "/api/clientes/";
+const token = sessionStorage.getItem("token");
+
+// Objeto de configuração do Axios com o header de autorização.
+const barerTokenConfig = {
+  headers: { Authorization: `Bearer ${token}` },
+};
+
+// ================================================================
+// API Functions (Refatoradas)
 // ================================================================
 
 export const detailsClientApi = async (clientId) => {
-  const token = sessionStorage.getItem("token");
-  const { data } = await axios.get(`/api/clientes/${clientId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const { data } = await axios.get(`${baseUrl}${clientId}`, barerTokenConfig);
   return data;
 };
 
 const updateClientApi = async (clientData) => {
-  const token = sessionStorage.getItem("token");
   const { data } = await axios.put(
-    `/api/clientes/${clientData.id}`,
+    `${baseUrl}${clientData.id}`,
     clientData,
-    { headers: { Authorization: `Bearer ${token}` } }
+    barerTokenConfig
   );
   return data;
 };
+
 const deleteClientApi = async (clientId) => {
-  const token = sessionStorage.getItem("token");
-  const { data } = await axios.delete(`/api/clientes/${clientId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const { data } = await axios.delete(
+    `${baseUrl}${clientId}`,
+    barerTokenConfig
+  );
   return data;
 };
+
 const createClientApi = async (clientData) => {
-  const token = sessionStorage.getItem("token");
-  const { data } = await axios.post("/api/clientes/cadastrar", clientData, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const { data } = await axios.post(
+    `${baseUrl}cadastrar`,
+    clientData,
+    barerTokenConfig
+  );
   return data;
 };
+
 const importClientApi = async (formData) => {
-  const token = sessionStorage.getItem("token");
-  const response = await axios.post("/api/upload/clientes", formData, {
+  // NOTA: Esta função é um caso especial pois precisa de um header extra ('Content-Type').
+  const importConfig = {
     headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${token}`,
+      ...barerTokenConfig.headers,
+      "Content-Type": "multipart/form-data", // -> Adiciona o header específico
     },
-  });
+  };
+
+  const response = await axios.post(
+    "/api/upload/clientes",
+    formData,
+    importConfig
+  );
   return response.data;
 };
 // ================================================================
