@@ -68,14 +68,11 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           ddd = "",
           telefoneNumero = "";
         const fullPhone = clientToEdit.telefone || "";
-
         if (fullPhone.length >= 12) {
-          // Condição para telefone com DDI, DDD e número
           ddi = fullPhone.substring(0, 2);
           ddd = fullPhone.substring(2, 4);
           telefoneNumero = fullPhone.substring(4);
         }
-
         setFormData({
           nome_cliente: clientToEdit.nome,
           cpf_cnpj: clientToEdit.cpf_cnpj,
@@ -104,7 +101,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
         setFormData(initialState);
       }
 
-      // Limpa erros de validação e reseta o estado das mutações para evitar persistência
+      // A lógica de reset foi movida para DENTRO do if(isOpen)
       setErrors({});
       createMutation.reset();
       updateMutation.reset();
