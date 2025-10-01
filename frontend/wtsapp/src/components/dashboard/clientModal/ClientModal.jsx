@@ -43,11 +43,9 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     cpf_cnpj: "",
     representante: "",
     email_cliente: "",
-    // --- Campos de telefone separados ---
     ddi: "55",
     ddd: "",
     telefoneNumero: "",
-    // --- Fim da alteração ---
     nome_parceiro: "",
     nome_certificado: "",
     numero_contrato: "",
@@ -172,6 +170,28 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     delete mutationData.ddd;
     delete mutationData.telefoneNumero;
 
+    // Função genérica para tratar os erros da API
+    const handleApiError = (error) => {
+      // Extrai os detalhes do erro (o array [{ field, message }])
+      const errorDetails = extractErrorDetails(error);
+
+      //Transforma o array em um objeto que o estado `errors` entende
+      // Ex: [{ field: 'email_cliente', message: 'Inválido' }] vira { email_cliente: 'Inválido' }
+      const newApiErrors = {};
+      errorDetails.forEach((detail) => {
+        // Se o erro tiver um campo específico, o associa.
+        // Senão, usa a chave 'api' para o erro genérico acima do botão.
+        newApiErrors[detail.field || "api"] = detail.message;
+      });
+
+      // Atualiza o estado de erros para exibir as mensagens nos campos
+      setErrors((prevErrors) => ({ ...prevErrors, ...newApiErrors }));
+
+      // Mostra também o primeiro erro no pop-up geral
+      if (errorDetails.length > 0) {
+        onFeedback("error", errorDetails[0].message);
+      }
+    };
     if (isUpdateMode) {
       updateMutation.mutate(
         { ...mutationData, id: clientToEdit.id },
@@ -181,10 +201,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
             onClose();
             queryClient.invalidateQueries({ queryKey: ["clients"] });
           },
-          onError: (error) => {
-            const userMessage = extractErrorMessage(error);
-            onFeedback("error", userMessage);
-          },
+          onError: handleApiError,
         }
       );
     } else {
@@ -194,10 +211,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           onClose();
           queryClient.invalidateQueries({ queryKey: ["clients"] });
         },
-        onError: (error) => {
-          const userMessage = extractErrorMessage(error);
-          onFeedback("error", userMessage);
-        },
+        onError: handleApiError,
       });
     }
   };
@@ -425,11 +439,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
             </div>
           </div>
 
-          {apiError && (
-            <p className={styles.apiErrorMessage}>
-              {extractErrorMessage(apiError)}
-            </p>
-          )}
+          {errors.api && <p className={styles.apiErrorMessage}>{errors.api}</p>}
           <button
             type="submit"
             className={styles.submitButton}
