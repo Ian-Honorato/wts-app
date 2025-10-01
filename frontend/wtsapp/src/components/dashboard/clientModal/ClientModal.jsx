@@ -106,7 +106,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       createMutation.reset();
       updateMutation.reset();
     }
-  }, [isOpen, clientToEdit, isUpdateMode, createMutation, updateMutation]);
+  }, [isOpen, clientToEdit]);
 
   const validate = useCallback(() => {
     const newErrors = {};
