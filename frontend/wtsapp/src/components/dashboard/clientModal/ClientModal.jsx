@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import styles from "./clientModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { useQueryClient } from "@tanstack/react-query";
 
 // Hooks
 import {
@@ -106,7 +105,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       createMutation.reset();
       updateMutation.reset();
     }
-  }, [isOpen, clientToEdit]);
+  }, [isOpen, clientToEdit, isUpdateMode]);
 
   const validate = useCallback(() => {
     const newErrors = {};
@@ -125,10 +124,9 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       newErrors.nome_certificado = "O nome do certificado é obrigatório.";
     if (!formData.numero_contrato)
       newErrors.numero_contrato = "O número do contrato é obrigatório.";
-    if (
-      formData.email_cliente &&
-      !/\S+@\S+\.\S+/.test(formData.email_cliente)
-    ) {
+    if (!formData.email_cliente) {
+      newErrors.email_cliente = "O e-mail é obrigatório.";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email_cliente)) {
       newErrors.email_cliente = "O formato do e-mail é inválido.";
     }
     return newErrors;
