@@ -33,13 +33,16 @@ const updateClientApi = async (clientData) => {
   return data;
 };
 const downloadClientsApi = async () => {
-  const url = "/api/download/clientes";
-
-  const response = await axios.get(url, {
-    ...barerTokenConfig,
+  const token = sessionStorage.getItem("token");
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     responseType: "blob",
-  });
+  };
 
+  const url = "/api/download/clientes";
+  const response = await axios.get(url, config);
   return response.data;
 };
 const deleteClientApi = async (clientId) => {
