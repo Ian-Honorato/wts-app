@@ -34,7 +34,7 @@ class DownloadController {
             include: [
               {
                 model: Certificado,
-                as: "certificados",
+                as: "certificado",
                 attributes: ["nome_certificado"],
               },
             ],
