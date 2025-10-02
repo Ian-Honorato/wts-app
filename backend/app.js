@@ -24,6 +24,7 @@ import certificadosRoutes from "./Routes/certificadoRoutes.js";
 import pagamentoRoutes from "./Routes/pagamentoRoutes.js";
 import uploadRoutes from "./Routes/uploadRoutes.js";
 import dashboardRoutes from "./Routes/dashboardRoutes.js";
+import downloadRoutes from "./Routes/downloadRoutes.js";
 
 /**
  * @class App
@@ -116,6 +117,7 @@ class App {
     this.app.use("/upload", uploadRoutes);
     this.app.use("/dashboard", dashboardRoutes);
     this.app.use("/financeiro", pagamentoRoutes);
+    this.app.use("/download", downloadRoutes);
   }
 }
 

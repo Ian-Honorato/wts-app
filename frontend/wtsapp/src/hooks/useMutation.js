@@ -32,7 +32,16 @@ const updateClientApi = async (clientData) => {
   );
   return data;
 };
+const downloadClientsApi = async () => {
+  const url = "/api/download/clientes";
 
+  const response = await axios.get(url, {
+    ...barerTokenConfig,
+    responseType: "blob",
+  });
+
+  return response.data;
+};
 const deleteClientApi = async (clientId) => {
   const { data } = await axios.delete(
     `${baseUrl}${clientId}`,
@@ -51,11 +60,10 @@ const createClientApi = async (clientData) => {
 };
 
 const importClientApi = async (formData) => {
-  // NOTA: Esta função é um caso especial pois precisa de um header extra ('Content-Type').
   const importConfig = {
     headers: {
       ...barerTokenConfig.headers,
-      "Content-Type": "multipart/form-data", // -> Adiciona o header específico
+      "Content-Type": "multipart/form-data",
     },
   };
 
@@ -111,6 +119,24 @@ export function useImportClientMutation() {
     onSuccess: () => invalidandoQueries(queryClient),
     onError: (error) => {
       console.log("Erro na mutação:", error);
+    },
+  });
+}
+export function useDownloadMutation() {
+  return useMutation({
+    mutationFn: downloadClientsApi,
+    onSuccess: (data) => {
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "Lista_Clientes.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+    onError: (error) => {
+      console.error("Erro ao fazer o download do arquivo:", error);
     },
   });
 }

@@ -9,13 +9,13 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useQuery } from "@tanstack/react-query";
-import { useDeleteClientMutation } from "../../../hooks/useMutation";
+import {
+  useDeleteClientMutation,
+  useDownloadMutation,
+} from "../../../hooks/useMutation";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
-import {
-  formatarCpfCnpj,
-  formatarTelefone,
-} from "../../../hooks/util/Mascaras";
+import { formatarCpfCnpj } from "../../../hooks/util/Mascaras";
 
 // Array com os status para os filtros
 const statusValidos = [
@@ -67,6 +67,7 @@ const ListClientsModal = ({
   });
 
   const deleteMutation = useDeleteClientMutation();
+  const downloadMutation = useDownloadMutation();
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
@@ -165,13 +166,15 @@ const ListClientsModal = ({
   };
 
   const handleExport = () => {
-    console.log("Funcionalidade de exportar a ser implementada.");
-    onFeedback(
-      "info",
-      "A funcionalidade de exportação será implementada em breve."
-    );
+    downloadMutation.mutate(undefined, {
+      onSuccess: () => {
+        onFeedback("success", "O download foi iniciado!");
+      },
+      onError: () => {
+        onFeedback("error", "Não foi possível gerar o arquivo para download.");
+      },
+    });
   };
-
   // --- RENDERIZAÇÃO ---
   if (!isOpen) return null;
 
