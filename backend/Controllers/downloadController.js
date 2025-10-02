@@ -7,6 +7,7 @@ import {
 } from "../Models/index.js";
 
 import { utils, write } from "xlsx";
+import { errorHandler } from "../Util/errorHandler.js";
 
 class DownloadController {
   async downloadXls(req, res) {
