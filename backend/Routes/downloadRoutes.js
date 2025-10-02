@@ -9,10 +9,6 @@ const router = new Router();
 // Todas as rotas de certificados exigem que o usuário esteja autenticado.
 
 // Lista todos os certificados
-router.get(
-  "/clientes",
-  loginRequired,
-  certificadoController.downloadController.downloadXls
-);
+router.get("/clientes", loginRequired, downloadController.downloadXls);
 
 export default router;
