@@ -68,6 +68,12 @@ const ListParceirosModal = ({
     });
   };
 
+  const handleDownload = () => {
+    alert(
+      "Funcionalidade em implementação. Em breve você poderá exportar os dados."
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -85,6 +91,7 @@ const ListParceirosModal = ({
           </div>
 
           <div className={styles.tableContainer}>
+            {/* O conteúdo da tabela permanece o mesmo */}
             {isLoading && (
               <p className={styles.statusMessage}>Carregando parceiros...</p>
             )}
@@ -93,7 +100,6 @@ const ListParceirosModal = ({
                 Erro ao carregar dados.
               </p>
             )}
-
             {!isLoading && !isError && (
               <table className={styles.dataTable}>
                 <thead>
@@ -119,7 +125,6 @@ const ListParceirosModal = ({
                             title="Editar Parceiro"
                             className={`${styles.actionButton} ${styles.update}`}
                             onClick={() => {
-                              // console.log("1. Enviando para edição:", partner);
                               onOpenUpdateModal(partner);
                             }}
                           >
@@ -149,6 +154,13 @@ const ListParceirosModal = ({
                 </tbody>
               </table>
             )}
+          </div>
+
+          {/* NOVO: Rodapé com o botão de exportar */}
+          <div className={styles.footer}>
+            <button className={styles.exportButton} onClick={handleDownload}>
+              Exportar Parceiros (XLS)
+            </button>
           </div>
         </div>
       </div>

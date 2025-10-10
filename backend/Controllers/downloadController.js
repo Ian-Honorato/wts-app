@@ -93,15 +93,12 @@ class DownloadController {
         }
       });
 
-      // 2. Criamos a planilha a partir do array de objetos
       const worksheet = utils.json_to_sheet(dadosPlanilha);
       const workbook = utils.book_new();
       utils.book_append_sheet(workbook, worksheet, "Clientes");
 
-      // 3. Geramos o arquivo em memória (buffer)
       const buffer = write(workbook, { bookType: "xlsx", type: "buffer" });
 
-      // 4. Configuramos os cabeçalhos da resposta para indicar que é um arquivo para download
       res.setHeader(
         "Content-Disposition",
         'attachment; filename="Lista_Clientes.xlsx"'
@@ -111,10 +108,8 @@ class DownloadController {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
 
-      // 5. Enviamos o buffer como resposta
       return res.status(200).send(buffer);
     } catch (e) {
-      // É uma boa prática logar o erro no servidor também
       console.error("Erro ao gerar a planilha de clientes:", e);
       return errorHandler(e, res);
     }
