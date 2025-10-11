@@ -8,23 +8,29 @@ import axios from "axios";
 // Centralizam a URL base e a lógica de autenticação.
 // ================================================================
 const baseUrl = "/api/clientes/";
-const token = sessionStorage.getItem("token");
 
-// Objeto de configuração do Axios com o header de autorização.
-const barerTokenConfig = {
-  headers: { Authorization: `Bearer ${token}` },
-};
+function createBarerTokenConfig() {
+  const token = sessionStorage.getItem("token");
 
+  // Objeto de configuração do Axios com o header de autorização.
+  const barerTokenConfig = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  return barerTokenConfig;
+}
 // ================================================================
-// API Functions (Refatoradas)
+// API Functions
 // ================================================================
 
 export const detailsClientApi = async (clientId) => {
+  const barerTokenConfig = createBarerTokenConfig();
   const { data } = await axios.get(`${baseUrl}${clientId}`, barerTokenConfig);
   return data;
 };
 
 const updateClientApi = async (clientData) => {
+  const barerTokenConfig = createBarerTokenConfig();
   const { data } = await axios.put(
     `${baseUrl}${clientData.id}`,
     clientData,
@@ -46,6 +52,7 @@ const downloadClientsApi = async () => {
   return response.data;
 };
 const deleteClientApi = async (clientId) => {
+  const barerTokenConfig = createBarerTokenConfig();
   const { data } = await axios.delete(
     `${baseUrl}${clientId}`,
     barerTokenConfig
@@ -54,6 +61,7 @@ const deleteClientApi = async (clientId) => {
 };
 
 const createClientApi = async (clientData) => {
+  const barerTokenConfig = createBarerTokenConfig();
   const { data } = await axios.post(
     `${baseUrl}cadastrar`,
     clientData,
@@ -63,6 +71,7 @@ const createClientApi = async (clientData) => {
 };
 
 const importClientApi = async (formData) => {
+  const barerTokenConfig = createBarerTokenConfig();
   const importConfig = {
     headers: {
       ...barerTokenConfig.headers,
