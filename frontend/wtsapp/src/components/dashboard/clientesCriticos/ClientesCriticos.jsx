@@ -22,7 +22,21 @@ const ClientesCriticos = ({
       onFeedback("error", "Não há clientes na lista para notificar.");
       return;
     }
-    enviarMensagens(clients);
+
+    const clientesParaEnviar = clients.map((item) => ({
+      // Dados que o backend precisa, extraídos da estrutura aninhada
+      id: item.cliente.id,
+      representante: item.cliente.representante,
+      contato: item.cliente.telefone,
+      nome_empresa: item.cliente.nome,
+      registro: item.cliente.cpf_cnpj || "",
+      vencimento_certificado: item.data_vencimento,
+      diasRestantes:
+        typeof item.dias_restantes === "number" ? item.dias_restantes : 0,
+    }));
+
+    // Envia o array já formatado para o backend
+    enviarMensagens(clientesParaEnviar);
   };
   //formatar badge
   const formatDaysText = (days) => {
