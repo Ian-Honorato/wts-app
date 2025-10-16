@@ -11,7 +11,7 @@ router.get(
   dashboardController.getRenovationsByPeriod
 );
 router.get(
-  "/dashboard/notificacoes-mes",
+  "/notificacoes-mes",
   loginRequired,
   dashboardController.getNotificacoesPorMes
 );
