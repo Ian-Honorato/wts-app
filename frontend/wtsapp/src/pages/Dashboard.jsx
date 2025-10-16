@@ -77,6 +77,7 @@ const Dashboard = () => {
           setFilters={setFilters}
           handleSearch={handleSearch}
           onShowDetails={modalHandlers.showClientDetails}
+          onFeedback={handleSubmitFeedback}
         />
       </div>
 

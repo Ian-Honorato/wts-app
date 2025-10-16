@@ -1,3 +1,5 @@
+// frontend/src/components/dashboard/adminDashboard/AdminDashboard.jsx
+
 import React from "react";
 import styles from "./AdminDashboard.module.css";
 
@@ -7,7 +9,6 @@ import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
 import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
 import RenovationsCard from "../renovationsCard/renovationsCard";
-import { useModalManager } from "../../../hooks/useModalManager";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUsers,
@@ -23,11 +24,8 @@ const AdminDashboard = ({
   setFilters,
   handleSearch,
   onShowDetails,
+  onFeedback,
 }) => {
-  const { modalState, modalHandlers } = useModalManager();
-  const submitFeedback = (type, message) => {
-    modalHandlers.showResponseModal(type, message);
-  };
   // Condições de carregamento e de dados vazios
   if (criticalClientsData.isLoading) {
     return (
@@ -43,8 +41,7 @@ const AdminDashboard = ({
       </div>
     );
   }
-  // registrando alteração
-  // Extração de dados das props
+
   const { totalClients, upcomingExpirations, contractsByStatus, topPartners } =
     summaryData;
 
@@ -68,7 +65,7 @@ const AdminDashboard = ({
         icon={faCalendarDays}
       />
 
-      {/* Card de renovados agora é o nosso componente customizado */}
+      {/* Card de renovados */}
       <RenovationsCard
         value={renovacoes.total}
         renovacoes={renovacoes.list}
@@ -87,14 +84,13 @@ const AdminDashboard = ({
         <TopParceirosChart data={topPartners} />
       </div>
 
-      {/* Widget de Clientes Críticos (ocupa a largura total) */}
       <div className={`${styles.widget} ${styles.fullWidth}`}>
         <ClientesCriticos
           clients={criticalClientsData.clients}
           isLoading={criticalClientsData.isLoading}
           period={criticalClientsData.period}
           setPeriod={criticalClientsData.setPeriod}
-          onFeedback={submitFeedback}
+          onFeedback={onFeedback}
         />
       </div>
     </div>
