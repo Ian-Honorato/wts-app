@@ -12,31 +12,39 @@ const ClientesCriticos = ({
   onFeedback,
 }) => {
   // Instancia o hook de mutação, passando a função de feedback
-  const { mutate: enviarMensagens, isLoading: isSending } =
-    useMensagemEnviadaMutation({
-      onFeedback,
-    });
+  const { mutateAsync: enviarMensagens, isLoading: isSending } =
+    useMensagemEnviadaMutation();
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!clients || clients.length === 0) {
       onFeedback("error", "Não há clientes na lista para notificar.");
       return;
     }
 
     const clientesParaEnviar = clients.map((item) => ({
-      // Dados que o backend precisa, extraídos da estrutura aninhada
       id: item.cliente.id,
       representante: item.cliente.representante,
       contato: item.cliente.telefone,
       nome_empresa: item.cliente.nome,
       registro: item.cliente.cpf_cnpj || "",
       vencimento_certificado: item.data_vencimento,
-      diasRestantes:
-        typeof item.dias_restantes === "number" ? item.dias_restantes : 0,
+      diasRestantes: item.dias_restantes_raw,
     }));
 
-    // Envia o array já formatado para o backend
-    enviarMensagens(clientesParaEnviar);
+    try {
+      const data = await enviarMensagens(clientesParaEnviar);
+
+      onFeedback(
+        "success",
+        `Processo concluído! ${data.enviadosComSucesso} mensagens enviadas com sucesso.`
+      );
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error ||
+        "Ocorreu um erro ao enviar as mensagens.";
+      onFeedback("error", errorMessage);
+      console.error("Erro ao enviar mensagens:", error);
+    }
   };
   //formatar badge
   const formatDaysText = (days) => {
