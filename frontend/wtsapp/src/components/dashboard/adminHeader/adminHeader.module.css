@@ -197,20 +197,19 @@
 }
 
 /* --- MEDIA QUERY PARA TELAS GRANDES (Desktop) --- */
-/* Breakpoint: pode ser ajustado conforme a necessidade (ex: 768px, 1024px) */
 
 @media (min-width: 992px) {
   .menuButton {
-    display: none; /* Esconde o botão de hambúrguer */
+    display: none;
   }
 
   .desktopNav {
-    display: flex; /* Mostra a navegação do desktop */
+    display: flex;
   }
 
   /* Ajustes para o menu horizontal na navbar */
   .desktopNav .mainNav ul {
-    flex-direction: row; /* Coloca os itens do menu lado a lado */
+    flex-direction: row;
     align-items: center;
     gap: 0.5rem;
   }
@@ -255,7 +254,7 @@
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
   }
 
-  .desktopNav .mainNav details[open] > ul {
+  .desktopNav .mainNav details:hover > ul {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
