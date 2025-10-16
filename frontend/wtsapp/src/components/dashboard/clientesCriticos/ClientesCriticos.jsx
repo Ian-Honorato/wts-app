@@ -1,3 +1,5 @@
+// frontend/src/components/dashboard/clientesCriticos/ClientesCriticos.jsx
+
 import React from "react";
 import styles from "./ClientesCriticos.module.css";
 import { useMensagemEnviadaMutation } from "../../../hooks/useMensagemMutation";
@@ -9,6 +11,7 @@ const ClientesCriticos = ({
   setPeriod,
   onFeedback,
 }) => {
+  // Instancia o hook de mutação, passando a função de feedback
   const { mutate: enviarMensagens, isLoading: isSending } =
     useMensagemEnviadaMutation({
       onFeedback,
@@ -21,6 +24,13 @@ const ClientesCriticos = ({
     }
     enviarMensagens(clients);
   };
+  //formatar badge
+  const formatDaysText = (days) => {
+    if (typeof days === "number") {
+      return `${days} ${days === 1 ? "dia" : "dias"}`;
+    }
+    return days;
+  };
 
   return (
     <div className={styles.widgetContainer}>
@@ -28,20 +38,24 @@ const ClientesCriticos = ({
         <h3>Clientes Críticos</h3>
         <div className={styles.filters}>
           <label htmlFor="periodo">Período:</label>
-
           <select
             id="periodo"
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
             className={styles.select}
+            disabled={isLoading || isSending}
           >
             <option value="10">10 dias</option>
             <option value="30">30 dias</option>
             <option value="60">60 dias</option>
             <option value="90">90 dias</option>
           </select>
-          <button onClick={handleSendMessage} className={styles.button}>
-            Enviar Mensagem
+          <button
+            onClick={handleSendMessage}
+            className={styles.button}
+            disabled={isLoading || isSending || clients.length === 0}
+          >
+            {isSending ? "Enviando..." : "Enviar Mensagem"}
           </button>
         </div>
       </div>
@@ -55,7 +69,8 @@ const ClientesCriticos = ({
               <div className={styles.cardHeader}>
                 <h4>{item.cliente.nome}</h4>
                 <span className={styles.daysBadge}>
-                  {item.dias_restantes} dias
+                  {/* Usa a função para formatar o texto do badge corretamente */}
+                  {formatDaysText(item.dias_restantes)}
                 </span>
               </div>
               <div className={styles.cardBody}>
