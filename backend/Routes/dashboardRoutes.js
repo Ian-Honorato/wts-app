@@ -10,4 +10,9 @@ router.get(
   loginRequired,
   dashboardController.getRenovationsByPeriod
 );
+router.get(
+  "/dashboard/notificacoes-mes",
+  loginRequired,
+  dashboardController.getNotificacoesPorMes
+);
 export default router;

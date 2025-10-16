@@ -1,6 +1,6 @@
 // frontend/src/hooks/useMensagemMutation.js
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 const enviarMensagem = async (clientesParaEnviar) => {
@@ -14,7 +14,13 @@ const enviarMensagem = async (clientesParaEnviar) => {
 };
 
 export function useMensagemEnviadaMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: enviarMensagem,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notificacoesMensais"] });
+    },
   });
 }

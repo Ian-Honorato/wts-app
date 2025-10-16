@@ -1,15 +1,15 @@
-// frontend/src/components/dashboard/adminDashboard/AdminDashboard.jsx
-
 import React from "react";
 import styles from "./AdminDashboard.module.css";
 
-// Importe os componentes que vão compor o painel
+// Componentes
 import StatCard from "../windgets/statCard";
 import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
 import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
 import RenovationsCard from "../renovationsCard/renovationsCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// CORREÇÃO: Importa o novo componente da KPI mensal
+import NotificacoesMensais from "../notificacoesMensais/NotificacoesMensais";
 import {
   faUsers,
   faHourglassHalf,
@@ -20,13 +20,16 @@ const AdminDashboard = ({
   summaryData,
   criticalClientsData,
   renovationsData,
+  notificacoesMensaisData,
+  isNotificacoesLoading,
+  selectedMonth,
+  setSelectedMonth,
   filters,
   setFilters,
   handleSearch,
   onShowDetails,
   onFeedback,
 }) => {
-  // Condições de carregamento e de dados vazios
   if (criticalClientsData.isLoading) {
     return (
       <div className={styles.statusMessage}>
@@ -52,7 +55,6 @@ const AdminDashboard = ({
 
   return (
     <div className={styles.dashboardGrid}>
-      {/* Linha de Cards de KPI */}
       <StatCard title="Total de Clientes" value={totalClients} icon={faUsers} />
       <StatCard
         title="Vencem em 30 dias"
@@ -75,7 +77,13 @@ const AdminDashboard = ({
         onClientClick={onShowDetails}
       />
 
-      {/* Linha de Gráficos */}
+      <NotificacoesMensais
+        data={notificacoesMensaisData}
+        isLoading={isNotificacoesLoading}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+      />
+
       <div className={styles.widget}>
         <StatusContratosChart data={contractsByStatus} />
       </div>
