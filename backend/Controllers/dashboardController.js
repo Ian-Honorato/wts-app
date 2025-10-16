@@ -3,6 +3,7 @@ import {
   Cliente,
   Parceiro,
   ContratoCertificado,
+  MensagensEnviadas,
 } from "../Models/index.js";
 import { Op } from "sequelize";
 import { errorHandler } from "../Util/errorHandler.js";
