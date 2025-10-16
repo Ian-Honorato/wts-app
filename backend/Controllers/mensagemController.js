@@ -1,5 +1,5 @@
 import axios from "axios";
-import MensagensEnviadas from "../Models/index.js";
+import { MensagensEnviadas } from "../Models/index.js";
 
 const INSTANCE_ID = "3E3B092DD6D8A02007B3764AFE850DAC";
 const INSTANCE_TOKEN = "1035234992EB1CAA10FC88B8";
