@@ -209,11 +209,14 @@ class DashboardController {
     }
   }
   async getNotificacoesPorMes(req, res) {
+    // O bloco try permanece o mesmo
     try {
       const mes = parseInt(req.query.month) || new Date().getMonth() + 1;
       const ano = new Date().getFullYear();
-      const data_inicio = new Date(ano, mes - 1, 1);
-      const data_fim = new Date(ano, mes, 0, 23, 59, 59);
+
+      const startDate = new Date(ano, mes - 1, 1);
+      const endDate = new Date(ano, mes, 0);
+      endDate.setHours(23, 59, 59, 999);
 
       const { count, rows } = await MensagensEnviadas.findAndCountAll({
         where: {
@@ -231,11 +234,12 @@ class DashboardController {
         order: [["created_at", "DESC"]],
         distinct: true,
       });
+
       return res.json({
         totalNotificados: count,
         notificacoes: rows,
       });
-    } catch (e) {
+    } catch (error) {
       console.error("Erro ao buscar notificações por mês:", error);
       return res.status(500).json({ error: "Erro interno do servidor." });
     }

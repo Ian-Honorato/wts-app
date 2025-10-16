@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
-// Array com os meses do ano para popular o select
 const mesesDoAno = [
   { value: 1, label: "Janeiro" },
   { value: 2, label: "Fevereiro" },
@@ -82,7 +81,7 @@ const NotificacoesMensais = ({
         ) : notificacoes.length > 0 ? (
           notificacoes.map(
             ({ id, cliente_notificado }) =>
-              cliente_notificado && ( // Garante que o cliente não seja nulo
+              cliente_notificado && (
                 <div key={id} className={styles.clientItem}>
                   <div className={styles.clientInfo}>
                     <h4>{cliente_notificado.nome}</h4>
