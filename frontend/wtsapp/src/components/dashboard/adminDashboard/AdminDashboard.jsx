@@ -9,7 +9,7 @@ import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
 import RenovationsCard from "../renovationsCard/renovationsCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // CORREÇÃO: Importa o novo componente da KPI mensal
-import NotificacoesMensais from "../notificacoesMensais/NotificacoesMensais";
+import NotificacoesCard from "../notificacoesCard/NotificacoesCard";
 import {
   faUsers,
   faHourglassHalf,
