@@ -14,10 +14,19 @@ module.exports = {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-      quantidade: {
+      cliente_id: {
         type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "clientes",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
+      },
+      data_envio: {
+        type: Sequelize.DATEONLY,
         allowNull: false,
-        defaultValue: 0,
       },
       enviada_por_id: {
         type: Sequelize.INTEGER,

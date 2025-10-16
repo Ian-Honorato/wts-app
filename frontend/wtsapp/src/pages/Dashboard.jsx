@@ -10,7 +10,6 @@ import { useDashboardData } from "../hooks/useDashboardData";
 import AdminHeader from "../components/dashboard/adminHeader/AdminHeader.jsx";
 
 import AdminDashboard from "../components/dashboard/adminDashboard/AdminDashboard.jsx";
-import ClientesCriticos from "../components/dashboard/clientesCriticos/ClientesCriticos.jsx";
 
 // Modais
 import ClientModal from "../components/dashboard/clientModal/ClientModal.jsx";

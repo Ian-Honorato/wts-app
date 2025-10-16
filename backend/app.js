@@ -25,7 +25,7 @@ import pagamentoRoutes from "./Routes/pagamentoRoutes.js";
 import uploadRoutes from "./Routes/uploadRoutes.js";
 import dashboardRoutes from "./Routes/dashboardRoutes.js";
 import downloadRoutes from "./Routes/downloadRoutes.js";
-
+import mensagemRoutes from "./Routes/mensagemRoutes.js";
 /**
  * @class App
  * @description Encapsula a configuração e inicialização do servidor Express.
@@ -118,6 +118,7 @@ class App {
     this.app.use("/dashboard", dashboardRoutes);
     this.app.use("/financeiro", pagamentoRoutes);
     this.app.use("/download", downloadRoutes);
+    this.app.use("/mensagem", mensagemRoutes);
   }
 }
 

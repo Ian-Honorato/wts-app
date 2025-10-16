@@ -1,11 +1,26 @@
 import React from "react";
 import styles from "./ClientesCriticos.module.css";
+import { useEnviarMensagensMutation } from "../../../hooks/useMensagemMutation";
 
-const ClientesCriticos = ({ clients, isLoading, period, setPeriod }) => {
+const ClientesCriticos = ({
+  clients,
+  isLoading,
+  period,
+  setPeriod,
+  onFeedback,
+}) => {
+  const { mutate: enviarMensagens, isLoading: isSending } =
+    useEnviarMensagensMutation({
+      onFeedback,
+    });
+
   const handleSendMessage = () => {
-    alert("Funcionalidade de enviar mensagem em massa ainda não implementada.");
+    if (!clients || clients.length === 0) {
+      onFeedback("error", "Não há clientes na lista para notificar.");
+      return;
+    }
+    enviarMensagens(clients);
   };
-  //console.log(clients);
 
   return (
     <div className={styles.widgetContainer}>

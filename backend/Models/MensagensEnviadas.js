@@ -14,11 +14,6 @@ class MensagensEnviadas extends Model {
           type: DataTypes.DATEONLY,
           allowNull: false,
         },
-        quantidade: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          defaultValue: 0,
-        },
       },
       {
         sequelize,
@@ -35,6 +30,10 @@ class MensagensEnviadas extends Model {
     this.belongsTo(models.Usuario, {
       foreignKey: "enviada_por_id",
       as: "remetente",
+    });
+    this.belongsTo(models.Cliente, {
+      foreignKey: "cliente_id",
+      as: "cliente_notificado",
     });
   }
 }

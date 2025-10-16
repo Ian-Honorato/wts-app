@@ -7,6 +7,7 @@ import StatusContratosChart from "../charts/statusContratosChart";
 import TopParceirosChart from "../charts/topParceirosChart";
 import ClientesCriticos from "../clientesCriticos/ClientesCriticos";
 import RenovationsCard from "../renovationsCard/renovationsCard";
+import { useModalManager } from "../../../hooks/useModalManager";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUsers,
@@ -23,6 +24,10 @@ const AdminDashboard = ({
   handleSearch,
   onShowDetails,
 }) => {
+  const { modalState, modalHandlers } = useModalManager();
+  const submitFeedback = (type, message) => {
+    modalHandlers.showResponseModal(type, message);
+  };
   // Condições de carregamento e de dados vazios
   if (criticalClientsData.isLoading) {
     return (
@@ -66,7 +71,7 @@ const AdminDashboard = ({
       {/* Card de renovados agora é o nosso componente customizado */}
       <RenovationsCard
         value={renovacoes.total}
-        renovacoes={renovacoes.list} // Passa a lista de renovações
+        renovacoes={renovacoes.list}
         filters={filters}
         setFilters={setFilters}
         handleSearch={handleSearch}
@@ -89,6 +94,7 @@ const AdminDashboard = ({
           isLoading={criticalClientsData.isLoading}
           period={criticalClientsData.period}
           setPeriod={criticalClientsData.setPeriod}
+          onFeedback={submitFeedback}
         />
       </div>
     </div>

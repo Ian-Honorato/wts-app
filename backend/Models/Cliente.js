@@ -97,6 +97,10 @@ class Cliente extends Model {
       foreignKey: "cliente_id",
       as: "contratos",
     });
+    this.hasMany(models.MensagensEnviadas, {
+      foreignKey: "cliente_id",
+      as: "mensagens_enviadas",
+    });
     this.belongsTo(models.Parceiro, {
       foreignKey: "referencia_parceiro",
       as: "parceiro_indicador",
