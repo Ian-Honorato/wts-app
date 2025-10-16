@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./ClientesCriticos.module.css";
-import { useEnviarMensagensMutation } from "../../../hooks/useMensagemMutation";
+import { useMensagemEnviadaMutation } from "../../../hooks/useMensagemMutation";
 
 const ClientesCriticos = ({
   clients,
@@ -10,7 +10,7 @@ const ClientesCriticos = ({
   onFeedback,
 }) => {
   const { mutate: enviarMensagens, isLoading: isSending } =
-    useEnviarMensagensMutation({
+    useMensagemEnviadaMutation({
       onFeedback,
     });
 
