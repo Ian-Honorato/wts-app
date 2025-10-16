@@ -1,5 +1,6 @@
 /* src/components/dashboard/adminHeader/adminHeader.module.css */
 
+/*  ESTILOS GERAIS DO HEADER  */
 .adminHeader {
   background-color: var(--background-light-color);
   color: var(--primary-color);
@@ -9,7 +10,6 @@
   top: 0;
   z-index: 1050;
 }
-
 .container {
   width: 100%;
   box-sizing: border-box;
@@ -18,7 +18,6 @@
   justify-content: space-between;
   align-items: center;
 }
-
 .brand {
   display: flex;
   align-items: center;
@@ -26,22 +25,18 @@
   text-decoration: none;
   color: var(--primary-dark-color);
 }
-
 .logoImage {
   height: 35px;
 }
-
 .brand span {
   font-size: 1.2rem;
   font-weight: 600;
 }
-
 .rightIcons {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
 .iconButton {
   background: none;
   border: none;
@@ -52,13 +47,12 @@
   border-radius: 50%;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
-
 .iconButton:hover {
   color: var(--primary-color);
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* --- ESTILOS DA SIDEBAR --- */
+/*  SIDEBAR E BACKDROP (para Mobile)  */
 .backdrop {
   position: fixed;
   top: 0;
@@ -68,7 +62,6 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 2000;
 }
-
 .sidebar {
   position: fixed;
   top: 0;
@@ -82,11 +75,9 @@
   display: flex;
   flex-direction: column;
 }
-
 .sidebarOpen {
   transform: translateX(0);
 }
-
 .sidebarHeader {
   display: flex;
   justify-content: space-between;
@@ -94,47 +85,30 @@
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
 }
-
 .sidebarHeader h3 {
   font-size: 1.2rem;
   color: var(--text-color);
 }
-
-.sidebarHeader .iconButton {
-  color: var(--text-light-color);
-}
-
-.sidebarHeader .iconButton:hover {
-  background-color: #f0f0f0;
-}
-
 .sidebarNavContent {
   padding: 1rem;
   overflow-y: auto;
 }
-
 .sidebarNavContent p {
   padding: 0 1rem 1rem;
   font-weight: 600;
   color: var(--text-color);
 }
 
-/* --- ESTILOS COMPARTILHADOS PARA NAVEGAÇÃO (mainNav) --- */
-
-.mainNav ul {
+/*  ESTILOS DA NAVEGAÇÃO MOBILE (com <details>)  */
+.mobileNav ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column; /* Padrão para sidebar */
 }
-
-.mainNav details {
-  position: relative;
+.mobileNav details {
   margin-bottom: 0.5rem;
 }
-
-.mainNav summary {
+.mobileNav summary {
   padding: 0.8rem 1rem;
   font-size: 1.1rem;
   font-weight: 600;
@@ -145,96 +119,84 @@
   gap: 0.8rem;
   border-radius: 5px;
   transition: background-color 0.2s ease;
-  /* Remove o marcador de dropdown padrão */
-  list-style: none;
 }
-.mainNav summary::-webkit-details-marker {
+.mobileNav summary::-webkit-details-marker {
   display: none;
 }
-
-.mainNav summary:hover {
+.mobileNav summary:hover {
   background-color: var(--border-color);
 }
-
 .menuIcon {
   width: 20px;
   text-align: center;
   color: var(--primary-color);
 }
-
-.mainNav details ul {
+.mobileNav details ul {
   margin-top: 0.5rem;
   padding-left: 2.8rem;
   list-style: none;
 }
-
-.mainNav details li {
+.mobileNav details li {
   margin-bottom: 0.5rem;
 }
-
-.mainNav details a {
+.mobileNav details a {
   color: var(--text-light-color);
   text-decoration: none;
   display: block;
   padding: 0.5rem 0;
   transition: color 0.2s ease;
 }
-
-.mainNav details a:hover {
+.mobileNav details a:hover {
   color: var(--primary-color);
 }
 
-/* --- ESTILOS DA NAVBAR PARA DESKTOP --- */
+/*  CONTROLE DE VISIBILIDADE  */
 .desktopNav {
-  display: none; /* Escondido por padrão (mobile-first) */
-  flex-grow: 1;
-  justify-content: center;
-}
-
-/* O menuButton é o ícone de hambúrguer */
+  display: none;
+} /* Escondido em mobile por padrão */
 .menuButton {
-  display: block; /* Visível em mobile */
-}
+  display: block;
+} /* Botão do menu visível em mobile */
 
-/* --- MEDIA QUERY PARA TELAS GRANDES (Desktop) --- */
-
+/*  MEDIA QUERY PARA TELAS GRANDES (Desktop)  */
 @media (min-width: 992px) {
+  /* Inverte a visibilidade */
   .menuButton {
     display: none;
   }
-
   .desktopNav {
     display: flex;
+    flex-grow: 1;
+    justify-content: center;
   }
 
-  /* Ajustes para o menu horizontal na navbar */
-  .desktopNav .mainNav ul {
-    flex-direction: row;
-    align-items: center;
+  /*  ESTILOS DA NAVEGAÇÃO DESKTOP (com <li> e hover)  */
+  .desktopNav > ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
     gap: 0.5rem;
   }
-
-  .desktopNav .mainNav details {
-    margin-bottom: 0;
+  .desktopNav > ul > li {
+    position: relative; /* Contexto para o dropdown */
   }
-
-  .desktopNav .mainNav summary {
+  .navItem {
+    padding: 0.8rem 1rem;
     font-size: 1rem;
     font-weight: 500;
     color: var(--primary-dark-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
   }
-
-  .desktopNav .mainNav summary:hover {
+  .navItem:hover {
     background-color: rgba(0, 0, 0, 0.05);
   }
 
-  .desktopNav .mainNav .menuIcon {
-    /* Opcional: esconder ícones no menu desktop */
-    display: none;
-  }
-
-  .desktopNav .mainNav details ul {
-    /* Estilo do dropdown */
+  .dropdownMenu {
     position: absolute;
     top: 100%;
     left: 0;
@@ -242,32 +204,34 @@
     border-radius: 5px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 0.5rem;
-    padding-left: 0; /* Reseta o padding da sidebar */
     margin-top: 0.5rem;
-    min-width: 220px; /* Largura mínima do dropdown */
+    min-width: 220px;
     z-index: 1100;
-
-    /* Animação de aparição */
+    list-style: none;
+    /* Lógica de visibilidade com animação */
     opacity: 0;
     transform: translateY(10px);
     visibility: hidden;
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
   }
 
-  .desktopNav .mainNav details:hover > ul {
+  /* A MÁGICA DO HOVER */
+  .desktopNav > ul > li:hover > .dropdownMenu {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
     transition-delay: 0s;
   }
 
-  .desktopNav .mainNav details ul a {
+  .dropdownMenu a {
+    display: block;
     padding: 0.6rem 1rem;
     border-radius: 4px;
-    color: var(--text-color); /* Cor de texto padrão para o dropdown */
+    color: var(--text-color);
+    text-decoration: none;
+    white-space: nowrap; /* Impede quebra de linha */
   }
-
-  .desktopNav .mainNav details ul a:hover {
+  .dropdownMenu a:hover {
     background-color: var(--border-color);
     color: var(--primary-color);
   }

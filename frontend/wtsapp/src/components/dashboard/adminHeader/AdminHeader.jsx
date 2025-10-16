@@ -13,14 +13,14 @@ import {
   faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
 
-// Componente reutilizável para o menu de navegação
-const NavigationMenu = ({ user, handlers }) => (
-  <nav className={styles.mainNav}>
+// --- Componente de Navegação para MOBILE (com <details>) ---
+const MobileNavigation = ({ user, handlers }) => (
+  <nav className={styles.mobileNav}>
     <ul>
       <li>
         <details>
           <summary>
-            <FontAwesomeIcon icon={faUsers} className={styles.menuIcon} />
+            <FontAwesomeIcon icon={faUsers} className={styles.menuIcon} />{" "}
             Clientes
           </summary>
           <ul>
@@ -45,7 +45,7 @@ const NavigationMenu = ({ user, handlers }) => (
       <li>
         <details>
           <summary>
-            <FontAwesomeIcon icon={faHandshake} className={styles.menuIcon} />
+            <FontAwesomeIcon icon={faHandshake} className={styles.menuIcon} />{" "}
             Parceiros
           </summary>
           <ul>
@@ -69,7 +69,7 @@ const NavigationMenu = ({ user, handlers }) => (
               <FontAwesomeIcon
                 icon={faDollarSign}
                 className={styles.menuIcon}
-              />
+              />{" "}
               Financeiro
             </summary>
             <ul>
@@ -90,7 +90,7 @@ const NavigationMenu = ({ user, handlers }) => (
       <li>
         <details>
           <summary>
-            <FontAwesomeIcon icon={faUserCircle} className={styles.menuIcon} />
+            <FontAwesomeIcon icon={faUserCircle} className={styles.menuIcon} />{" "}
             Usuários
           </summary>
           <ul>
@@ -111,66 +111,126 @@ const NavigationMenu = ({ user, handlers }) => (
   </nav>
 );
 
-const AdminHeader = ({
-  user,
-  onLogout,
-  onOpenClientModal,
-  onOpenListClientsModal,
-  onOpenImportModal,
-  onOpenUserModal,
-  onOpenListUserModal,
-  onOpenParceiroModal,
-  onOpenListParceiroModal,
-  onOpenFinanceiroModal,
-  onOpenListarFianceiroModal,
-}) => {
+// --- Componente de Navegação para DESKTOP (com <li> e hover) ---
+const DesktopNavigation = ({ user, handlers }) => (
+  <nav className={styles.desktopNav}>
+    <ul>
+      <li>
+        <div className={styles.navItem}>Clientes</div>
+        <ul className={styles.dropdownMenu}>
+          <li>
+            <a href="#" onClick={handlers.handleCadastrarClienteClick}>
+              Cadastrar
+            </a>
+          </li>
+          <li>
+            <a href="#" onClick={handlers.handleListarClienteClick}>
+              Listar
+            </a>
+          </li>
+          <li>
+            <a href="#" onClick={handlers.handleImportClick}>
+              Importar
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <div className={styles.navItem}>Parceiros</div>
+        <ul className={styles.dropdownMenu}>
+          <li>
+            <a href="#" onClick={handlers.handleCadastrarParceiro}>
+              Cadastrar
+            </a>
+          </li>
+          <li>
+            <a href="#" onClick={handlers.handleListarParceiro}>
+              Listar
+            </a>
+          </li>
+        </ul>
+      </li>
+      {user && user.tipo_usuario === "admin" && (
+        <li>
+          <div className={styles.navItem}>Financeiro</div>
+          <ul className={styles.dropdownMenu}>
+            <li>
+              <a href="#" onClick={handlers.handleOpenFinanceiro}>
+                Cadastrar pagamento
+              </a>
+            </li>
+            <li>
+              <a href="#" onClick={handlers.handleOpenListarFinanceiro}>
+                Apontamentos
+              </a>
+            </li>
+          </ul>
+        </li>
+      )}
+      <li>
+        <div className={styles.navItem}>Usuários</div>
+        <ul className={styles.dropdownMenu}>
+          <li>
+            <a href="#" onClick={handlers.handleCadastrarUserClick}>
+              Cadastrar
+            </a>
+          </li>
+          <li>
+            <a href="#" onClick={handlers.handleListarUserClick}>
+              Listar
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+);
+
+const AdminHeader = ({ user, onLogout, ...props }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  // Agrupando os handlers para passar para o componente de navegação
+  // Handlers para Desktop (não fecham o menu)
   const navHandlers = {
     handleCadastrarUserClick: (e) => {
       e.preventDefault();
-      onOpenUserModal();
+      props.onOpenUserModal();
     },
     handleListarUserClick: (e) => {
       e.preventDefault();
-      onOpenListUserModal();
+      props.onOpenListUserModal();
     },
     handleCadastrarClienteClick: (e) => {
       e.preventDefault();
-      onOpenClientModal();
+      props.onOpenClientModal();
     },
     handleListarClienteClick: (e) => {
       e.preventDefault();
-      onOpenListClientsModal();
+      props.onOpenListClientsModal();
     },
     handleImportClick: (e) => {
       e.preventDefault();
-      onOpenImportModal();
+      props.onOpenImportModal();
     },
     handleCadastrarParceiro: (e) => {
       e.preventDefault();
-      onOpenParceiroModal();
+      props.onOpenParceiroModal();
     },
     handleListarParceiro: (e) => {
       e.preventDefault();
-      onOpenListParceiroModal();
+      props.onOpenListParceiroModal();
     },
     handleOpenFinanceiro: (e) => {
       e.preventDefault();
-      onOpenFinanceiroModal();
+      props.onOpenFinanceiroModal();
     },
     handleOpenListarFinanceiro: (e) => {
       e.preventDefault();
-      onOpenListarFianceiroModal();
+      props.onOpenListarFianceiroModal();
     },
   };
 
-  // Handlers para a sidebar (que precisam fechar o menu)
+  // Handlers para Sidebar (fecham o menu após o clique)
   const sidebarHandlers = Object.keys(navHandlers).reduce((acc, key) => {
     acc[key] = (e) => {
       navHandlers[key](e);
@@ -184,7 +244,6 @@ const AdminHeader = ({
       {isSidebarOpen && (
         <div className={styles.backdrop} onClick={toggleSidebar}></div>
       )}
-
       <header className={styles.adminHeader}>
         <div className={styles.container}>
           <a href="/" className={styles.brand}>
@@ -192,10 +251,8 @@ const AdminHeader = ({
             <span>Painel Administrador</span>
           </a>
 
-          {/* NAVEGAÇÃO PARA DESKTOP (escondida em mobile) */}
-          <div className={styles.desktopNav}>
-            <NavigationMenu user={user} handlers={navHandlers} />
-          </div>
+          {/* NAVEGAÇÃO DESKTOP: Renderizada aqui, mas visível apenas em telas grandes via CSS */}
+          <DesktopNavigation user={user} handlers={navHandlers} />
 
           <div className={styles.rightIcons}>
             <button
@@ -205,7 +262,6 @@ const AdminHeader = ({
             >
               <FontAwesomeIcon icon={faSignOutAlt} />
             </button>
-            {/* BOTÃO HAMBÚRGUER (escondido em desktop) */}
             <button
               onClick={toggleSidebar}
               className={`${styles.iconButton} ${styles.menuButton}`}
@@ -231,7 +287,8 @@ const AdminHeader = ({
         </div>
         <div className={styles.sidebarNavContent}>
           <p>Olá {user.nome}</p>
-          <NavigationMenu user={user} handlers={sidebarHandlers} />
+          {/* NAVEGAÇÃO MOBILE: Renderizada dentro da sidebar */}
+          <MobileNavigation user={user} handlers={sidebarHandlers} />
         </div>
       </aside>
     </>
