@@ -3,15 +3,18 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 
 // --- FUNÇÕES DE API ---
+// Cada função é responsável por obter o token diretamente, garantindo robustez.
 
-const fetchSumarioData = async (token) => {
+const fetchSumarioData = async () => {
+  const token = sessionStorage.getItem("token");
   const { data } = await axios.get("/api/dashboard/sumario", {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data;
 };
 
-const fetchCriticalClients = async (token, period) => {
+const fetchCriticalClients = async (period) => {
+  const token = sessionStorage.getItem("token");
   const { data } = await axios.post(
     `/api/clientes/contratos`,
     { days: period },
@@ -20,7 +23,8 @@ const fetchCriticalClients = async (token, period) => {
   return data.Contratos_criticos;
 };
 
-const fetchRenovationsData = async (token, filters) => {
+const fetchRenovationsData = async (filters) => {
+  const token = sessionStorage.getItem("token");
   const params = new URLSearchParams();
   if (filters.data_inicio) params.append("data_inicio", filters.data_inicio);
   if (filters.data_fim) params.append("data_fim", filters.data_fim);
@@ -32,10 +36,11 @@ const fetchRenovationsData = async (token, filters) => {
   return data;
 };
 
-// NOVO: Função para buscar as notificações mensais (corrigida)
-const fetchNotificacoesMensais = async (token, month) => {
+// NOVA FUNÇÃO para buscar as notificações mensais
+const fetchNotificacoesMensais = async (month) => {
+  const token = sessionStorage.getItem("token");
   const { data } = await axios.get("/api/dashboard/notificacoes-mes", {
-    headers: { Authorization: `Bearer ${token}` }, // Garante que o token seja enviado
+    headers: { Authorization: `Bearer ${token}` },
     params: { month },
   });
   return data;
@@ -65,33 +70,32 @@ export function useDashboardData(user) {
   const [criticalPeriod, setCriticalPeriod] = useState("10");
   const [filters, setFilters] = useState(initialState);
   const [activeFilters, setActiveFilters] = useState(initialState);
-
-  // NOVO: State para controlar o mês selecionado
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
+  // As queries voltam ao seu estado original e funcional
   const { data: sumarioData, isLoading: isSumarioLoading } = useQuery({
-    queryKey: ["sumarioData", user?.token],
-    queryFn: () => fetchSumarioData(user?.token),
-    enabled: !!user,
+    queryKey: ["sumarioData"], // Chave simples
+    queryFn: fetchSumarioData,
+    enabled: !!user, // A query só roda se o usuário estiver autenticado
   });
 
   const { data: criticalClients, isLoading: isLoadingCritical } = useQuery({
-    queryKey: ["criticalClients", criticalPeriod, user?.token],
-    queryFn: () => fetchCriticalClients(user?.token, criticalPeriod),
+    queryKey: ["criticalClients", criticalPeriod], // Chave com dependência
+    queryFn: () => fetchCriticalClients(criticalPeriod),
     enabled: !!user,
   });
 
   const { data: renovationsData, isLoading: isRenovationsLoading } = useQuery({
-    queryKey: ["renovationsData", activeFilters, user?.token],
-    queryFn: () => fetchRenovationsData(user?.token, activeFilters),
+    queryKey: ["renovationsData", activeFilters], // Chave com dependência
+    queryFn: () => fetchRenovationsData(activeFilters),
     enabled: !!user,
   });
 
-  // NOVO: Query para buscar os dados da KPI de notificações mensais
+  // A NOVA query segue o mesmo padrão robusto
   const { data: notificacoesMensaisData, isLoading: isNotificacoesLoading } =
     useQuery({
-      queryKey: ["notificacoesMensais", selectedMonth, user?.token],
-      queryFn: () => fetchNotificacoesMensais(user?.token, selectedMonth),
+      queryKey: ["notificacoesMensais", selectedMonth], // Chave com dependência
+      queryFn: () => fetchNotificacoesMensais(selectedMonth),
       enabled: !!user,
     });
 
@@ -103,18 +107,18 @@ export function useDashboardData(user) {
     sumarioData,
     criticalClients: criticalClients || [],
     renovationsData,
-    notificacoesMensaisData, // Retorna os dados da nova KPI
+    notificacoesMensaisData,
     isDataLoading:
       isSumarioLoading ||
       isLoadingCritical ||
       isRenovationsLoading ||
-      isNotificacoesLoading, // Inclui o loading da nova KPI
+      isNotificacoesLoading,
     criticalPeriod,
     setCriticalPeriod,
     filters,
     setFilters,
     handleSearch,
-    selectedMonth, // Retorna o state do mês
-    setSelectedMonth, // Retorna o setter do mês
+    selectedMonth,
+    setSelectedMonth,
   };
 }
