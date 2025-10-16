@@ -50,14 +50,12 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-.iconButton:hover {
-  color: var(--primary-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .iconButton:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--primary-color);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* --- ESTILOS DA SIDEBAR --- */
@@ -105,26 +103,38 @@
 .sidebarHeader .iconButton {
   color: var(--text-light-color);
 }
+
 .sidebarHeader .iconButton:hover {
   background-color: #f0f0f0;
 }
 
-.sidebarNav {
+.sidebarNavContent {
   padding: 1rem;
-  overflow-y: auto; /* Adiciona scroll se o menu for muito grande */
+  overflow-y: auto;
 }
 
-.sidebarNav ul {
+.sidebarNavContent p {
+  padding: 0 1rem 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* --- ESTILOS COMPARTILHADOS PARA NAVEGAÇÃO (mainNav) --- */
+
+.mainNav ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column; /* Padrão para sidebar */
 }
 
-.sidebarNav details {
+.mainNav details {
+  position: relative;
   margin-bottom: 0.5rem;
 }
 
-.sidebarNav summary {
+.mainNav summary {
   padding: 0.8rem 1rem;
   font-size: 1.1rem;
   font-weight: 600;
@@ -135,9 +145,14 @@
   gap: 0.8rem;
   border-radius: 5px;
   transition: background-color 0.2s ease;
+  /* Remove o marcador de dropdown padrão */
+  list-style: none;
+}
+.mainNav summary::-webkit-details-marker {
+  display: none;
 }
 
-.sidebarNav summary:hover {
+.mainNav summary:hover {
   background-color: var(--border-color);
 }
 
@@ -147,16 +162,17 @@
   color: var(--primary-color);
 }
 
-.sidebarNav details ul {
+.mainNav details ul {
   margin-top: 0.5rem;
   padding-left: 2.8rem;
+  list-style: none;
 }
 
-.sidebarNav details li {
+.mainNav details li {
   margin-bottom: 0.5rem;
 }
 
-.sidebarNav details a {
+.mainNav details a {
   color: var(--text-light-color);
   text-decoration: none;
   display: block;
@@ -164,6 +180,96 @@
   transition: color 0.2s ease;
 }
 
-.sidebarNav details a:hover {
+.mainNav details a:hover {
   color: var(--primary-color);
+}
+
+/* --- ESTILOS DA NAVBAR PARA DESKTOP --- */
+.desktopNav {
+  display: none; /* Escondido por padrão (mobile-first) */
+  flex-grow: 1;
+  justify-content: center;
+}
+
+/* O menuButton é o ícone de hambúrguer */
+.menuButton {
+  display: block; /* Visível em mobile */
+}
+
+/* --- MEDIA QUERY PARA TELAS GRANDES (Desktop) --- */
+/* Breakpoint: pode ser ajustado conforme a necessidade (ex: 768px, 1024px) */
+
+@media (min-width: 992px) {
+  .menuButton {
+    display: none; /* Esconde o botão de hambúrguer */
+  }
+
+  .desktopNav {
+    display: flex; /* Mostra a navegação do desktop */
+  }
+
+  /* Ajustes para o menu horizontal na navbar */
+  .desktopNav .mainNav ul {
+    flex-direction: row; /* Coloca os itens do menu lado a lado */
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .desktopNav .mainNav details {
+    margin-bottom: 0;
+  }
+
+  .desktopNav .mainNav summary {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary-dark-color);
+  }
+
+  .desktopNav .mainNav summary:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .desktopNav .mainNav .menuIcon {
+    /* Opcional: esconder ícones no menu desktop */
+    display: none;
+  }
+
+  .desktopNav .mainNav details ul {
+    /* Estilo do dropdown */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--white-color);
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    padding-left: 0; /* Reseta o padding da sidebar */
+    margin-top: 0.5rem;
+    min-width: 220px; /* Largura mínima do dropdown */
+    z-index: 1100;
+
+    /* Animação de aparição */
+    opacity: 0;
+    transform: translateY(10px);
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
+  }
+
+  .desktopNav .mainNav details[open] > ul {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .desktopNav .mainNav details ul a {
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    color: var(--text-color); /* Cor de texto padrão para o dropdown */
+  }
+
+  .desktopNav .mainNav details ul a:hover {
+    background-color: var(--border-color);
+    color: var(--primary-color);
+  }
 }

@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import styles from "./adminHeader.module.css";
 import logo from "../../../assets/logo.png";
-
-// Ícone
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -14,6 +12,104 @@ import {
   faUserCircle,
   faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
+
+// Componente reutilizável para o menu de navegação
+const NavigationMenu = ({ user, handlers }) => (
+  <nav className={styles.mainNav}>
+    <ul>
+      <li>
+        <details>
+          <summary>
+            <FontAwesomeIcon icon={faUsers} className={styles.menuIcon} />
+            Clientes
+          </summary>
+          <ul>
+            <li>
+              <a href="#" onClick={handlers.handleCadastrarClienteClick}>
+                Cadastrar
+              </a>
+            </li>
+            <li>
+              <a href="#" onClick={handlers.handleListarClienteClick}>
+                Listar
+              </a>
+            </li>
+            <li>
+              <a href="#" onClick={handlers.handleImportClick}>
+                Importar
+              </a>
+            </li>
+          </ul>
+        </details>
+      </li>
+      <li>
+        <details>
+          <summary>
+            <FontAwesomeIcon icon={faHandshake} className={styles.menuIcon} />
+            Parceiros
+          </summary>
+          <ul>
+            <li>
+              <a href="#" onClick={handlers.handleCadastrarParceiro}>
+                Cadastrar
+              </a>
+            </li>
+            <li>
+              <a href="#" onClick={handlers.handleListarParceiro}>
+                Listar
+              </a>
+            </li>
+          </ul>
+        </details>
+      </li>
+      {user && user.tipo_usuario === "admin" && (
+        <li>
+          <details>
+            <summary>
+              <FontAwesomeIcon
+                icon={faDollarSign}
+                className={styles.menuIcon}
+              />
+              Financeiro
+            </summary>
+            <ul>
+              <li>
+                <a href="#" onClick={handlers.handleOpenFinanceiro}>
+                  Cadastrar pagamento
+                </a>
+              </li>
+              <li>
+                <a href="#" onClick={handlers.handleOpenListarFinanceiro}>
+                  Apontamentos
+                </a>
+              </li>
+            </ul>
+          </details>
+        </li>
+      )}
+      <li>
+        <details>
+          <summary>
+            <FontAwesomeIcon icon={faUserCircle} className={styles.menuIcon} />
+            Usuários
+          </summary>
+          <ul>
+            <li>
+              <a href="#" onClick={handlers.handleCadastrarUserClick}>
+                Cadastrar
+              </a>
+            </li>
+            <li>
+              <a href="#" onClick={handlers.handleListarUserClick}>
+                Listar
+              </a>
+            </li>
+          </ul>
+        </details>
+      </li>
+    </ul>
+  </nav>
+);
 
 const AdminHeader = ({
   user,
@@ -29,58 +125,59 @@ const AdminHeader = ({
   onOpenListarFianceiroModal,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
-  const handleCadastrarUserClick = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenUserModal();
+
+  // Agrupando os handlers para passar para o componente de navegação
+  const navHandlers = {
+    handleCadastrarUserClick: (e) => {
+      e.preventDefault();
+      onOpenUserModal();
+    },
+    handleListarUserClick: (e) => {
+      e.preventDefault();
+      onOpenListUserModal();
+    },
+    handleCadastrarClienteClick: (e) => {
+      e.preventDefault();
+      onOpenClientModal();
+    },
+    handleListarClienteClick: (e) => {
+      e.preventDefault();
+      onOpenListClientsModal();
+    },
+    handleImportClick: (e) => {
+      e.preventDefault();
+      onOpenImportModal();
+    },
+    handleCadastrarParceiro: (e) => {
+      e.preventDefault();
+      onOpenParceiroModal();
+    },
+    handleListarParceiro: (e) => {
+      e.preventDefault();
+      onOpenListParceiroModal();
+    },
+    handleOpenFinanceiro: (e) => {
+      e.preventDefault();
+      onOpenFinanceiroModal();
+    },
+    handleOpenListarFinanceiro: (e) => {
+      e.preventDefault();
+      onOpenListarFianceiroModal();
+    },
   };
 
-  const handleListarUserClick = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenListUserModal();
-  };
-  const handleCadastrarClienteClick = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenClientModal();
-  };
-
-  const handleListarClienteClick = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenListClientsModal();
-  };
-  const handleImportClick = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenImportModal();
-  };
-  const handleCadastrarParceiro = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenParceiroModal();
-  };
-  const handleListarParceiro = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenListParceiroModal();
-  };
-
-  const handleOpenFinanceiro = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenFinanceiroModal();
-  };
-
-  const handleOpenListarFinanceiro = (e) => {
-    e.preventDefault();
-    toggleSidebar();
-    onOpenListarFianceiroModal();
-  };
+  // Handlers para a sidebar (que precisam fechar o menu)
+  const sidebarHandlers = Object.keys(navHandlers).reduce((acc, key) => {
+    acc[key] = (e) => {
+      navHandlers[key](e);
+      toggleSidebar();
+    };
+    return acc;
+  }, {});
 
   return (
     <>
@@ -95,6 +192,11 @@ const AdminHeader = ({
             <span>Painel Administrador</span>
           </a>
 
+          {/* NAVEGAÇÃO PARA DESKTOP (escondida em mobile) */}
+          <div className={styles.desktopNav}>
+            <NavigationMenu user={user} handlers={navHandlers} />
+          </div>
+
           <div className={styles.rightIcons}>
             <button
               onClick={onLogout}
@@ -103,9 +205,10 @@ const AdminHeader = ({
             >
               <FontAwesomeIcon icon={faSignOutAlt} />
             </button>
+            {/* BOTÃO HAMBÚRGUER (escondido em desktop) */}
             <button
               onClick={toggleSidebar}
-              className={styles.iconButton}
+              className={`${styles.iconButton} ${styles.menuButton}`}
               title="Menu"
             >
               <FontAwesomeIcon icon={faBars} />
@@ -114,6 +217,7 @@ const AdminHeader = ({
         </div>
       </header>
 
+      {/* SIDEBAR PARA MOBILE */}
       <aside
         className={`${styles.sidebar} ${
           isSidebarOpen ? styles.sidebarOpen : ""
@@ -125,112 +229,13 @@ const AdminHeader = ({
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
-
-        <nav className={styles.sidebarNav}>
+        <div className={styles.sidebarNavContent}>
           <p>Olá {user.nome}</p>
-          <ul>
-            <li>
-              <details>
-                <summary>
-                  <FontAwesomeIcon icon={faUsers} className={styles.menuIcon} />
-                  Clientes
-                </summary>
-                <ul>
-                  <li>
-                    <a href="#" onClick={handleCadastrarClienteClick}>
-                      Cadastrar
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" onClick={handleListarClienteClick}>
-                      Listar
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" onClick={handleImportClick}>
-                      Importar
-                    </a>
-                  </li>
-                </ul>
-              </details>
-            </li>
-            <li>
-              <details>
-                <summary>
-                  <FontAwesomeIcon
-                    icon={faHandshake}
-                    className={styles.menuIcon}
-                  />
-                  Parceiros
-                </summary>
-                <ul>
-                  <li>
-                    <a href="#" onClick={handleCadastrarParceiro}>
-                      Cadastrar
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" onClick={handleListarParceiro}>
-                      Listar
-                    </a>
-                  </li>
-                </ul>
-              </details>
-            </li>
-
-            {user && user.tipo_usuario === "admin" && (
-              <li>
-                <details>
-                  <summary>
-                    <FontAwesomeIcon
-                      icon={faDollarSign} // Ícone atualizado para melhor semântica
-                      className={styles.menuIcon}
-                    />
-                    Financeiro
-                  </summary>
-                  <ul>
-                    <li>
-                      <a href="#" onClick={handleOpenFinanceiro}>
-                        Cadastrar pagamento
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" onClick={handleOpenListarFinanceiro}>
-                        Apontamentos
-                      </a>
-                    </li>
-                  </ul>
-                </details>
-              </li>
-            )}
-
-            <li>
-              <details>
-                <summary>
-                  <FontAwesomeIcon
-                    icon={faUserCircle}
-                    className={styles.menuIcon}
-                  />
-                  Usuários
-                </summary>
-                <ul>
-                  <li>
-                    <a href="#" onClick={handleCadastrarUserClick}>
-                      Cadastrar
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" onClick={handleListarUserClick}>
-                      Listar
-                    </a>
-                  </li>
-                </ul>
-              </details>
-            </li>
-          </ul>
-        </nav>
+          <NavigationMenu user={user} handlers={sidebarHandlers} />
+        </div>
       </aside>
     </>
   );
 };
+
 export default AdminHeader;
