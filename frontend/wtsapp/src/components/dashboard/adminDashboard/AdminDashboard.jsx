@@ -77,7 +77,7 @@ const AdminDashboard = ({
         onClientClick={onShowDetails}
       />
 
-      <NotificacoesMensais
+      <NotificacoesCard
         data={notificacoesMensaisData}
         isLoading={isNotificacoesLoading}
         selectedMonth={selectedMonth}

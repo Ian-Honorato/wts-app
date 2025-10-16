@@ -32,7 +32,6 @@ const fetchRenovationsData = async (token, filters) => {
   return data;
 };
 
-// CORREÇÃO: Função para buscar as notificações mensais
 const fetchNotificacoesMensais = async (token, month) => {
   const { data } = await axios.get("/api/dashboard/notificacoes-mes", {
     headers: { Authorization: `Bearer ${token}` },
