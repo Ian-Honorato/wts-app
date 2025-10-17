@@ -1,16 +1,5 @@
 // src/app/utils/xmlDataSanitizer.js
 
-// Lista de status EXATAMENTE como estão no ENUM do banco de dados
-const dbStatusEnum = [
-  "Agendado",
-  "Em contato",
-  "Renovado",
-  "Não identificado",
-  "Não vai renovar",
-  "Cancelado",
-  "Ativo",
-];
-
 // Mapeia status "sujos" da planilha para status válidos no banco
 const statusMap = {
   agendado: "Agendado",
@@ -33,18 +22,16 @@ function parseDate(dateString) {
   try {
     const datePart = dateString.split("T")[0];
     const [year, month, day] = datePart.split("-").map(Number);
-    if (!year || !month || !day || year < 1900 || month > 2100)
-      throw new Error("Data inválida.");
+    if (!year || !month || !day || year < 1900 || month > 2100) return null;
     const dateObj = new Date(Date.UTC(year, month - 1, day));
     if (isNaN(dateObj.getTime()) || dateObj.getUTCFullYear() !== year)
-      throw new Error("Data inconsistente.");
+      return null;
     return dateObj;
   } catch {
     return null;
   }
 }
 
-// Sanitiza e valida os dados brutos de uma linha do XML
 function sanitizarXmlRow(rawData) {
   const errors = [];
   const sanitizedData = {};
@@ -56,11 +43,11 @@ function sanitizarXmlRow(rawData) {
     let extractedCpfCnpj = "";
     sanitizedData.nome_cliente = rawData.cliente_bruto.trim();
 
-    // Lógica Flexível: Prioriza a coluna 'cpf_cnpj_bruto' se ela existir.
-    // Caso contrário, tenta extrair da coluna 'cliente_bruto'.
+    // Lógica Flexível: Prioriza a coluna 'cpf_cnpj_bruto' (do layout 'type_b')
     if (rawData.cpf_cnpj_bruto && String(rawData.cpf_cnpj_bruto).trim()) {
       extractedCpfCnpj = String(rawData.cpf_cnpj_bruto).replace(/\D/g, "");
     } else {
+      // Se não houver, tenta extrair de 'cliente_bruto' (do layout 'type_a')
       const match = rawData.cliente_bruto.match(/\((.*?)\)/);
       if (match && match[1]) {
         sanitizedData.nome_cliente = rawData.cliente_bruto.split("(")[0].trim();
@@ -85,15 +72,13 @@ function sanitizarXmlRow(rawData) {
   }
 
   // Define o tipo de cliente
-  if (sanitizedData.cpf_cnpj?.length === 11) {
+  sanitizedData.tipo_cliente = "Não identificado";
+  if (sanitizedData.cpf_cnpj?.length === 11)
     sanitizedData.tipo_cliente = "Pessoa Física";
-  } else if (sanitizedData.cpf_cnpj?.length === 14) {
+  if (sanitizedData.cpf_cnpj?.length === 14)
     sanitizedData.tipo_cliente = "Pessoa Jurídica";
-  } else {
-    sanitizedData.tipo_cliente = "Não identificado";
-  }
 
-  // 2. Campos de Texto Simples
+  // 2. Campos de Texto, Status e Datas
   sanitizedData.numero_contrato = rawData.numero_contrato || null;
   sanitizedData.nome_certificado = rawData.nome_certificado || null;
   sanitizedData.representante = rawData.representante_legal || null;
@@ -101,9 +86,15 @@ function sanitizarXmlRow(rawData) {
   sanitizedData.nome_parceiro =
     rawData.nome_parceiro?.trim() || "Não identificado";
 
+  const statusLimpo = rawData.status?.trim().toLowerCase();
+  sanitizedData.status = statusMap[statusLimpo] || "Não identificado";
+
+  sanitizedData.data_vencimento = parseDate(rawData.data_vencimento);
+  sanitizedData.data_renovacao = parseDate(rawData.data_renovacao);
+
   // 3. Telefone
   if (!rawData.telefone?.trim()) {
-    errors.push("A coluna de telefone é obrigatória.");
+    sanitizedData.telefone = null; // Apenas define como nulo, sem gerar erro
   } else {
     const cleaned = String(rawData.telefone).replace(/\D/g, "");
     if (cleaned.length >= 10 && cleaned.length <= 11) {
@@ -111,24 +102,6 @@ function sanitizarXmlRow(rawData) {
     } else {
       errors.push(`Telefone '${rawData.telefone}' é inválido.`);
     }
-  }
-
-  // 4. Status
-  const statusLimpo = rawData.status?.trim().toLowerCase();
-  sanitizedData.status = statusMap[statusLimpo] || "Não identificado";
-  if (statusLimpo && !statusMap[statusLimpo]) {
-    errors.push(`Status '${rawData.status.trim()}' não é válido.`);
-  }
-
-  // 5. Datas
-  sanitizedData.data_vencimento = parseDate(rawData.data_vencimento);
-  if (rawData.data_vencimento && !sanitizedData.data_vencimento) {
-    errors.push(`Data de Vencimento '${rawData.data_vencimento}' é inválida.`);
-  }
-
-  sanitizedData.data_renovacao = parseDate(rawData.data_renovacao);
-  if (rawData.data_renovacao && !sanitizedData.data_renovacao) {
-    errors.push(`Data de Renovação '${rawData.data_renovacao}' é inválida.`);
   }
 
   return { sanitizedData, errors: errors.length ? errors : null };
