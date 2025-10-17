@@ -417,6 +417,7 @@ class ClienteController {
             as: "contratos",
             order: [["data_vencimento", "DESC"]],
             attributes: [
+              "id",
               "numero_contrato",
               "data_vencimento",
               "status",
