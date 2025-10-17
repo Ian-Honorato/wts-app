@@ -1,5 +1,8 @@
 // src/app/utils/xmlDataSanitizer.js
 
+/**
+ * Lista de status EXATAMENTE como estão no ENUM do banco de dados (Migration)
+ */
 const dbStatusEnum = [
   "Agendado",
   "Em contato",
@@ -9,6 +12,11 @@ const dbStatusEnum = [
   "Cancelado",
   "Ativo",
 ];
+
+/**
+ * Mapeia status "sujos" (vindos da planilha) para status válidos no banco.
+ * Chaves devem estar em minúsculo para facilitar a busca.
+ */
 const statusMap = {
   agendado: "Agendado",
   "em contato": "Em contato",
@@ -24,6 +32,12 @@ const statusMap = {
   "vence em outro mês": "Não identificado", // Mapeamento
 };
 
+/**
+ * Converte uma string de data (ex: 2025-10-17T00:00:00) para um objeto Date em UTC.
+ * Retorna null se a data for inválida ou vazia.
+ * @param {string} dateString
+ * @returns {Date | null}
+ */
 function parseDate(dateString) {
   if (!dateString) {
     return null;
@@ -69,32 +83,44 @@ function parseDate(dateString) {
     return null;
   }
 }
+
+/**
+ * Sanitiza e valida os dados brutos de uma linha do XML.
+ * @param {object} rawData - Objeto vindo do mapeador (ex: { cliente_bruto, ... })
+ * @returns {{sanitizedData: object, errors: string[] | null}}
+ */
 function sanitizarXmlRow(rawData) {
   const errors = [];
   const sanitizedData = {};
 
-  // 1. Cliente, CPF/CNPJ e Tipo
+  // 1. Cliente, CPF/CNPJ e Tipo (LÓGICA ATUALIZADA)
   if (!rawData.cliente_bruto?.trim()) {
-    errors.push("A coluna 'CLIENTE' está vazia.");
+    errors.push("A coluna do nome do cliente está vazia.");
     sanitizedData.nome_cliente = "Nome não informado";
     sanitizedData.cpf_cnpj = "";
     sanitizedData.tipo_cliente = "Não identificado";
   } else {
-    const regex = /(.*?)\s*\((.*?)\)/;
-    const match = rawData.cliente_bruto.match(regex);
+    let extractedCpfCnpj = "";
+    sanitizedData.nome_cliente = rawData.cliente_bruto.trim();
 
-    if (match) {
-      sanitizedData.nome_cliente = match[1].trim();
-      sanitizedData.cpf_cnpj = match[2].replace(/\D/g, "");
+    // Lógica Flexível: Prioriza a coluna 'cpf_cnpj_bruto' se ela existir.
+    // Caso contrário, tenta extrair da coluna 'cliente_bruto'.
+    if (rawData.cpf_cnpj_bruto && String(rawData.cpf_cnpj_bruto).trim()) {
+      extractedCpfCnpj = String(rawData.cpf_cnpj_bruto).replace(/\D/g, "");
     } else {
-      // Se não houver parênteses, assume que é só o nome
-      sanitizedData.nome_cliente = rawData.cliente_bruto.trim();
-      sanitizedData.cpf_cnpj = ""; // Força o erro abaixo
+      const regex = /(.*?)\s*\((.*?)\)/;
+      const match = rawData.cliente_bruto.match(regex);
+      if (match) {
+        sanitizedData.nome_cliente = match[1].trim();
+        extractedCpfCnpj = match[2].replace(/\D/g, "");
+      }
     }
+
+    sanitizedData.cpf_cnpj = extractedCpfCnpj;
 
     if (!sanitizedData.cpf_cnpj) {
       errors.push(
-        `Não foi possível extrair CPF/CNPJ de: '${rawData.cliente_bruto}'. Formato esperado: 'Nome (Documento)'.`
+        `Não foi possível extrair CPF/CNPJ de: '${rawData.cliente_bruto}'.`
       );
       sanitizedData.tipo_cliente = "Não identificado";
     } else if (sanitizedData.cpf_cnpj.length === 11) {
@@ -103,23 +129,21 @@ function sanitizarXmlRow(rawData) {
       sanitizedData.tipo_cliente = "Pessoa Jurídica";
     } else {
       errors.push(
-        `CPF/CNPJ '${sanitizedData.cpf_cnpj}' (extraído de '${rawData.cliente_bruto}') possui tamanho inválido.`
+        `CPF/CNPJ '${sanitizedData.cpf_cnpj}' possui tamanho inválido.`
       );
       sanitizedData.tipo_cliente = "Não identificado";
     }
   }
 
+  // 2. Campos de Texto Simples
   sanitizedData.numero_contrato = rawData.numero_contrato || null;
   sanitizedData.nome_certificado = rawData.nome_certificado || null;
   sanitizedData.representante = rawData.representante_legal || null;
   sanitizedData.email_cliente = rawData.email_cliente || null;
 
   // 3. Parceiro (Indicação)
-  if (!rawData.nome_parceiro?.trim()) {
-    sanitizedData.nome_parceiro = "Não identificado";
-  } else {
-    sanitizedData.nome_parceiro = rawData.nome_parceiro.trim();
-  }
+  sanitizedData.nome_parceiro =
+    rawData.nome_parceiro?.trim() || "Não identificado";
 
   // 4. Telefone
   if (!rawData.telefone?.trim()) {
@@ -143,26 +167,17 @@ function sanitizarXmlRow(rawData) {
   } else {
     const statusLimpo = rawData.status.trim().toLowerCase();
     const statusMapeado = statusMap[statusLimpo];
-
     if (statusMapeado) {
       sanitizedData.status = statusMapeado;
     } else {
-      // Se não está no mapa, verifica se é um valor válido que não foi mapeado
-      const statusOriginalCase = dbStatusEnum.find(
-        (s) => s.toLowerCase() === statusLimpo
+      sanitizedData.status = "Não identificado";
+      errors.push(
+        `Status '${rawData.status.trim()}' não é válido e foi definido como 'Não identificado'.`
       );
-      if (statusOriginalCase) {
-        sanitizedData.status = statusOriginalCase;
-      } else {
-        // Se realmente não é válido, usa o padrão e reporta o erro
-        sanitizedData.status = "Não identificado";
-        errors.push(
-          `Status '${rawData.status.trim()}' não é válido e foi definido como 'Não identificado'.`
-        );
-      }
     }
   }
 
+  // 6. Datas
   sanitizedData.data_vencimento = parseDate(rawData.data_vencimento);
   if (rawData.data_vencimento && !sanitizedData.data_vencimento) {
     errors.push(`Data de Vencimento '${rawData.data_vencimento}' é inválida.`);
