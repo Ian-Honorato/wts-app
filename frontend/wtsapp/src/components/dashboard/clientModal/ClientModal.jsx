@@ -35,6 +35,7 @@ const certificados = [
   "e-CPF A3 token",
 ];
 
+// O estado inicial serve para ambos os modos (criação e edição)
 const initialState = {
   nome_cliente: "",
   cpf_cnpj: "",
@@ -54,7 +55,7 @@ const initialState = {
 const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
-  const [step, setStep] = useState(1); // Estado para controlar a etapa
+  const [step, setStep] = useState(1);
 
   const createMutation = useCreateClientMutation();
   const updateMutation = useUpdateClientMutation();
@@ -64,6 +65,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   useEffect(() => {
     if (isOpen) {
       if (isUpdateMode && clientToEdit) {
+        // MODO EDIÇÃO: Preenche o formulário APENAS com dados do cliente
         let ddi = "55",
           ddd = "",
           telefoneNumero = "";
@@ -74,6 +76,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           telefoneNumero = fullPhone.substring(4);
         }
         setFormData({
+          ...initialState, // Começa com o estado limpo para garantir que não haja dados de contrato
           nome_cliente: clientToEdit.nome,
           cpf_cnpj: clientToEdit.cpf_cnpj,
           representante: clientToEdit.representante || "",
@@ -82,64 +85,48 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
           ddd,
           telefoneNumero,
           nome_parceiro: clientToEdit.parceiro_indicador?.nome_escritorio || "",
-          nome_certificado:
-            clientToEdit.contratos?.[0]?.certificado.nome_certificado || "",
-          numero_contrato: clientToEdit.contratos?.[0]?.numero_contrato || "",
-          data_renovacao: clientToEdit.contratos?.[0]?.data_renovacao
-            ? new Date(clientToEdit.contratos[0].data_renovacao)
-                .toISOString()
-                .split("T")[0]
-            : "",
-          data_vencimento: clientToEdit.contratos?.[0]?.data_vencimento
-            ? new Date(clientToEdit.contratos[0].data_vencimento)
-                .toISOString()
-                .split("T")[0]
-            : "",
-          status: clientToEdit.contratos?.[0]?.status || "",
         });
       } else {
+        // MODO CRIAÇÃO: Reseta para o estado inicial completo
         setFormData(initialState);
       }
       setErrors({});
-      setStep(1); // Sempre reseta para a primeira etapa
+      setStep(1);
       createMutation.reset();
       updateMutation.reset();
     }
-  }, [isOpen, clientToEdit, isUpdateMode]);
+  }, [isOpen, clientToEdit]); // Array de dependências correto para evitar re-execuções
 
   const validate = useCallback(
-    (currentStep) => {
+    (currentStep, isUpdate = false) => {
       const newErrors = {};
 
-      // Validação da Etapa 1: Dados do Cliente
+      // Validação da Etapa 1 (usada por ambos os modos)
       if (currentStep === 1) {
         if (!formData.nome_cliente)
           newErrors.nome_cliente = "O nome do cliente é obrigatório.";
         if (!formData.cpf_cnpj)
           newErrors.cpf_cnpj = "O CPF/CNPJ é obrigatório.";
-        if (!formData.ddi || !formData.ddd || !formData.telefoneNumero) {
+        if (!formData.ddi || !formData.ddd || !formData.telefoneNumero)
           newErrors.telefone = "O telefone completo é obrigatório.";
-        } else if (formData.telefoneNumero.length < 8) {
+        else if (formData.telefoneNumero.length < 8)
           newErrors.telefone = "O número de telefone parece curto demais.";
-        }
-        if (!formData.email_cliente) {
+        if (!formData.email_cliente)
           newErrors.email_cliente = "O e-mail é obrigatório.";
-        } else if (!/\S+@\S+\.\S+/.test(formData.email_cliente)) {
+        else if (!/\S+@\S+\.\S+/.test(formData.email_cliente))
           newErrors.email_cliente = "O formato do e-mail é inválido.";
-        }
         if (!formData.nome_parceiro)
           newErrors.nome_parceiro = "O nome do parceiro é obrigatório.";
       }
 
-      // Validação da Etapa 2: Dados do Contrato
-      if (currentStep === 2) {
+      // Validação da Etapa 2 (usada apenas no modo de criação)
+      if (currentStep === 2 && !isUpdate) {
         if (!formData.status) newErrors.status = "O status é obrigatório.";
         if (!formData.nome_certificado)
           newErrors.nome_certificado = "O nome do certificado é obrigatório.";
         if (!formData.numero_contrato)
           newErrors.numero_contrato = "O Ticket é obrigatório.";
       }
-
       return newErrors;
     },
     [formData]
@@ -180,32 +167,47 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const step1Errors = validate(1);
-    const step2Errors = isUpdateMode ? {} : validate(2); // No modo de edição, a validação é unificada
-    const validationErrors = { ...step1Errors, ...step2Errors };
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    const telefoneCompleto = `${formData.ddi}${formData.ddd}${formData.telefoneNumero}`;
-    const mutationData = {
-      ...formData,
-      telefone: telefoneCompleto,
-      data_renovacao: formData.data_renovacao || null,
-      data_vencimento: formData.data_vencimento || null,
-    };
-    delete mutationData.ddi;
-    delete mutationData.ddd;
-    delete mutationData.telefoneNumero;
 
     if (isUpdateMode) {
+      const validationErrors = validate(1, true);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+
+      const telefoneCompleto = `${formData.ddi}${formData.ddd}${formData.telefoneNumero}`;
+      // Cria um objeto limpo APENAS com os dados do cliente para o backend
+      const mutationData = {
+        nome_cliente: formData.nome_cliente,
+        cpf_cnpj: formData.cpf_cnpj,
+        representante: formData.representante,
+        email_cliente: formData.email_cliente,
+        telefone: telefoneCompleto,
+        nome_parceiro: formData.nome_parceiro,
+      };
+
       updateMutation.mutate(
         { ...mutationData, id: clientToEdit.id },
         getMutationCallbacks("Cliente atualizado com sucesso!")
       );
     } else {
+      // Lógica de Criação
+      const step1Errors = validate(1);
+      const step2Errors = validate(2);
+      const validationErrors = { ...step1Errors, ...step2Errors };
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        // Se o erro for na primeira etapa, volta para ela
+        if (Object.keys(step1Errors).length > 0) setStep(1);
+        return;
+      }
+
+      const telefoneCompleto = `${formData.ddi}${formData.ddd}${formData.telefoneNumero}`;
+      const mutationData = { ...formData, telefone: telefoneCompleto };
+      delete mutationData.ddi;
+      delete mutationData.ddd;
+      delete mutationData.telefoneNumero;
+
       createMutation.mutate(
         mutationData,
         getMutationCallbacks("Cliente cadastrado com sucesso!")
@@ -216,17 +218,11 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   const handleNextStep = () => {
     const validationErrors = validate(1);
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
-      setStep(2);
-    }
+    if (Object.keys(validationErrors).length === 0) setStep(2);
   };
-
-  const handlePrevStep = () => {
-    setStep(1);
-  };
+  const handlePrevStep = () => setStep(1);
 
   if (!isOpen) return null;
-
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   const StepIndicator = () => (
@@ -247,12 +243,10 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
         <h2 className={styles.title}>
           {isUpdateMode ? "Atualizar Cliente" : "Cadastrar Novo Cliente"}
         </h2>
-
         {!isUpdateMode && <StepIndicator />}
-
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
-            {/* ETAPA 1: DADOS DO CLIENTE */}
+            {/* ETAPA 1: DADOS DO CLIENTE (Sempre visível no modo de edição) */}
             {(step === 1 || isUpdateMode) && (
               <>
                 <div className={styles.formGroup}>
@@ -369,8 +363,8 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
               </>
             )}
 
-            {/* ETAPA 2: DADOS DO CONTRATO */}
-            {(step === 2 || isUpdateMode) && (
+            {/* ETAPA 2: DADOS DO CONTRATO (Visível apenas no modo de CRIAÇÃO) */}
+            {step === 2 && !isUpdateMode && (
               <>
                 <div className={styles.formGroup}>
                   <label htmlFor="status">Status *</label>
@@ -437,7 +431,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
                   )}
                 </div>
                 <div className={styles.formGroup}></div>{" "}
-                {/* Placeholder for grid alignment */}
+                {/* Placeholder para alinhar o grid */}
                 <div className={styles.formGroup}>
                   <label htmlFor="data_renovacao">Data de Renovação</label>
                   <input
@@ -463,7 +457,6 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
               </>
             )}
           </div>
-
           <div className={styles.navigationButtons}>
             {isUpdateMode ? (
               <button
@@ -514,4 +507,4 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   );
 };
 
-export default ClientModal;
+export default React.memo(ClientModal);

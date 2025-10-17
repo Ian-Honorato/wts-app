@@ -264,9 +264,6 @@ class ClienteController {
     }
   }
 
-  /**
-   * Atualiza os dados de um cliente e seu contrato associado de forma transacional.
-   */
   async update(req, res) {
     const { sanitizedData, errors } = sanitizarCliente(req.body, true);
     if (errors) {
@@ -276,38 +273,27 @@ class ClienteController {
     }
 
     const { id } = req.params;
+
     const {
       nome_parceiro,
       nome_cliente,
       cpf_cnpj,
-      tipo_cliente,
       representante,
       email_cliente,
       telefone,
-      nome_certificado,
-      numero_contrato,
-      data_renovacao,
-      data_vencimento,
-      status,
     } = sanitizedData;
 
     const t = await sequelize.transaction();
     try {
-      const cliente = await Cliente.findByPk(id, {
-        include: [{ model: ContratoCertificado, as: "contratos", limit: 1 }],
-        transaction: t,
-      });
-      if (!cliente) throw new Error("Cliente não encontrado.");
+      const cliente = await Cliente.findByPk(id, { transaction: t });
 
-      const contrato = cliente.contratos[0];
-      if (!contrato)
-        throw new Error(
-          "Nenhum contrato associado foi encontrado para atualização."
-        );
+      if (!cliente) {
+        throw new Error("Cliente não encontrado.");
+      }
 
-      let parceiro;
+      let parceiroId = cliente.referencia_parceiro;
       if (nome_parceiro) {
-        parceiro = await Parceiro.findOne({
+        let parceiro = await Parceiro.findOne({
           where: { nome_escritorio: nome_parceiro },
           transaction: t,
         });
@@ -317,55 +303,26 @@ class ClienteController {
             { transaction: t }
           );
         }
-      }
-
-      let certificado;
-      if (nome_certificado) {
-        certificado = await Certificado.findOne({
-          where: { nome_certificado },
-          transaction: t,
-        });
-        if (!certificado) {
-          certificado = await Certificado.create(
-            { nome_certificado },
-            { transaction: t }
-          );
-        }
+        parceiroId = parceiro.id;
       }
 
       const clienteAtualizado = await cliente.update(
         {
           nome: nome_cliente,
           cpf_cnpj,
-          tipo_cliente,
           representante,
           email: email_cliente,
           telefone,
-          referencia_parceiro: parceiro
-            ? parceiro.id
-            : cliente.referencia_parceiro,
-        },
-        { transaction: t }
-      );
-
-      const contratoAtualizado = await contrato.update(
-        {
-          numero_contrato,
-          data_renovacao,
-          data_vencimento,
-          status,
-          referencia_certificado: certificado
-            ? certificado.id
-            : contrato.referencia_certificado,
+          referencia_parceiro: parceiroId,
         },
         { transaction: t }
       );
 
       await t.commit();
-      return res.json({
-        message: "Cliente e contrato atualizados com sucesso!",
+
+      return res.status(200).json({
+        message: "Dados do cliente atualizados com sucesso!",
         cliente: clienteAtualizado,
-        contrato: contratoAtualizado,
       });
     } catch (e) {
       await t.rollback();
