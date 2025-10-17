@@ -5,7 +5,7 @@ import {
   Parceiro,
   Certificado,
   ContratoCertificado,
-} from "../models/index.js"; // Verifique o caminho dos seus models
+} from "../Models/index.js";
 
 import sanitizarXmlRow from "../utils/xmlDataSanitizer.js";
 import { errorHandler } from "../utils/errorHandler.js";
