@@ -37,6 +37,10 @@ const Dashboard = () => {
     setFilters,
     handleSearch,
     renovationsData,
+    notificacoesMensaisData,
+    isNotificacoesLoading,
+    selectedMonth,
+    setSelectedMonth,
   } = useDashboardData(user);
   //console.log("sumarioData", sumarioData);
   const handleSubmitFeedback = (type, message) => {
@@ -73,6 +77,10 @@ const Dashboard = () => {
             setPeriod: setCriticalPeriod,
           }}
           renovationsData={renovationsData}
+          notificacoesMensaisData={notificacoesMensaisData}
+          isNotificacoesLoading={isNotificacoesLoading}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
           filters={filters}
           setFilters={setFilters}
           handleSearch={handleSearch}
