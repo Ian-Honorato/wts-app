@@ -5,86 +5,38 @@ import {
   Parceiro,
   Certificado,
   ContratoCertificado,
-} from "../Models/index.js";
+} from "../models/index.js"; // Verifique o caminho dos seus models
 
-import sanitizarXmlRow from "../Util/xmlDataSanitizer.js";
-import { errorHandler } from "../Util/errorHandler.js";
+import sanitizarXmlRow from "../utils/xmlDataSanitizer.js";
+import { errorHandler } from "../utils/errorHandler.js";
 
-// ===================================================================
-// FUNÇÃO UTILITÁRIA DE NORMALIZAÇÃO
-// ===================================================================
-
+// Função auxiliar para normalizar o número do contrato
 const normalizarNumeroContrato = (numeroContrato) => {
-  if (!numeroContrato || typeof numeroContrato !== "string") {
-    return "";
-  }
-  // Remove tudo que não for letra ou número e converte para maiúsculo
+  if (!numeroContrato || typeof numeroContrato !== "string") return "";
   return numeroContrato.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 };
 
-const mapListaClientesXml = (cells) => {
-  return {
-    cliente_bruto: cells[0]?.Data?._,
-    representante_legal: cells[1]?.Data?._,
-    numero_contrato: cells[2]?.Data?._,
-    nome_certificado: cells[3]?.Data?._,
-    data_vencimento: cells[4]?.Data?._,
-    telefone: cells[5]?.Data?._,
-    email_cliente: cells[6]?.Data?._,
-    status: cells[7]?.Data?._,
-    nome_parceiro: cells[8]?.Data?._,
-  };
-};
-
-const mapNovosContratosXml = (cells) => {
-  return {
-    cliente_bruto: cells[0]?.Data?._,
-    representante_legal: null,
-    numero_contrato: cells[1]?.Data?._,
-    nome_certificado: cells[2]?.Data?._,
-    data_vencimento: cells[3]?.Data?._,
-    telefone: cells[4]?.Data?._,
-    email_cliente: cells[5]?.Data?._,
-    status: "Pendente",
-    nome_parceiro: cells[6]?.Data?._,
-  };
-};
-
-const mappers = {
-  lista_clientes: mapListaClientesXml,
-  novos_contratos: mapNovosContratosXml,
-  // Adicione futuros mapeadores aqui
-};
-
-// ===================================================================
-// SERVIÇO DE PROCESSAMENTO DE DADOS
-// ===================================================================
-async function processarLinha(rawData, { transaction, userId }) {
-  const { sanitizedData, errors: validationErrors } = sanitizarXmlRow(rawData);
-
-  if (validationErrors) {
-    throw new Error(validationErrors.join("; "));
-  }
-
+// Função que centraliza a lógica de banco de dados
+async function processarDados(sanitizedData, { transaction, userId }) {
   const { nome_cliente, cpf_cnpj, ...restOfData } = sanitizedData;
 
   if (!cpf_cnpj) {
     throw new Error(
-      "CPF/CNPJ ausente ou inválido, não é possível processar a linha."
+      "CPF/CNPJ ausente ou inválido, não é possível criar ou atualizar."
     );
   }
 
-  let parceiro = null;
-  if (restOfData.nome_parceiro) {
-    [parceiro] = await Parceiro.findOrCreate({
-      where: { nome_escritorio: restOfData.nome_parceiro },
-      defaults: {
-        nome_escritorio: restOfData.nome_parceiro,
-        cadastrado_por_id: userId,
-      },
-      transaction,
-    });
-  }
+  // Encontrar ou Criar Parceiro
+  const [parceiro] = await Parceiro.findOrCreate({
+    where: { nome_escritorio: restOfData.nome_parceiro },
+    defaults: {
+      nome_escritorio: restOfData.nome_parceiro,
+      cadastrado_por_id: userId,
+    },
+    transaction,
+  });
+
+  // Encontrar ou Criar Certificado
   let certificado = null;
   if (restOfData.nome_certificado) {
     [certificado] = await Certificado.findOrCreate({
@@ -94,11 +46,12 @@ async function processarLinha(rawData, { transaction, userId }) {
     });
   }
 
+  // Encontrar ou Criar Cliente
   const [cliente, isNewClient] = await Cliente.unscoped().findOrCreate({
     where: { cpf_cnpj },
     defaults: {
       nome: nome_cliente,
-      cpf_cnpj: cpf_cnpj,
+      cpf_cnpj,
       tipo_cliente: restOfData.tipo_cliente,
       representante: restOfData.representante,
       email: restOfData.email_cliente,
@@ -110,10 +63,7 @@ async function processarLinha(rawData, { transaction, userId }) {
     transaction,
   });
 
-  if (cliente.deleted_at) {
-    await cliente.restore({ transaction });
-  }
-
+  if (cliente.deleted_at) await cliente.restore({ transaction });
   if (!isNewClient) {
     await cliente.update(
       {
@@ -128,78 +78,31 @@ async function processarLinha(rawData, { transaction, userId }) {
     );
   }
 
+  // VERIFICAÇÃO E PROCESSAMENTO DE CONTRATO
   const numeroContratoNormalizado = normalizarNumeroContrato(
     restOfData.numero_contrato
   );
+  if (!numeroContratoNormalizado) return { isNewClient }; // Pula se não houver contrato
 
-  if (!numeroContratoNormalizado) {
-    console.warn(
-      `Cliente ${nome_cliente} (CPF/CNPJ: ${cpf_cnpj}): pulando contrato por número de contrato ausente ou inválido.`
-    );
-    return { isNewClient, contractSkipped: true };
-  }
   const contratoExistente = await ContratoCertificado.findOne({
-    where: {
-      numero_contrato: numeroContratoNormalizado,
-    },
-    paranoid: false, // Inclui contratos deletados
+    where: { numero_contrato: numeroContratoNormalizado },
+    paranoid: false,
     transaction,
   });
 
-  const dataVencimentoArquivo = restOfData.data_vencimento;
-
   if (contratoExistente) {
-    // --- CONTRATO JÁ EXISTE ---
-
-    // VERIFICAÇÃO DE INTEGRIDADE: O contrato pertence a este cliente?
     if (contratoExistente.cliente_id !== cliente.id) {
       throw new Error(
-        `Erro de integridade: O número de contrato '${numeroContratoNormalizado}' já está em uso por outro cliente (ID: ${contratoExistente.cliente_id}).`
+        `Conflito: Contrato '${numeroContratoNormalizado}' já pertence a outro cliente.`
       );
     }
-
-    // Se estava deletado, restaura
-    if (contratoExistente.deleted_at) {
-      await contratoExistente.restore({ transaction });
-    }
-
-    // LÓGICA DE ATUALIZAÇÃO BASEADA NA DATA DE VENCIMENTO
-    const dataVencimentoBanco = contratoExistente.data_vencimento
-      ? new Date(contratoExistente.data_vencimento)
-      : null;
-
-    let deveAtualizar = false;
-    if (dataVencimentoArquivo) {
-      // Se a data do arquivo for válida
-      if (!dataVencimentoBanco) {
-        deveAtualizar = true; // Data no banco é nula, então atualiza.
-      } else if (new Date(dataVencimentoArquivo) > dataVencimentoBanco) {
-        deveAtualizar = true; // Data do arquivo é mais recente.
-      }
-    }
-
-    if (deveAtualizar) {
-      await contratoExistente.update(
-        {
-          data_vencimento: dataVencimentoArquivo,
-          data_renovacao:
-            restOfData.data_renovacao || contratoExistente.data_renovacao,
-          referencia_certificado: certificado?.id,
-        },
-        { transaction }
-      );
-    } else {
-      console.log(
-        `Contrato ${numeroContratoNormalizado} não atualizado (data do arquivo não é mais recente).`
-      );
-    }
+    // Lógica de atualização (ex: data) pode ser adicionada aqui se necessário
   } else {
-    // --- CONTRATO NÃO EXISTE, VAMOS CRIAR ---
     await ContratoCertificado.create(
       {
         numero_contrato: numeroContratoNormalizado,
-        data_vencimento: dataVencimentoArquivo,
-        data_renovacao: restOfData.data_renovacao || null,
+        data_vencimento: restOfData.data_vencimento,
+        data_renovacao: restOfData.data_renovacao,
         status: restOfData.status,
         cliente_id: cliente.id,
         usuario_id: userId,
@@ -208,27 +111,13 @@ async function processarLinha(rawData, { transaction, userId }) {
       { transaction }
     );
   }
-
   return { isNewClient };
 }
-// ===================================================================
-// CONTROLLER
-// ===================================================================
+
 class XmlUploadController {
   async store(req, res) {
     if (!req.file) {
       return res.status(400).json({ error: "Nenhum arquivo foi enviado." });
-    }
-
-    const { template } = req.query;
-    const mapper = mappers[template];
-
-    if (!mapper) {
-      return res.status(400).json({
-        error: `Template de importação inválido: '${template}'. Valores aceitos: ${Object.keys(
-          mappers
-        ).join(", ")}`,
-      });
     }
 
     const t = await sequelize.transaction();
@@ -240,7 +129,6 @@ class XmlUploadController {
     };
 
     try {
-      // 2. Parse do XML
       const xmlContent = req.file.buffer.toString("utf-8");
       const parsedData = await parseStringPromise(xmlContent, {
         explicitArray: false,
@@ -250,25 +138,91 @@ class XmlUploadController {
       });
 
       const rows = parsedData.Workbook?.Worksheet?.Table?.Row;
-      if (!rows) {
+      if (!rows || rows.length < 2) {
+        // Precisa ter cabeçalho e pelo menos uma linha de dados
+        throw new Error("Estrutura XML inválida ou arquivo vazio.");
+      }
+
+      // 1. DETECÇÃO AUTOMÁTICA DO LAYOUT
+      const headerCells = Array.isArray(rows[0].Cell)
+        ? rows[0].Cell
+        : [rows[0].Cell];
+      let layoutType = null;
+
+      // Layout A ('teste_importacao.xml') tem 'CLIENTE' como primeiro cabeçalho
+      if (headerCells[0]?.Data?._.trim().toUpperCase() === "CLIENTE") {
+        layoutType = "A";
+      }
+      // Layout B ('Lista_Clientes.xml') tem 'ID_Cliente' e 'Nome' como primeiros cabeçalhos
+      else if (headerCells[1]?.Data?._.trim().toUpperCase() === "NOME") {
+        layoutType = "B";
+      }
+
+      if (!layoutType) {
         throw new Error(
-          "Estrutura XML inválida. Tabela de dados não encontrada."
+          "Não foi possível identificar o layout da planilha. Verifique os cabeçalhos."
         );
       }
 
       const dataRows = (Array.isArray(rows) ? rows : [rows]).slice(1);
 
-      // 3. Processamento de cada linha
       for (const [index, row] of dataRows.entries()) {
         const lineNumber = index + 2;
         const cells = Array.isArray(row.Cell) ? row.Cell : [row.Cell];
         let rawData = {};
+        let rawClienteBruto = "Linha " + lineNumber; // Fallback para logs de erro
 
         try {
-          rawData = mapper(cells);
+          // 2. MAPEAMENTO CONDICIONAL DOS DADOS
+          if (layoutType === "A") {
+            // Mapeamento para 'teste_importacao.xml'
+            rawData = {
+              cliente_bruto: cells[0]?.Data?._,
+              representante_legal: cells[1]?.Data?._,
+              numero_contrato: cells[2]?.Data?._,
+              nome_certificado: cells[3]?.Data?._,
+              data_vencimento: cells[4]?.Data?._,
+              telefone: cells[5]?.Data?._,
+              email_cliente: cells[6]?.Data?._,
+              status: cells[7]?.Data?._,
+              nome_parceiro: cells[8]?.Data?._,
+            };
+            rawClienteBruto = rawData.cliente_bruto;
+          } else {
+            // layoutType === 'B'
+            // Mapeamento para 'Lista_Clientes.xml'
+            rawData = {
+              cliente_bruto: cells[1]?.Data?._,
+              cpf_cnpj_bruto: cells[2]?.Data?._,
+              representante_legal: cells[3]?.Data?._,
+              telefone: cells[4]?.Data?._,
+              email_cliente: cells[5]?.Data?._,
+              nome_parceiro: cells[6]?.Data?._,
+              numero_contrato: cells[7]?.Data?._,
+              status: cells[8]?.Data?._,
+              data_vencimento: cells[9]?.Data?._,
+              data_renovacao: cells[10]?.Data?._,
+              nome_certificado: cells[11]?.Data?._,
+            };
+            rawClienteBruto = rawData.cliente_bruto;
+          }
 
-          // 3b. Processa a linha (valida, sanitiza, cria/atualiza)
-          const { isNewClient } = await processarLinha(rawData, {
+          // 3. SANITIZAÇÃO
+          const { sanitizedData, errors } = sanitizarXmlRow(rawData);
+
+          if (errors) {
+            // Se o sanitizador encontrou erros, registra e pula para a próxima linha
+            importReport.errorCount++;
+            importReport.errors.push({
+              line: lineNumber,
+              nome: rawClienteBruto,
+              details: errors,
+            });
+            continue; // Pula o resto do loop para esta linha
+          }
+
+          // 4. PROCESSAMENTO NO BANCO
+          const { isNewClient } = await processarDados(sanitizedData, {
             transaction: t,
             userId: req.userId,
           });
@@ -279,12 +233,11 @@ class XmlUploadController {
             importReport.updateCount++;
           }
         } catch (e) {
-          // Erro na linha específica
           importReport.errorCount++;
           importReport.errors.push({
             line: lineNumber,
-            nome: rawData.cliente_bruto || `Linha ${lineNumber}`,
-            details: e.message,
+            nome: rawClienteBruto,
+            details: [e.message],
           });
         }
       }
@@ -293,17 +246,15 @@ class XmlUploadController {
         await t.rollback();
         return res.status(422).json({
           message:
-            "A importação falhou devido a erros nos dados. Nenhuma informação foi salva.",
+            "Importação falhou devido a erros. Nenhuma alteração foi salva.",
           report: importReport,
         });
       }
 
-      // Sucesso!
       await t.commit();
-      return res.status(200).json({
-        message: "Importação concluída com sucesso.",
-        report: importReport,
-      });
+      return res
+        .status(200)
+        .json({ message: "Importação concluída.", report: importReport });
     } catch (e) {
       await t.rollback();
       return errorHandler(e, res);
