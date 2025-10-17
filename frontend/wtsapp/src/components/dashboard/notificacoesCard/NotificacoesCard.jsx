@@ -61,7 +61,7 @@ const NotificacoesMensais = ({
       <div className={styles.filterWrapper}>
         <select
           value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
           className={styles.select}
           disabled={isLoading}
           aria-label="Selecionar mês"

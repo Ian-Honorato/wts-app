@@ -94,7 +94,7 @@ export function useDashboardData(user) {
   // A NOVA query segue o mesmo padrão robusto
   const { data: notificacoesMensaisData, isLoading: isNotificacoesLoading } =
     useQuery({
-      queryKey: ["notificacoesMensais", selectedMonth], // Chave com dependência
+      queryKey: ["notificacoesMensais", selectedMonth],
       queryFn: () => fetchNotificacoesMensais(selectedMonth),
       enabled: !!user,
     });
