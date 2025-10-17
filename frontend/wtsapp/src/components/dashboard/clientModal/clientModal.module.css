@@ -79,7 +79,6 @@
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-top: 2rem;
   width: 100%;
 }
 
@@ -117,6 +116,62 @@
 
 .phoneNumber {
   flex: 3;
+}
+
+/* === NOVOS ESTILOS PARA O WIZARD === */
+
+.stepIndicator {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: #888;
+}
+
+.stepIndicator span {
+  margin: 0 8px;
+}
+
+.stepIndicator .activeStep {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.navigationButtons {
+  display: flex;
+  justify-content: flex-end; /* Alinha botões à direita por padrão */
+  gap: 10px; /* Espaçamento entre os botões */
+  margin-top: 2rem;
+}
+
+/* Estilo para quando há dois botões (Voltar e Cadastrar) */
+.navigationButtons:has(.secondaryButton) {
+  justify-content: space-between;
+}
+
+.secondaryButton {
+  padding: 0.9rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #6c757d; /* Cinza */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.secondaryButton:hover {
+  background-color: #5a6268;
+}
+
+/* Ajuste no botão de submit quando houver mais de um */
+.navigationButtons .submitButton {
+  width: auto;
+  flex-grow: 1;
+}
+
+.navigationButtons:has(.secondaryButton) .submitButton {
+  max-width: 75%;
 }
 
 @media (max-width: 768px) {

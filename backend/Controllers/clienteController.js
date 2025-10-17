@@ -215,7 +215,24 @@ class ClienteController {
           { transaction: t }
         );
       }
+      const activeStatuses = ["Ativo", "Renovado"];
+      if (activeStatuses.includes(status)) {
+        const contratoAtivoExistente = await ContratoCertificado.findOne({
+          where: {
+            cliente_id: novoCliente.id,
+            status: {
+              [Op.in]: activeStatuses,
+            },
+          },
+          transaction: t,
+        });
 
+        if (contratoAtivoExistente) {
+          throw new Error(
+            `O cliente já possui um contrato com o status "${contratoAtivoExistente.status}". Não é possível criar outro contrato ativo/renovado.`
+          );
+        }
+      }
       const novoContrato = await ContratoCertificado.create(
         {
           numero_contrato,
@@ -237,7 +254,10 @@ class ClienteController {
       });
     } catch (e) {
       await t.rollback();
-      if (e.message.includes("já existe")) {
+      if (
+        e.message.includes("já existe na base de dados") ||
+        e.message.includes("já possui um contrato com o status")
+      ) {
         return res.status(409).json({ error: e.message });
       }
       return errorHandler(e, res);

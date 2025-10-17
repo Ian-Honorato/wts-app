@@ -54,6 +54,7 @@ const initialState = {
 const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
+  const [step, setStep] = useState(1); // Estado para controlar a etapa
 
   const createMutation = useCreateClientMutation();
   const updateMutation = useUpdateClientMutation();
@@ -99,38 +100,50 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       } else {
         setFormData(initialState);
       }
-
-      // A lógica de reset foi movida para DENTRO do if(isOpen)
       setErrors({});
+      setStep(1); // Sempre reseta para a primeira etapa
       createMutation.reset();
       updateMutation.reset();
     }
-  }, [isOpen, clientToEdit, isUpdateMode]);
+  }, [isOpen, clientToEdit, isUpdateMode, createMutation, updateMutation]);
 
-  const validate = useCallback(() => {
-    const newErrors = {};
-    if (!formData.nome_cliente)
-      newErrors.nome_cliente = "O nome do cliente é obrigatório.";
-    if (!formData.cpf_cnpj) newErrors.cpf_cnpj = "O CPF/CNPJ é obrigatório.";
-    if (!formData.ddi || !formData.ddd || !formData.telefoneNumero) {
-      newErrors.telefone = "O telefone completo é obrigatório.";
-    } else if (formData.telefoneNumero.length < 8) {
-      newErrors.telefone = "O número de telefone parece curto demais.";
-    }
-    if (!formData.status) newErrors.status = "O status é obrigatório.";
-    if (!formData.nome_parceiro)
-      newErrors.nome_parceiro = "O nome do parceiro é obrigatório.";
-    if (!formData.nome_certificado)
-      newErrors.nome_certificado = "O nome do certificado é obrigatório.";
-    if (!formData.numero_contrato)
-      newErrors.numero_contrato = "O número do contrato é obrigatório.";
-    if (!formData.email_cliente) {
-      newErrors.email_cliente = "O e-mail é obrigatório.";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email_cliente)) {
-      newErrors.email_cliente = "O formato do e-mail é inválido.";
-    }
-    return newErrors;
-  }, [formData]);
+  const validate = useCallback(
+    (currentStep) => {
+      const newErrors = {};
+
+      // Validação da Etapa 1: Dados do Cliente
+      if (currentStep === 1) {
+        if (!formData.nome_cliente)
+          newErrors.nome_cliente = "O nome do cliente é obrigatório.";
+        if (!formData.cpf_cnpj)
+          newErrors.cpf_cnpj = "O CPF/CNPJ é obrigatório.";
+        if (!formData.ddi || !formData.ddd || !formData.telefoneNumero) {
+          newErrors.telefone = "O telefone completo é obrigatório.";
+        } else if (formData.telefoneNumero.length < 8) {
+          newErrors.telefone = "O número de telefone parece curto demais.";
+        }
+        if (!formData.email_cliente) {
+          newErrors.email_cliente = "O e-mail é obrigatório.";
+        } else if (!/\S+@\S+\.\S+/.test(formData.email_cliente)) {
+          newErrors.email_cliente = "O formato do e-mail é inválido.";
+        }
+        if (!formData.nome_parceiro)
+          newErrors.nome_parceiro = "O nome do parceiro é obrigatório.";
+      }
+
+      // Validação da Etapa 2: Dados do Contrato
+      if (currentStep === 2) {
+        if (!formData.status) newErrors.status = "O status é obrigatório.";
+        if (!formData.nome_certificado)
+          newErrors.nome_certificado = "O nome do certificado é obrigatório.";
+        if (!formData.numero_contrato)
+          newErrors.numero_contrato = "O Ticket é obrigatório.";
+      }
+
+      return newErrors;
+    },
+    [formData]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -167,7 +180,10 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validationErrors = validate();
+    const step1Errors = validate(1);
+    const step2Errors = isUpdateMode ? {} : validate(2); // No modo de edição, a validação é unificada
+    const validationErrors = { ...step1Errors, ...step2Errors };
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -197,9 +213,33 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
     }
   };
 
+  const handleNextStep = () => {
+    const validationErrors = validate(1);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      setStep(2);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setStep(1);
+  };
+
   if (!isOpen) return null;
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  const StepIndicator = () => (
+    <div className={styles.stepIndicator}>
+      <span className={step === 1 ? styles.activeStep : ""}>
+        Dados do Cliente
+      </span>
+      <span>/</span>
+      <span className={step === 2 ? styles.activeStep : ""}>
+        Dados do Contrato
+      </span>
+    </div>
+  );
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -207,213 +247,264 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
         <h2 className={styles.title}>
           {isUpdateMode ? "Atualizar Cliente" : "Cadastrar Novo Cliente"}
         </h2>
+
+        {!isUpdateMode && <StepIndicator />}
+
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="nome_cliente">Nome / Razão Social *</label>
-              <input
-                type="text"
-                id="nome_cliente"
-                name="nome_cliente"
-                value={formData.nome_cliente}
-                onChange={handleChange}
-                className={styles.input}
-              />
-              {errors.nome_cliente && (
-                <p className={styles.errorMessage}>{errors.nome_cliente}</p>
-              )}
-            </div>
+            {/* ETAPA 1: DADOS DO CLIENTE */}
+            {(step === 1 || isUpdateMode) && (
+              <>
+                <div className={styles.formGroup}>
+                  <label htmlFor="nome_cliente">Nome / Razão Social *</label>
+                  <input
+                    type="text"
+                    id="nome_cliente"
+                    name="nome_cliente"
+                    value={formData.nome_cliente}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                  {errors.nome_cliente && (
+                    <p className={styles.errorMessage}>{errors.nome_cliente}</p>
+                  )}
+                </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="cpf_cnpj">CPF / CNPJ *</label>
-              <input
-                type="text"
-                id="cpf_cnpj"
-                name="cpf_cnpj"
-                value={formData.cpf_cnpj}
-                onChange={handleChange}
-                className={styles.input}
-              />
-              {errors.cpf_cnpj && (
-                <p className={styles.errorMessage}>{errors.cpf_cnpj}</p>
-              )}
-            </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="cpf_cnpj">CPF / CNPJ *</label>
+                  <input
+                    type="text"
+                    id="cpf_cnpj"
+                    name="cpf_cnpj"
+                    value={formData.cpf_cnpj}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                  {errors.cpf_cnpj && (
+                    <p className={styles.errorMessage}>{errors.cpf_cnpj}</p>
+                  )}
+                </div>
 
-            <div className={styles.formGroup}>
-              <label>Telefone *</label>
-              <div className={styles.phoneInputGroup}>
-                <input
-                  type="text"
-                  name="ddi"
-                  placeholder="55"
-                  value={formData.ddi}
-                  onChange={handleChange}
-                  className={`${styles.input} ${styles.phoneDDI}`}
-                  maxLength="2"
-                />
-                <input
-                  type="text"
-                  name="ddd"
-                  placeholder="DDD"
-                  value={formData.ddd}
-                  onChange={handleChange}
-                  className={`${styles.input} ${styles.phoneDDD}`}
-                  maxLength="2"
-                />
-                <input
-                  type="text"
-                  name="telefoneNumero"
-                  placeholder="Número"
-                  value={formData.telefoneNumero}
-                  onChange={handleChange}
-                  className={`${styles.input} ${styles.phoneNumber}`}
-                  maxLength="9"
-                />
-              </div>
-              {errors.telefone && (
-                <p className={styles.errorMessage}>{errors.telefone}</p>
-              )}
-            </div>
+                <div className={styles.formGroup}>
+                  <label>Telefone *</label>
+                  <div className={styles.phoneInputGroup}>
+                    <input
+                      type="text"
+                      name="ddi"
+                      placeholder="55"
+                      value={formData.ddi}
+                      onChange={handleChange}
+                      className={`${styles.input} ${styles.phoneDDI}`}
+                      maxLength="2"
+                    />
+                    <input
+                      type="text"
+                      name="ddd"
+                      placeholder="DDD"
+                      value={formData.ddd}
+                      onChange={handleChange}
+                      className={`${styles.input} ${styles.phoneDDD}`}
+                      maxLength="2"
+                    />
+                    <input
+                      type="text"
+                      name="telefoneNumero"
+                      placeholder="Número"
+                      value={formData.telefoneNumero}
+                      onChange={handleChange}
+                      className={`${styles.input} ${styles.phoneNumber}`}
+                      maxLength="9"
+                    />
+                  </div>
+                  {errors.telefone && (
+                    <p className={styles.errorMessage}>{errors.telefone}</p>
+                  )}
+                </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="email_cliente">E-mail</label>
-              <input
-                type="email"
-                id="email_cliente"
-                name="email_cliente"
-                value={formData.email_cliente}
-                onChange={handleChange}
-                className={styles.input}
-              />
-              {errors.email_cliente && (
-                <p className={styles.errorMessage}>{errors.email_cliente}</p>
-              )}
-            </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="email_cliente">E-mail *</label>
+                  <input
+                    type="email"
+                    id="email_cliente"
+                    name="email_cliente"
+                    value={formData.email_cliente}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                  {errors.email_cliente && (
+                    <p className={styles.errorMessage}>
+                      {errors.email_cliente}
+                    </p>
+                  )}
+                </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="status">Status *</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className={styles.input}
-              >
-                <option value="" disabled>
-                  Selecione um status
-                </option>
-                {statusEnumValidos.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-              {errors.status && (
-                <p className={styles.errorMessage}>{errors.status}</p>
-              )}
-            </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="nome_parceiro">Nome do Parceiro *</label>
+                  <input
+                    type="text"
+                    id="nome_parceiro"
+                    name="nome_parceiro"
+                    value={formData.nome_parceiro}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                  {errors.nome_parceiro && (
+                    <p className={styles.errorMessage}>
+                      {errors.nome_parceiro}
+                    </p>
+                  )}
+                </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="nome_parceiro">Nome do Parceiro *</label>
-              <input
-                type="text"
-                id="nome_parceiro"
-                name="nome_parceiro"
-                value={formData.nome_parceiro}
-                onChange={handleChange}
-                className={styles.input}
-              />
-              {errors.nome_parceiro && (
-                <p className={styles.errorMessage}>{errors.nome_parceiro}</p>
-              )}
-            </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="representante">Representante</label>
+                  <input
+                    type="text"
+                    id="representante"
+                    name="representante"
+                    value={formData.representante}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                </div>
+              </>
+            )}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="nome_certificado">Nome do Certificado *</label>
-              <select
-                id="nome_certificado"
-                name="nome_certificado"
-                value={formData.nome_certificado}
-                onChange={handleChange}
-                className={styles.input}
-              >
-                <option value="" disabled>
-                  Selecione um Certificado
-                </option>
-                {certificados.map((certificado) => (
-                  <option key={certificado} value={certificado}>
-                    {certificado}
-                  </option>
-                ))}
-              </select>
-              {errors.nome_certificado && (
-                <p className={styles.errorMessage}>{errors.nome_certificado}</p>
-              )}
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="numero_contrato">Ticket *</label>
-              <input
-                type="text"
-                id="numero_contrato"
-                name="numero_contrato"
-                value={formData.numero_contrato}
-                onChange={handleChange}
-                className={styles.input}
-              />
-              {errors.numero_contrato && (
-                <p className={styles.errorMessage}>{errors.numero_contrato}</p>
-              )}
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="data_renovacao">Data de Renovação</label>
-              <input
-                type="date"
-                id="data_renovacao"
-                name="data_renovacao"
-                value={formData.data_renovacao}
-                onChange={handleChange}
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="data_vencimento">Data de Vencimento</label>
-              <input
-                type="date"
-                id="data_vencimento"
-                name="data_vencimento"
-                value={formData.data_vencimento}
-                onChange={handleChange}
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="representante">Representante</label>
-              <input
-                type="text"
-                id="representante"
-                name="representante"
-                value={formData.representante}
-                onChange={handleChange}
-                className={styles.input}
-              />
-            </div>
+            {/* ETAPA 2: DADOS DO CONTRATO */}
+            {(step === 2 || isUpdateMode) && (
+              <>
+                <div className={styles.formGroup}>
+                  <label htmlFor="status">Status *</label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className={styles.input}
+                  >
+                    <option value="" disabled>
+                      Selecione um status
+                    </option>
+                    {statusEnumValidos.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.status && (
+                    <p className={styles.errorMessage}>{errors.status}</p>
+                  )}
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="nome_certificado">
+                    Nome do Certificado *
+                  </label>
+                  <select
+                    id="nome_certificado"
+                    name="nome_certificado"
+                    value={formData.nome_certificado}
+                    onChange={handleChange}
+                    className={styles.input}
+                  >
+                    <option value="" disabled>
+                      Selecione um Certificado
+                    </option>
+                    {certificados.map((certificado) => (
+                      <option key={certificado} value={certificado}>
+                        {certificado}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.nome_certificado && (
+                    <p className={styles.errorMessage}>
+                      {errors.nome_certificado}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="numero_contrato">Ticket *</label>
+                  <input
+                    type="text"
+                    id="numero_contrato"
+                    name="numero_contrato"
+                    value={formData.numero_contrato}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                  {errors.numero_contrato && (
+                    <p className={styles.errorMessage}>
+                      {errors.numero_contrato}
+                    </p>
+                  )}
+                </div>
+                <div className={styles.formGroup}></div>{" "}
+                {/* Placeholder for grid alignment */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="data_renovacao">Data de Renovação</label>
+                  <input
+                    type="date"
+                    id="data_renovacao"
+                    name="data_renovacao"
+                    value={formData.data_renovacao}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="data_vencimento">Data de Vencimento</label>
+                  <input
+                    type="date"
+                    id="data_vencimento"
+                    name="data_vencimento"
+                    value={formData.data_vencimento}
+                    onChange={handleChange}
+                    className={styles.input}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={isLoading}
-          >
-            {isLoading
-              ? "Salvando..."
-              : isUpdateMode
-              ? "Salvar Alterações"
-              : "Cadastrar Cliente"}
-          </button>
+          <div className={styles.navigationButtons}>
+            {isUpdateMode ? (
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={isLoading}
+              >
+                {isLoading ? "Salvando..." : "Salvar Alterações"}
+              </button>
+            ) : (
+              <>
+                {step === 1 && (
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className={styles.submitButton}
+                  >
+                    Avançar
+                  </button>
+                )}
+                {step === 2 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      className={styles.secondaryButton}
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      type="submit"
+                      className={styles.submitButton}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Cadastrando..." : "Cadastrar Cliente"}
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </form>
         <button className={styles.closeButton} onClick={onClose}>
           <FontAwesomeIcon icon={faTimes} />
