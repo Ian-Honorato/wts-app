@@ -24,6 +24,8 @@
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
+  z-index: 2100;
+  pointer-events: auto;
 }
 
 .closeButton {

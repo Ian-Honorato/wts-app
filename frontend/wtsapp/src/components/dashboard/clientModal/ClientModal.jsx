@@ -514,4 +514,4 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   );
 };
 
-export default ClientModal;
+export default React.memo(ClientModal);
