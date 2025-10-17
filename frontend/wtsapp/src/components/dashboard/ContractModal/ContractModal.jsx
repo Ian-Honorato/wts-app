@@ -3,7 +3,7 @@ import styles from "./ContractModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
-// *** CORREÇÃO 1: Importar os hooks de mutação e o error handler ***
+// Hooks e Utilitários
 import {
   useCreateContractMutation,
   useUpdateContractMutation,
@@ -35,6 +35,7 @@ const certificados = [
   "e-CPF A3 token",
 ];
 
+// Estado inicial do formulário
 const initialState = {
   numero_contrato: "",
   nome_certificado: "",
@@ -53,15 +54,16 @@ const ContractModal = ({
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
 
-  // Instanciando os hooks de mutação
   const createContractMutation = useCreateContractMutation();
   const updateContractMutation = useUpdateContractMutation();
 
   const isUpdateMode = Boolean(contractToEdit);
 
+  // Efeito para popular ou limpar o formulário quando o modal abre/fecha
   useEffect(() => {
     if (isOpen) {
       if (isUpdateMode && contractToEdit) {
+        // Modo Edição: Preenche com os dados existentes
         setFormData({
           numero_contrato: contractToEdit.numero_contrato || "",
           nome_certificado: contractToEdit.certificado?.nome_certificado || "",
@@ -78,22 +80,38 @@ const ContractModal = ({
             : "",
         });
       } else {
+        // Modo Criação: Reseta para o estado inicial
         setFormData(initialState);
       }
+      // Limpa erros antigos ao abrir o modal
       setErrors({});
     }
-  }, [isOpen, contractToEdit, isUpdateMode]); // *** CORREÇÃO 2: Adicionada a dependência 'isUpdateMode' ***
+  }, [isOpen, contractToEdit, isUpdateMode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Limpa o erro do campo específico ao ser alterado
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
   const validate = () => {
-    /* ... (sua função de validação está correta) ... */
+    const newErrors = {};
+    if (!formData.numero_contrato.trim()) {
+      newErrors.numero_contrato = "O número do contrato/ticket é obrigatório.";
+    }
+    if (!formData.status) {
+      newErrors.status = "O status é obrigatório.";
+    }
+    if (!formData.nome_certificado) {
+      newErrors.nome_certificado = "O certificado é obrigatório.";
+    }
+    if (!formData.data_vencimento) {
+      newErrors.data_vencimento = "A data de vencimento é obrigatória.";
+    }
+    return newErrors;
   };
 
   const handleSubmit = (e) => {
@@ -104,13 +122,14 @@ const ContractModal = ({
       return;
     }
 
+    // Prepara os dados para o envio, garantindo que a data opcional seja null se vazia
     const mutationData = {
       ...formData,
       cliente_id: clientId,
       data_renovacao: formData.data_renovacao || null,
     };
 
-    const getMutationCallbacks = (successMessage) => ({
+    const mutationCallbacks = (successMessage) => ({
       onSuccess: () => {
         onFeedback("success", successMessage);
         onClose();
@@ -125,16 +144,17 @@ const ContractModal = ({
     if (isUpdateMode) {
       updateContractMutation.mutate(
         { ...mutationData, id: contractToEdit.id },
-        getMutationCallbacks("Contrato atualizado com sucesso!")
+        mutationCallbacks("Contrato atualizado com sucesso!")
       );
     } else {
       createContractMutation.mutate(
         mutationData,
-        getMutationCallbacks("Contrato adicionado com sucesso!")
+        mutationCallbacks("Contrato adicionado com sucesso!")
       );
     }
   };
 
+  // Simplifica a verificação de loading
   const isLoading =
     createContractMutation.isPending || updateContractMutation.isPending;
 
@@ -153,21 +173,25 @@ const ContractModal = ({
         </div>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
+            {/* Campo Nº Contrato / Ticket */}
             <div className={styles.formGroup}>
               <label htmlFor="numero_contrato">Nº Contrato / Ticket *</label>
-              {/* *** CORREÇÃO 3: Adicionado o onChange *** */}
               <input
                 type="text"
                 id="numero_contrato"
                 name="numero_contrato"
                 value={formData.numero_contrato}
                 onChange={handleChange}
-                className={styles.input}
+                className={
+                  errors.numero_contrato ? styles.inputError : styles.input
+                }
               />
               {errors.numero_contrato && (
                 <p className={styles.errorMessage}>{errors.numero_contrato}</p>
               )}
             </div>
+
+            {/* Campo Status */}
             <div className={styles.formGroup}>
               <label htmlFor="status">Status *</label>
               <select
@@ -175,12 +199,11 @@ const ContractModal = ({
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className={styles.input}
+                className={errors.status ? styles.inputError : styles.input}
               >
                 <option value="" disabled>
                   Selecione um status
                 </option>
-                {/* *** CORREÇÃO 4: Usando o .map para gerar as options *** */}
                 {statusEnumValidos.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -191,6 +214,8 @@ const ContractModal = ({
                 <p className={styles.errorMessage}>{errors.status}</p>
               )}
             </div>
+
+            {/* Campo Certificado */}
             <div className={styles.formGroup}>
               <label htmlFor="nome_certificado">Certificado *</label>
               <select
@@ -198,12 +223,13 @@ const ContractModal = ({
                 name="nome_certificado"
                 value={formData.nome_certificado}
                 onChange={handleChange}
-                className={styles.input}
+                className={
+                  errors.nome_certificado ? styles.inputError : styles.input
+                }
               >
                 <option value="" disabled>
                   Selecione um certificado
                 </option>
-                {/* *** CORREÇÃO 5: Usando o .map para gerar as options *** */}
                 {certificados.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -214,7 +240,8 @@ const ContractModal = ({
                 <p className={styles.errorMessage}>{errors.nome_certificado}</p>
               )}
             </div>
-            <div className={styles.formGroup}></div>
+
+            {/* Campo Data de Renovação */}
             <div className={styles.formGroup}>
               <label htmlFor="data_renovacao">Data de Renovação</label>
               <input
@@ -226,6 +253,8 @@ const ContractModal = ({
                 className={styles.input}
               />
             </div>
+
+            {/* Campo Data de Vencimento */}
             <div className={styles.formGroup}>
               <label htmlFor="data_vencimento">Data de Vencimento *</label>
               <input
@@ -234,7 +263,9 @@ const ContractModal = ({
                 name="data_vencimento"
                 value={formData.data_vencimento}
                 onChange={handleChange}
-                className={styles.input}
+                className={
+                  errors.data_vencimento ? styles.inputError : styles.input
+                }
               />
               {errors.data_vencimento && (
                 <p className={styles.errorMessage}>{errors.data_vencimento}</p>
