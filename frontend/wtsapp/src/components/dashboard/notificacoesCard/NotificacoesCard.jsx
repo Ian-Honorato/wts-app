@@ -29,6 +29,8 @@ const NotificacoesCard = ({
   const notificacoes = data?.notificacoes || [];
   const totalNotificados = notificacoes.length;
 
+  console.log("Notificações Mensais:", notificacoes);
+  console.log("dados brutos", data);
   const handleWhatsAppClick = (telefone) => {
     if (!telefone) return;
     const telefoneLimpo = telefone.replace(/\D/g, "");
