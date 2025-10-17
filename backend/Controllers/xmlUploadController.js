@@ -7,7 +7,7 @@ import {
   ContratoCertificado,
 } from "../Models/index.js";
 
-import sanitizarXmlRow from "../utils/xmlDataSanitizer.js";
+import xmlDataSanitizer from "../Util/errorHandler.js";
 import { errorHandler } from "../utils/errorHandler.js";
 
 // Função auxiliar para normalizar o número do contrato
@@ -208,7 +208,7 @@ class XmlUploadController {
           }
 
           // 3. SANITIZAÇÃO
-          const { sanitizedData, errors } = sanitizarXmlRow(rawData);
+          const { sanitizedData, errors } = xmlDataSanitizer(rawData);
 
           if (errors) {
             // Se o sanitizador encontrou erros, registra e pula para a próxima linha
