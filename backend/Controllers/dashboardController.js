@@ -210,7 +210,6 @@ class DashboardController {
     }
   }
   async getNotificacoesPorMes(req, res) {
-    // O bloco try permanece o mesmo
     try {
       const mes = parseInt(req.query.month) || new Date().getMonth() + 1;
       const ano = new Date().getFullYear();
