@@ -2,10 +2,10 @@ import { parseStringPromise } from "xml2js";
 import {
   sequelize,
   Cliente,
-  Parceiro,
   Certificado,
   ContratoCertificado,
-} from "../models/index.js"; // Verifique se o caminho dos seus models está correto
+  Parceiro,
+} from "../Models/index.js";
 
 import sanitizarXmlRow from "../utils/xmlDataSanitizer.js";
 import { errorHandler } from "../utils/errorHandler.js";
@@ -212,22 +212,18 @@ class XmlUploadController {
       // --- FINALIZAÇÃO DA TRANSAÇÃO ---
       if (importReport.errorCount > 0) {
         await t.rollback();
-        return res
-          .status(422)
-          .json({
-            message:
-              "Importação concluída com erros. Nenhuma alteração foi salva.",
-            report: importReport,
-          });
+        return res.status(422).json({
+          message:
+            "Importação concluída com erros. Nenhuma alteração foi salva.",
+          report: importReport,
+        });
       }
 
       await t.commit();
-      return res
-        .status(200)
-        .json({
-          message: "Importação concluída com sucesso.",
-          report: importReport,
-        });
+      return res.status(200).json({
+        message: "Importação concluída com sucesso.",
+        report: importReport,
+      });
     } catch (e) {
       await t.rollback();
       return errorHandler(e, res); // Assumindo que seu errorHandler recebe (error, res)
