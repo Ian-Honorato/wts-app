@@ -8,6 +8,7 @@ import axios from "axios";
 // Centralizam a URL base e a lógica de autenticação.
 // ================================================================
 const baseUrl = "/api/clientes/";
+const baseUrlContratos = "/api/contratos/";
 
 function createBarerTokenConfig() {
   const token = sessionStorage.getItem("token");
@@ -86,7 +87,26 @@ const importClientApi = async (formData) => {
   );
   return response.data;
 };
-// ================================================================
+const createContractApi = async (contractData) => {
+  const config = createBarerTokenConfig();
+
+  const { data } = await axios.post(baseUrlContratos, contractData, config);
+  return data;
+};
+
+const updateContractApi = async (contractData) => {
+  const { id, ...dataToUpdate } = contractData;
+  const config = createBarerTokenConfig();
+
+  const { data } = await axios.put(
+    `${baseUrlContratos}${id}`,
+    dataToUpdate,
+    config
+  );
+  return data;
+};
+
+// ============================================================
 // Mutations Hooks
 // ================================================================
 
@@ -159,6 +179,38 @@ export function useDeleteClientMutation() {
     onSuccess: () => invalidandoQueries(queryClient),
     onError: (error) => {
       console.log("Erro na mutação:", error);
+    },
+  });
+}
+export function useCreateContractMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createContractApi,
+    // Ao criar um contrato, a única coisa que precisa ser atualizada
+    // é a lista de contratos dentro dos detalhes do cliente específico.
+    onSuccess: (data, variables) => {
+      // 'variables' contém os dados que foram enviados para a mutation, incluindo o cliente_id
+      const clienteId = variables.cliente_id;
+      // Invalida a query de detalhes daquele cliente para recarregar a lista de contratos
+      queryClient.invalidateQueries({ queryKey: ["client", clienteId] });
+    },
+    onError: (error) => {
+      console.log("Erro ao criar contrato:", error);
+    },
+  });
+}
+
+export function useUpdateContractMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateContractApi,
+
+    onSuccess: (data, variables) => {
+      const clienteId = variables.cliente_id;
+      queryClient.invalidateQueries({ queryKey: ["client", clienteId] });
+    },
+    onError: (error) => {
+      console.log("Erro ao atualizar contrato:", error);
     },
   });
 }

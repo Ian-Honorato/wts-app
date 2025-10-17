@@ -1,0 +1,169 @@
+import axios from "axios";
+import { Op } from "sequelize";
+import { sequelize } from "../Database/index.js";
+import errorHandler from "../Utils/errorHandler.js";
+import { ContratoCertificado, Certificado } from "../Models/index.js";
+
+class ContratosController {
+  async store(req, res) {
+    const t = await sequelize.transaction();
+    try {
+      const {
+        cliente_id,
+        numero_contrato,
+        data_vencimento,
+        data_renovacao,
+        status,
+        nome_certificado,
+      } = req.body;
+
+      // Validação básica de entrada
+      if (!cliente_id || !data_vencimento || !status || !nome_certificado) {
+        throw new Error("Dados obrigatórios do contrato não foram fornecidos.");
+      }
+
+      // REGRA 1: Não pode haver dois contratos com a mesma data de vencimento para o mesmo cliente.
+      const contratoPorVencimento = await ContratoCertificado.findOne({
+        where: { cliente_id, data_vencimento },
+        transaction: t,
+      });
+      if (contratoPorVencimento) {
+        throw new Error(
+          `Este cliente já possui um contrato vencendo em ${new Date(
+            data_vencimento
+          ).toLocaleDateString("pt-BR")}.`
+        );
+      }
+
+      // REGRA 2: Se a data de renovação for fornecida, não pode haver sobreposição de períodos.
+      if (data_renovacao) {
+        const contratoSobreposto = await ContratoCertificado.findOne({
+          where: {
+            cliente_id,
+            data_renovacao: { [Op.ne]: null }, // Apenas verifica contra contratos que têm um período definido
+            [Op.and]: [
+              { data_renovacao: { [Op.lt]: data_vencimento } }, // A renovação do contrato antigo é ANTES do vencimento do novo
+              { data_vencimento: { [Op.gt]: data_renovacao } }, // O vencimento do contrato antigo é DEPOIS da renovação do novo
+            ],
+          },
+          transaction: t,
+        });
+        if (contratoSobreposto) {
+          throw new Error(
+            "O período do novo contrato está em conflito com um contrato existente."
+          );
+        }
+      }
+
+      // Encontra ou cria o certificado para obter a referência
+      const [certificado] = await Certificado.findOrCreate({
+        where: { nome_certificado },
+        defaults: { nome_certificado },
+        transaction: t,
+      });
+
+      const novoContrato = await ContratoCertificado.create(
+        {
+          cliente_id,
+          numero_contrato,
+          data_vencimento,
+          data_renovacao,
+          status,
+          referencia_certificado: certificado.id,
+          usuario_id: req.userId, // ID do usuário logado vindo do middleware
+        },
+        { transaction: t }
+      );
+
+      await t.commit();
+      return res.status(201).json({
+        message: "Contrato criado com sucesso!",
+        contrato: novoContrato,
+      });
+    } catch (e) {
+      await t.rollback();
+      // Retorna 409 Conflict para erros de regra de negócio
+      if (e.message.includes("já possui") || e.message.includes("conflito")) {
+        return res.status(409).json({ error: e.message });
+      }
+      return errorHandler(e, res);
+    }
+  }
+
+  /**
+   * Atualiza um contrato existente.
+   */
+  async update(req, res) {
+    const t = await sequelize.transaction();
+    try {
+      const { id } = req.params; // ID do contrato a ser atualizado
+      const {
+        numero_contrato,
+        data_vencimento,
+        data_renovacao,
+        status,
+        nome_certificado,
+      } = req.body;
+
+      const contrato = await ContratoCertificado.findByPk(id, {
+        transaction: t,
+      });
+      if (!contrato) {
+        throw new Error("Contrato não encontrado.");
+      }
+
+      // Re-executa as validações, excluindo o próprio contrato da verificação
+      if (data_vencimento) {
+        const contratoPorVencimento = await ContratoCertificado.findOne({
+          where: {
+            cliente_id: contrato.cliente_id,
+            data_vencimento,
+            id: { [Op.ne]: id },
+          },
+          transaction: t,
+        });
+        if (contratoPorVencimento)
+          throw new Error(
+            `Este cliente já possui outro contrato vencendo em ${new Date(
+              data_vencimento
+            ).toLocaleDateString("pt-BR")}.`
+          );
+      }
+      // (Pode adicionar a validação de sobreposição aqui também se for necessário)
+
+      const [certificado] = await Certificado.findOrCreate({
+        where: { nome_certificado },
+        defaults: { nome_certificado },
+        transaction: t,
+      });
+
+      const contratoAtualizado = await contrato.update(
+        {
+          numero_contrato,
+          data_vencimento,
+          data_renovacao,
+          status,
+          referencia_certificado: certificado.id,
+        },
+        { transaction: t }
+      );
+
+      await t.commit();
+      return res.status(200).json({
+        message: "Contrato atualizado com sucesso!",
+        contrato: contratoAtualizado,
+      });
+    } catch (e) {
+      await t.rollback();
+      if (e.message.includes("não encontrado")) {
+        return res.status(404).json({ error: e.message });
+      }
+      if (e.message.includes("já possui")) {
+        return res.status(409).json({ error: e.message });
+      }
+      return errorHandler(e, res);
+    }
+  }
+}
+
+export default new ContratosController();

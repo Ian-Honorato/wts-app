@@ -415,6 +415,7 @@ class ClienteController {
           {
             model: ContratoCertificado,
             as: "contratos",
+            order: [["data_vencimento", "DESC"]],
             attributes: [
               "numero_contrato",
               "data_vencimento",
