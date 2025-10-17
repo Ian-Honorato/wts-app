@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 400px; /* <-- altura máxima total do card */
 }
 
 /* Header com Ícone, Contagem e Título */
@@ -17,58 +18,31 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-.iconWrapper {
-  background-color: var(--primary-light-color, #e0f2fe);
-  color: var(--primary-color, #0ea5e9);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0; /* Impede que o ícone encolha */
-}
-
-.titleWrapper {
-  display: flex;
-  flex-direction: column;
-}
-
-.count {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-color);
-  line-height: 1;
-}
-
-.title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-light-color);
-}
-
 /* Filtro de Mês */
 .filterWrapper {
   padding: 1rem 0;
 }
 
-.select {
-  width: 100%;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: #f9f9f9;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
 /* Lista de Clientes */
 .clientList {
   flex-grow: 1;
-  overflow-y: auto;
-  padding-right: 10px; /* Espaço para a barra de rolagem */
+  max-height: 240px; /* <-- define a altura da lista */
+  overflow-y: auto; /* <-- rolagem vertical */
+  padding-right: 8px;
+}
+
+/* Estiliza a barra de rolagem */
+.clientList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.clientList::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.clientList::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .clientItem {
@@ -79,6 +53,11 @@
   padding: 0.8rem 1rem;
   border-radius: 8px;
   margin-bottom: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.clientItem:hover {
+  background-color: #eef8ff;
 }
 
 .clientInfo h4 {
@@ -94,14 +73,19 @@
   color: var(--text-light-color);
 }
 
+.clientInfo small {
+  font-size: 0.75rem;
+  color: #666;
+}
+
 .whatsappButton {
   background-color: #25d366;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 1.4rem;
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,11 +96,4 @@
 .whatsappButton:hover {
   transform: scale(1.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.loadingText,
-.noNotifications {
-  text-align: center;
-  color: var(--text-light-color);
-  padding-top: 2rem;
 }
