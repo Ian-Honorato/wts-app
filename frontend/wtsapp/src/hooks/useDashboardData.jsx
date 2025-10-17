@@ -39,12 +39,13 @@ const fetchRenovationsData = async (filters) => {
 // NOVA FUNÇÃO para buscar as notificações mensais
 const fetchNotificacoesMensais = async (month) => {
   const token = sessionStorage.getItem("token");
+  // 1. A API retorna um array diretamente na variável 'data'
   const { data } = await axios.get("/api/dashboard/notificacoes-mes", {
     headers: { Authorization: `Bearer ${token}` },
     params: { month },
   });
+
   return {
-    totalNotificados: data.length,
     notificacoes: data,
   };
 };
