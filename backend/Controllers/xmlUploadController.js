@@ -7,8 +7,8 @@ import {
   ContratoCertificado,
 } from "../Models/index.js";
 
-import xmlDataSanitizer from "../Util/errorHandler.js";
-import { errorHandler } from "../utils/errorHandler.js";
+import xmlDataSanitizer from "../Util/xmlDataSanitizer.js";
+import { errorHandler } from "../Util/errorHandler.js";
 
 // Função auxiliar para normalizar o número do contrato
 const normalizarNumeroContrato = (numeroContrato) => {
