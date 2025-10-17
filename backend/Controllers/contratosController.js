@@ -17,12 +17,10 @@ class ContratosController {
         nome_certificado,
       } = req.body;
 
-      // Validação básica de entrada
       if (!cliente_id || !data_vencimento || !status || !nome_certificado) {
         throw new Error("Dados obrigatórios do contrato não foram fornecidos.");
       }
 
-      // REGRA 1: Não pode haver dois contratos com a mesma data de vencimento para o mesmo cliente.
       const contratoPorVencimento = await ContratoCertificado.findOne({
         where: { cliente_id, data_vencimento },
         transaction: t,
@@ -35,15 +33,14 @@ class ContratosController {
         );
       }
 
-      // REGRA 2: Se a data de renovação for fornecida, não pode haver sobreposição de períodos.
       if (data_renovacao) {
         const contratoSobreposto = await ContratoCertificado.findOne({
           where: {
             cliente_id,
             data_renovacao: { [Op.ne]: null }, // Apenas verifica contra contratos que têm um período definido
             [Op.and]: [
-              { data_renovacao: { [Op.lt]: data_vencimento } }, // A renovação do contrato antigo é ANTES do vencimento do novo
-              { data_vencimento: { [Op.gt]: data_renovacao } }, // O vencimento do contrato antigo é DEPOIS da renovação do novo
+              { data_renovacao: { [Op.lt]: data_vencimento } },
+              { data_vencimento: { [Op.gt]: data_renovacao } },
             ],
           },
           transaction: t,
@@ -55,7 +52,6 @@ class ContratosController {
         }
       }
 
-      // Encontra ou cria o certificado para obter a referência
       const [certificado] = await Certificado.findOrCreate({
         where: { nome_certificado },
         defaults: { nome_certificado },
@@ -70,7 +66,7 @@ class ContratosController {
           data_renovacao,
           status,
           referencia_certificado: certificado.id,
-          usuario_id: req.userId, // ID do usuário logado vindo do middleware
+          usuario_id: req.userId,
         },
         { transaction: t }
       );
