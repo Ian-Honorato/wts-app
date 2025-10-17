@@ -43,7 +43,10 @@ const fetchNotificacoesMensais = async (month) => {
     headers: { Authorization: `Bearer ${token}` },
     params: { month },
   });
-  return data;
+  return {
+    totalNotificados: data.length,
+    notificacoes: data,
+  };
 };
 
 // --- LÓGICA DE DATAS ---
@@ -76,7 +79,7 @@ export function useDashboardData(user) {
   const { data: sumarioData, isLoading: isSumarioLoading } = useQuery({
     queryKey: ["sumarioData"], // Chave simples
     queryFn: fetchSumarioData,
-    enabled: !!user, // A query só roda se o usuário estiver autenticado
+    enabled: !!user,
   });
 
   const { data: criticalClients, isLoading: isLoadingCritical } = useQuery({
@@ -91,7 +94,6 @@ export function useDashboardData(user) {
     enabled: !!user,
   });
 
-  // A NOVA query segue o mesmo padrão robusto
   const { data: notificacoesMensaisData, isLoading: isNotificacoesLoading } =
     useQuery({
       queryKey: ["notificacoesMensais", selectedMonth],
