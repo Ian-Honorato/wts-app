@@ -1,3 +1,4 @@
+/* Container Principal */
 .widgetContainer {
   background-color: #fff;
   padding: 1.5rem;
@@ -6,16 +7,46 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-height: 400px; /* <-- altura máxima total do card */
+  max-height: 400px;
 }
 
 /* Header com Ícone, Contagem e Título */
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #f0f0f0;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 50px;
+  background-color: #e0f7fa; /* Fundo azul claro */
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: #00796b; /* Cor do ícone */
+}
+
+.titleWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.count {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #333; /* Cor principal do texto */
+  line-height: 1;
+}
+
+.title {
+  font-size: 0.9rem;
+  color: #757575; /* Cor secundária do texto */
+  margin: 0;
+  font-weight: 500;
 }
 
 /* Filtro de Mês */
@@ -23,15 +54,41 @@
   padding: 1rem 0;
 }
 
+.select {
+  /* Resetando a aparência padrão */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Estilos customizados */
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1.2em;
+  color: #333;
+}
+
+.select:disabled {
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  color: #9e9e9e;
+}
+
 /* Lista de Clientes */
 .clientList {
   flex-grow: 1;
-  max-height: 240px; /* <-- define a altura da lista */
-  overflow-y: auto; /* <-- rolagem vertical */
-  padding-right: 8px;
+  overflow-y: auto;
+  padding-right: 8px; /* Espaço para a barra de rolagem */
 }
 
-/* Estiliza a barra de rolagem */
+/* Estilização da Barra de Rolagem */
 .clientList::-webkit-scrollbar {
   width: 6px;
 }
@@ -64,13 +121,13 @@
   margin: 0 0 0.2rem 0;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: #333;
 }
 
 .clientInfo p {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--text-light-color);
+  color: #757575;
 }
 
 .clientInfo small {
@@ -96,4 +153,13 @@
 .whatsappButton:hover {
   transform: scale(1.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para textos de estado */
+.loadingText,
+.noNotifications {
+  text-align: center;
+  padding: 2rem 0;
+  color: #757575;
+  font-style: italic;
 }
