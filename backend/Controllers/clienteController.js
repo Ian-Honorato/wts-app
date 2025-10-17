@@ -509,9 +509,8 @@ class ClienteController {
       const contratos = await ContratoCertificado.findAll({
         where: {
           data_vencimento: {
-            [Op.between]: [hoje, dataLimite],
+            [Op.lte]: dataLimite,
           },
-
           status: {
             [Op.notIn]: [
               "Cancelado",
@@ -540,8 +539,15 @@ class ClienteController {
         const diffTime = dataVencimento - hoje;
         const diasCalculados = Math.ceil(diffTime / msPorDia);
 
-        const diasRestantes =
-          diasCalculados <= 0 ? "Vencido hoje" : diasCalculados;
+        let diasRestantes;
+
+        if (diasCalculados < 0) {
+          diasRestantes = `Vencido há ${Math.abs(diasCalculados)} dias`;
+        } else if (diasCalculados === 0) {
+          diasRestantes = "Vence hoje";
+        } else {
+          diasRestantes = diasCalculados;
+        }
 
         return {
           cliente: contrato.cliente,
