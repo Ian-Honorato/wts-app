@@ -3,7 +3,6 @@ import styles from "./ClientDetailsModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
-// Imports corretos
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ContractModal from "../ContractModal/ContractModal.jsx";
 
@@ -39,7 +38,7 @@ const ClientDetailsModal = ({
     queryKey: ["client", clientId],
     queryFn: () => detailsClientApi(clientId),
     enabled: isOpen && !!clientId,
-    staleTime: 1000 * 60 * 5, // Opcional: mantém os dados frescos por 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 
   const handleOpenAddContract = () => {
@@ -54,12 +53,11 @@ const ClientDetailsModal = ({
 
   const handleCloseContractModal = () => {
     setIsContractModalOpen(false);
-
     queryClient.invalidateQueries({ queryKey: ["client", clientId] });
   };
 
   const handleAlterar = () => {
-    onClose(); // Fecha o modal de detalhes
+    onClose();
     setTimeout(() => {
       onOpenUpdateModal(details);
     }, 300);
@@ -95,6 +93,21 @@ const ClientDetailsModal = ({
     return new Date(dateString).toLocaleDateString("pt-BR", {
       timeZone: "UTC",
     });
+  };
+
+  // Função para determinar a classe CSS com base no status do contrato
+  const getContractStatusClass = (status) => {
+    const statusLower = status?.toLowerCase();
+    if (statusLower === "ativo") {
+      return styles.active;
+    }
+    if (statusLower === "vencido" || statusLower === "expirado") {
+      return styles.expired;
+    }
+    if (statusLower === "pendente") {
+      return styles.pending;
+    }
+    return ""; // Classe padrão caso não encontre
   };
 
   if (!isOpen) return null;
@@ -144,44 +157,44 @@ const ClientDetailsModal = ({
                   </p>
                 </div>
 
-                {/* Lista de contratos */}
+                {/* Bloco de Contratos com a nova estrutura de lista */}
                 <div className={styles.infoBlock}>
-                  <h4>Contratos</h4>
-                  <div className={styles.contractList}>
+                  <h4>Histórico de Contratos</h4>
+                  <ul className={styles.contractList}>
                     {details.contratos && details.contratos.length > 0 ? (
                       details.contratos.map((contrato) => (
-                        <div
+                        <li
                           key={contrato.id}
                           className={styles.contractItem}
                           onClick={() => handleOpenEditContract(contrato)}
                           title="Clique para editar este contrato"
                         >
-                          <p>
-                            <strong>Nº Contrato:</strong>{" "}
-                            {contrato.numero_contrato}
-                          </p>
-                          <p>
-                            <strong>Vencimento:</strong>{" "}
-                            {formatDate(contrato.data_vencimento)}
-                          </p>
-                          <p>
-                            <strong>Renovação:</strong>{" "}
-                            {formatDate(contrato.data_renovacao)}
-                          </p>
-                          <span className={styles.statusTag}>
+                          <div className={styles.contractInfo}>
+                            <span>
+                              <strong>Nº:</strong> {contrato.numero_contrato}
+                            </span>
+                            <span>
+                              <strong>Vencimento:</strong>{" "}
+                              {formatDate(contrato.data_vencimento)}
+                            </span>
+                          </div>
+                          <span
+                            className={`${
+                              styles.contractLink
+                            } ${getContractStatusClass(contrato.status)}`}
+                          >
                             {contrato.status}
                           </span>
-                        </div>
+                        </li>
                       ))
                     ) : (
                       <p className={styles.noContracts}>
                         Nenhum contrato encontrado.
                       </p>
                     )}
-                  </div>
+                  </ul>
                 </div>
 
-                {/* Bloco de Dados do Parceiro */}
                 {details.parceiro_indicador && (
                   <div className={styles.infoBlockFull}>
                     <h4>Parceiro</h4>
@@ -220,7 +233,6 @@ const ClientDetailsModal = ({
         </div>
       </div>
 
-      {/* Renderiza o ConfirmationModal para deletar o cliente */}
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={handleCloseConfirmModal}
@@ -229,7 +241,6 @@ const ClientDetailsModal = ({
         message={`Você tem certeza que deseja excluir o cliente "${clientToDelete?.nome}"? Esta ação é irreversível.`}
       />
 
-      {/* Renderiza o novo Modal de Contrato */}
       {clientId && (
         <ContractModal
           isOpen={isContractModalOpen}

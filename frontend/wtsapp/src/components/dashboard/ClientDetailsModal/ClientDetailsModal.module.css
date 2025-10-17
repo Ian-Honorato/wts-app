@@ -96,10 +96,92 @@
   border-radius: 5px;
   cursor: pointer;
   color: var(--white-color);
+  transition: opacity 0.2s ease-in-out;
+}
+.actionButton:hover {
+  opacity: 0.9;
 }
 .update {
   background-color: #f39c12;
 }
 .delete {
   background-color: #e74c3c;
+}
+
+/* ===== NOVAS CLASSES ADICIONADAS ABAIXO ===== */
+
+.addContract {
+  background-color: #3498db; /* Azul para o botão de adicionar */
+}
+
+/* Container da lista de contratos */
+.contractList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* Estilo de cada item da lista (semelhante ao card de notificação) */
+.contractItem {
+  background-color: var(--white-color);
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.contractItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Informações do contrato (Número e Vencimento) */
+.contractInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: var(--text-light-color);
+  font-size: 0.9rem;
+}
+
+.contractInfo strong {
+  color: var(--text-color);
+}
+
+/* Estilo base para o link/status */
+.contractLink {
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Variações de cor para os links */
+.contractLink.active {
+  color: #27ae60; /* Verde */
+  background-color: #eaf7f0;
+}
+
+.contractLink.expired {
+  color: #e74c3c; /* Vermelho para Vencido/Expirado */
+  background-color: #fdeded;
+}
+
+.contractLink.pending {
+  color: #f39c12; /* Laranja/Amarelo */
+  background-color: #fef8e7;
+}
+
+.noContracts {
+  color: var(--text-light-color);
+  font-style: italic;
+  font-size: 0.9rem;
 }
