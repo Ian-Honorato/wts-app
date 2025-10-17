@@ -64,6 +64,7 @@ const ContractModal = ({
     if (isOpen) {
       if (isUpdateMode && contractToEdit) {
         // Modo Edição: Preenche com os dados existentes
+        console.log("DADOS RECEBIDOS EM 'contractToEdit':", contractToEdit);
         setFormData({
           numero_contrato: contractToEdit.numero_contrato || "",
           nome_certificado: contractToEdit.certificado?.nome_certificado || "",
