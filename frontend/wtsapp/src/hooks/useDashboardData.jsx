@@ -46,7 +46,7 @@ const fetchNotificacoesMensais = async (month) => {
   });
 
   return {
-    notificacoes: data,
+    data,
   };
 };
 
