@@ -1,8 +1,22 @@
-import axios from "axios";
+import {
+  sequelize,
+  Cliente,
+  Certificado,
+  ContratoCertificado,
+} from "../Models/index.js";
+
 import { Op } from "sequelize";
-import { sequelize } from "../Database/index.js";
-import errorHandler from "../Utils/errorHandler.js";
-import { ContratoCertificado, Certificado } from "../Models/index.js";
+
+import {
+  ValidationError,
+  UniqueConstraintError,
+  ForeignKeyConstraintError,
+} from "sequelize";
+
+// ----------------------------------------------------------------------------
+// FUNÇÕES AUXILIARES
+// ----------------------------------------------------------------------------
+import { errorHandler } from "../Util/errorHandler.js";
 
 class ContratosController {
   async store(req, res) {
@@ -125,7 +139,25 @@ class ContratosController {
             ).toLocaleDateString("pt-BR")}.`
           );
       }
-      // (Pode adicionar a validação de sobreposição aqui também se for necessário)
+      if (data_renovacao && data_vencimento) {
+        const contratoSobreposto = await ContratoCertificado.findOne({
+          where: {
+            cliente_id: contrato.cliente_id,
+            data_renovacao: { [Op.ne]: null },
+            id: { [Op.ne]: id }, // Exclui o próprio contrato da checagem
+            [Op.and]: [
+              { data_renovacao: { [Op.lt]: data_vencimento } },
+              { data_vencimento: { [Op.gt]: data_renovacao } },
+            ],
+          },
+          transaction: t,
+        });
+        if (contratoSobreposto) {
+          throw new Error(
+            "O novo período do contrato está em conflito com um contrato existente."
+          );
+        }
+      }
 
       const [certificado] = await Certificado.findOrCreate({
         where: { nome_certificado },
