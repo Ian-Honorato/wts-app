@@ -3,7 +3,8 @@ import styles from "./ContractModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
-// Hooks e Utilitários
+// *** CORREÇÃO 1: Importar o hook 'useQueryClient' ***
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useCreateContractMutation,
   useUpdateContractMutation,
@@ -35,7 +36,6 @@ const certificados = [
   "e-CPF A3 token",
 ];
 
-// Estado inicial do formulário
 const initialState = {
   numero_contrato: "",
   nome_certificado: "",
@@ -51,6 +51,9 @@ const ContractModal = ({
   clientId,
   onFeedback,
 }) => {
+  // *** CORREÇÃO 2: Chamar o hook para obter a instância do client ***
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
 
@@ -59,12 +62,9 @@ const ContractModal = ({
 
   const isUpdateMode = Boolean(contractToEdit);
 
-  // Efeito para popular ou limpar o formulário quando o modal abre/fecha
   useEffect(() => {
     if (isOpen) {
       if (isUpdateMode && contractToEdit) {
-        // Modo Edição: Preenche com os dados existentes
-        console.log("DADOS RECEBIDOS EM 'contractToEdit':", contractToEdit);
         setFormData({
           numero_contrato: contractToEdit.numero_contrato || "",
           nome_certificado: contractToEdit.certificado?.nome_certificado || "",
@@ -81,10 +81,8 @@ const ContractModal = ({
             : "",
         });
       } else {
-        // Modo Criação: Reseta para o estado inicial
         setFormData(initialState);
       }
-      // Limpa erros antigos ao abrir o modal
       setErrors({});
     }
   }, [isOpen, contractToEdit, isUpdateMode]);
@@ -92,12 +90,12 @@ const ContractModal = ({
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Limpa o erro do campo específico ao ser alterado
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
+  // *** CORREÇÃO 3: Implementação da função de validação ***
   const validate = () => {
     const newErrors = {};
     if (!formData.numero_contrato.trim()) {
@@ -123,7 +121,6 @@ const ContractModal = ({
       return;
     }
 
-    // Prepara os dados para o envio, garantindo que a data opcional seja null se vazia
     const mutationData = {
       ...formData,
       cliente_id: clientId,
@@ -134,6 +131,10 @@ const ContractModal = ({
       onSuccess: () => {
         onFeedback("success", successMessage);
         onClose();
+        // A lógica de invalidação agora funcionará corretamente
+        console.log("Invalidando queries: criticalClients e client details...");
+        queryClient.invalidateQueries({ queryKey: ["criticalClients"] });
+        queryClient.invalidateQueries({ queryKey: ["client", clientId] });
       },
       onError: (error) => {
         onFeedback("error", extractErrorMessage(error));
@@ -143,6 +144,11 @@ const ContractModal = ({
     });
 
     if (isUpdateMode) {
+      // Verificação de segurança para o ID
+      if (!contractToEdit?.id) {
+        onFeedback("error", "Erro fatal: ID do contrato não encontrado.");
+        return;
+      }
       updateContractMutation.mutate(
         { ...mutationData, id: contractToEdit.id },
         mutationCallbacks("Contrato atualizado com sucesso!")
@@ -155,7 +161,6 @@ const ContractModal = ({
     }
   };
 
-  // Simplifica a verificação de loading
   const isLoading =
     createContractMutation.isPending || updateContractMutation.isPending;
 
@@ -174,7 +179,6 @@ const ContractModal = ({
         </div>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.formGrid}>
-            {/* Campo Nº Contrato / Ticket */}
             <div className={styles.formGroup}>
               <label htmlFor="numero_contrato">Nº Contrato / Ticket *</label>
               <input
@@ -191,8 +195,6 @@ const ContractModal = ({
                 <p className={styles.errorMessage}>{errors.numero_contrato}</p>
               )}
             </div>
-
-            {/* Campo Status */}
             <div className={styles.formGroup}>
               <label htmlFor="status">Status *</label>
               <select
@@ -215,8 +217,6 @@ const ContractModal = ({
                 <p className={styles.errorMessage}>{errors.status}</p>
               )}
             </div>
-
-            {/* Campo Certificado */}
             <div className={styles.formGroup}>
               <label htmlFor="nome_certificado">Certificado *</label>
               <select
@@ -241,8 +241,6 @@ const ContractModal = ({
                 <p className={styles.errorMessage}>{errors.nome_certificado}</p>
               )}
             </div>
-
-            {/* Campo Data de Renovação */}
             <div className={styles.formGroup}>
               <label htmlFor="data_renovacao">Data de Renovação</label>
               <input
@@ -254,8 +252,6 @@ const ContractModal = ({
                 className={styles.input}
               />
             </div>
-
-            {/* Campo Data de Vencimento */}
             <div className={styles.formGroup}>
               <label htmlFor="data_vencimento">Data de Vencimento *</label>
               <input
