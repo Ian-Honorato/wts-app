@@ -105,7 +105,7 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
       createMutation.reset();
       updateMutation.reset();
     }
-  }, [isOpen, clientToEdit, isUpdateMode, createMutation, updateMutation]);
+  }, [isOpen, clientToEdit, isUpdateMode]);
 
   const validate = useCallback(
     (currentStep) => {
@@ -514,4 +514,4 @@ const ClientModal = ({ isOpen, onClose, onFeedback, clientToEdit }) => {
   );
 };
 
-export default React.memo(ClientModal);
+export default ClientModal;
