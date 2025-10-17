@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         references: { model: "clientes", key: "id" },
         onUpdate: "CASCADE",
-        onDelete: "RESTRICT", // <<< ALTERADO de 'CASCADE' para 'RESTRICT' por segurança
+        onDelete: "RESTRICT",
       },
       usuario_id: {
         type: Sequelize.INTEGER,
