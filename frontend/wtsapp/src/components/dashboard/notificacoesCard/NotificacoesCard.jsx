@@ -26,11 +26,12 @@ const NotificacoesCard = ({
   selectedMonth,
   setSelectedMonth,
 }) => {
-  const notificacoes = data?.notificacoes || [];
-  const totalNotificados = notificacoes.length;
+  const notificacoes = data?.data?.notificacoes || [];
+  const totalNotificados = data?.data?.totalNotificados || notificacoes.length;
 
   console.log("Notificações Mensais:", notificacoes);
   console.log("dados brutos", data);
+
   const handleWhatsAppClick = (telefone) => {
     if (!telefone) return;
     const telefoneLimpo = telefone.replace(/\D/g, "");
@@ -61,7 +62,6 @@ const NotificacoesCard = ({
           onChange={(e) => setSelectedMonth(Number(e.target.value))}
           className={styles.select}
           disabled={isLoading}
-          aria-label="Selecionar mês"
         >
           {mesesDoAno.map((mes) => (
             <option key={mes.value} value={mes.value}>
@@ -75,25 +75,28 @@ const NotificacoesCard = ({
         {isLoading ? (
           <p className={styles.loadingText}>Carregando...</p>
         ) : notificacoes.length > 0 ? (
-          notificacoes.map(
-            ({ id, cliente_notificado }) =>
-              cliente_notificado && (
-                <div key={id} className={styles.clientItem}>
-                  <div className={styles.clientInfo}>
-                    <h4>{cliente_notificado.nome}</h4>
-                    <p>{cliente_notificado.cpf_cnpj}</p>
-                  </div>
-                  <button
-                    className={styles.whatsappButton}
-                    onClick={() =>
-                      handleWhatsAppClick(cliente_notificado.telefone)
-                    }
-                    title={`Conversar com ${cliente_notificado.nome}`}
-                  >
-                    <FontAwesomeIcon icon={faWhatsapp} />
-                  </button>
+          notificacoes.map(({ id, cliente_notificado, data_envio }) =>
+            cliente_notificado ? (
+              <div key={id} className={styles.clientItem}>
+                <div className={styles.clientInfo}>
+                  <h4>{cliente_notificado.nome}</h4>
+                  <p>{cliente_notificado.cpf_cnpj}</p>
+                  <small>
+                    Enviado em:{" "}
+                    {new Date(data_envio).toLocaleDateString("pt-BR")}
+                  </small>
                 </div>
-              )
+                <button
+                  className={styles.whatsappButton}
+                  onClick={() =>
+                    handleWhatsAppClick(cliente_notificado.telefone)
+                  }
+                  title={`Conversar com ${cliente_notificado.nome}`}
+                >
+                  <FontAwesomeIcon icon={faWhatsapp} />
+                </button>
+              </div>
+            ) : null
           )
         ) : (
           <p className={styles.noNotifications}>
