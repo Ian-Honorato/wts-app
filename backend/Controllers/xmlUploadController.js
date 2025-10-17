@@ -7,8 +7,8 @@ import {
   Parceiro,
 } from "../Models/index.js";
 
-import sanitizarXmlRow from "../utils/xmlDataSanitizer.js";
-import { errorHandler } from "../utils/errorHandler.js";
+import { xmlDataSanitizer } from "../Util/xmlDataSanitizer.js";
+import { errorHandler } from "../Util/errorHandler.js";
 
 class XmlUploadController {
   async store(req, res) {
