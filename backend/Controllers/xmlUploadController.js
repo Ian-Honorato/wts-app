@@ -171,11 +171,18 @@ class XmlUploadController {
         const lineNumber = index + 2;
         const cells = Array.isArray(row.Cell) ? row.Cell : [row.Cell];
 
-        // Corrige desalinhamento
-        const filledCells = Array.from(
-          { length: columnCount },
-          (_, i) => cells[i] || { Data: { _: "" } }
-        );
+        const filledCells = Array.from({ length: columnCount }, (_, i) => {
+          const cell = cells[i];
+          if (
+            !cell ||
+            !cell.Data ||
+            cell.Data._ == null ||
+            cell.Data._.trim() === ""
+          ) {
+            return { Data: { _: "Não identificado" } };
+          }
+          return cell;
+        });
 
         const rawData = mappers[layoutType](filledCells);
         const sanitizerFn = sanitizers[layoutType];
