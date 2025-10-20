@@ -57,3 +57,26 @@ export function sanitizePhoneNumber(phoneString) {
   }
   return { phone: null, error: `Telefone '${phoneString}' é inválido.` };
 }
+export function sanitizeEmail(emailString) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (
+    !emailString ||
+    !String(emailString).trim() ||
+    String(emailString).trim().toLowerCase() === "não identificado"
+  ) {
+    return { email: null, error: null };
+  }
+
+  const trimmedEmail = String(emailString).trim();
+
+  // Testa o e-mail contra a Regex.
+  if (emailRegex.test(trimmedEmail)) {
+    return { email: trimmedEmail, error: null };
+  }
+
+  return {
+    email: null,
+    error: `O e-mail '${emailString}' possui um formato inválido.`,
+  };
+}
