@@ -2,7 +2,7 @@ import {
   statusMap,
   parseDate,
   sanitizePhoneNumber,
-} from "../utils/sanitizerUtils";
+} from "../Util/sanitizerUtils.js";
 
 export function sanitizeTypeB(rawData) {
   const errors = [];
