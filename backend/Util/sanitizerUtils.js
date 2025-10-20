@@ -33,7 +33,12 @@ export function parseDate(dateString) {
   }
 }
 export function sanitizePhoneNumber(phoneString) {
-  if (!phoneString || !String(phoneString).trim()) {
+  // Se a string for nula, vazia, ou explicitamente "Não identificado", retorne nulo sem erro.
+  if (
+    !phoneString ||
+    !String(phoneString).trim() ||
+    String(phoneString).trim().toLowerCase() === "não identificado"
+  ) {
     return { phone: null, error: null };
   }
 
