@@ -290,7 +290,20 @@ class ClienteController {
       if (!cliente) {
         throw new Error("Cliente não encontrado.");
       }
-
+      if (cpf_cnpj && cpf_cnpj !== cliente.cpf_cnpj) {
+        const clienteExistente = await Cliente.findOne({
+          where: {
+            cpf_cnpj,
+            id: { [Op.ne]: id },
+          },
+          transaction: t,
+        });
+        if (clienteExistente) {
+          throw new Error(
+            "O CPF/CNPJ informado já está em uso por outro cliente."
+          );
+        }
+      }
       let parceiroId = cliente.referencia_parceiro;
       if (nome_parceiro) {
         let parceiro = await Parceiro.findOne({
@@ -482,22 +495,23 @@ class ClienteController {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
-      const dataLimite = new Date();
+      const dataLimite = new Date(hoje);
       dataLimite.setDate(hoje.getDate() + periodInDays);
-
+      dataLimite.setHours(23, 59, 59, 999);
+      const status_NaoIncluir = [
+        "Cancelado",
+        "Renovado",
+        "Não vai renovar",
+        "Agendado",
+        "Em contato",
+      ];
       const contratos = await ContratoCertificado.findAll({
         where: {
           data_vencimento: {
-            [Op.lte]: dataLimite,
+            [Op.between]: [hoje, dataLimite],
           },
           status: {
-            [Op.notIn]: [
-              "Cancelado",
-              "Renovado",
-              "Não vai renovar",
-              "Agendado",
-              "Em contato",
-            ],
+            [Op.notIn]: status_NaoIncluir,
           },
         },
         include: [
