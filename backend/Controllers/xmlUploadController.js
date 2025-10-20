@@ -171,19 +171,26 @@ class XmlUploadController {
         const lineNumber = index + 2;
         const cells = Array.isArray(row.Cell) ? row.Cell : [row.Cell];
 
-        const filledCells = Array.from({ length: columnCount }, (_, i) => {
-          const cell = cells[i];
-          if (
-            !cell ||
-            !cell.Data ||
-            cell.Data._ == null ||
-            cell.Data._.trim() === ""
-          ) {
-            return { Data: { _: "Não identificado" } };
-          }
-          return cell;
-        });
+        const filledCells = Array.from({ length: columnCount }, () => ({
+          Data: { _: "Não identificado" }, // valor padrão
+        }));
+        let currentIndex = 0;
 
+        for (const cell of cells) {
+          // Detecta o índice original (se existir)
+          const indexAttr =
+            cell?.$?.["ss:Index"] ||
+            cell?.$?.Index ||
+            cell?.["ss:Index"] ||
+            cell?.Index;
+
+          if (indexAttr) {
+            currentIndex = parseInt(indexAttr, 10) - 1; // Excel usa base 1
+          }
+
+          filledCells[currentIndex] = cell;
+          currentIndex++;
+        }
         const rawData = mappers[layoutType](filledCells);
         const sanitizerFn = sanitizers[layoutType];
         const { sanitizedData, errors } = sanitizerFn(rawData);
