@@ -27,6 +27,71 @@ class XmlUploadController {
     };
 
     try {
+      // -------------------------
+      // Cabeçalhos esperados
+      // -------------------------
+      const expectedHeaders = {
+        type_a: [
+          "cliente",
+          "representante legal",
+          "tickets",
+          "certificado",
+          "vencimento sar",
+          "contato",
+          "email",
+          "renovado",
+          "indicação",
+          "matricula",
+        ],
+        type_b: [
+          "id_cliente",
+          "nome",
+          "cpf/cnpj",
+          "representante",
+          "telefone",
+          "email",
+          "parceiro_indicador",
+          "numero_contrato",
+          "status_contrato",
+          "data_vencimento",
+          "data_renovacao",
+          "certificado",
+        ],
+      };
+
+      // -------------------------
+      //Função de comparação de layout
+      // -------------------------
+      function matchLayout(headerValues, expected) {
+        const normalizedHeader = headerValues.map((h) =>
+          h
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase()
+        );
+
+        for (const [layout, expectedCols] of Object.entries(expected)) {
+          const normalizedExpected = expectedCols.map((h) =>
+            h
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .trim()
+              .toLowerCase()
+          );
+
+          const allMatch = normalizedExpected.every((col, i) =>
+            normalizedHeader[i]?.includes(col.split(" ")[0])
+          );
+
+          if (allMatch) return layout;
+        }
+        return null;
+      }
+
+      // -------------------------
+      // Parse do XML
+      // -------------------------
       const xmlContent = req.file.buffer.toString("utf-8");
       const parsedData = await parseStringPromise(xmlContent, {
         explicitArray: false,
@@ -46,19 +111,27 @@ class XmlUploadController {
       const headerCells = Array.isArray(headerRow.Cell)
         ? headerRow.Cell
         : [headerRow.Cell];
-      const columnCount = headerCells.length;
+      const headerValues = headerCells.map(
+        (cell) => cell?.Data?._?.trim()?.toLowerCase() || ""
+      );
 
-      let layoutType = "";
-      if (columnCount === 10) layoutType = "type_a";
-      else if (columnCount === 12) layoutType = "type_b";
-      else {
+      // -------------------------
+      // Identificação do layout
+      // -------------------------
+      const layoutType = matchLayout(headerValues, expectedHeaders);
+      if (!layoutType) {
         throw new Error(
-          `Layout de arquivo não reconhecido. Esperado 10 ou 12 colunas, mas foram encontradas ${columnCount}.`
+          "Layout de arquivo não reconhecido. O cabeçalho não corresponde ao formato esperado (Layout A ou B)."
         );
       }
+
+      const columnCount = expectedHeaders[layoutType].length;
       const dataRows = (Array.isArray(rows) ? rows : [rows]).slice(1);
       const dadosProcessados = [];
 
+      // -------------------------
+      // Mapeamento das colunas
+      // -------------------------
       const mappers = {
         type_a: (cells) => ({
           cliente_bruto: cells[0]?.Data?._,
@@ -86,17 +159,25 @@ class XmlUploadController {
         }),
       };
 
-      // Objeto para escolher a função de sanitização correta
       const sanitizers = {
         type_a: sanitizeTypeA,
         type_b: sanitizeTypeB,
       };
 
+      // -------------------------
+      // Processamento das linhas
+      // -------------------------
       for (const [index, row] of dataRows.entries()) {
         const lineNumber = index + 2;
         const cells = Array.isArray(row.Cell) ? row.Cell : [row.Cell];
 
-        const rawData = mappers[layoutType](cells);
+        // Corrige desalinhamento
+        const filledCells = Array.from(
+          { length: columnCount },
+          (_, i) => cells[i] || { Data: { _: "" } }
+        );
+
+        const rawData = mappers[layoutType](filledCells);
         const sanitizerFn = sanitizers[layoutType];
         const { sanitizedData, errors } = sanitizerFn(rawData);
 
@@ -107,19 +188,21 @@ class XmlUploadController {
             nome: rawData.cliente_bruto || "N/A",
             details: errors,
           });
-          continue; // Pula para a próxima linha em caso de erro
+          continue;
         }
+
         dadosProcessados.push({ ...sanitizedData, lineNumber });
       }
 
-      // --- PERSISTÊNCIA NO BANCO DE DADOS ---
+      // -------------------------
+      // Persistência no banco
+      // -------------------------
       for (const data of dadosProcessados) {
         try {
           const { nome_cliente, cpf_cnpj, ...restOfData } = data;
           if (!cpf_cnpj)
             throw new Error("CPF/CNPJ ausente ou inválido após sanitização.");
 
-          // 1. Encontra ou cria o Parceiro
           const [parceiro] = await Parceiro.findOrCreate({
             where: { nome_escritorio: restOfData.nome_parceiro },
             defaults: {
@@ -129,7 +212,6 @@ class XmlUploadController {
             transaction: t,
           });
 
-          // 2. Encontra ou cria o Certificado
           let certificado = null;
           if (restOfData.nome_certificado) {
             [certificado] = await Certificado.findOrCreate({
@@ -139,7 +221,6 @@ class XmlUploadController {
             });
           }
 
-          // 3. Encontra ou cria o Cliente
           const [cliente, isNewClient] = await Cliente.unscoped().findOrCreate({
             where: { cpf_cnpj },
             defaults: {
@@ -174,7 +255,6 @@ class XmlUploadController {
             importReport.updateCount++;
           }
 
-          // 4. Encontra ou cria o Contrato
           if (restOfData.numero_contrato) {
             const numeroContratoNormalizado = String(restOfData.numero_contrato)
               .replace(/[^a-zA-Z0-9]/g, "")
@@ -202,11 +282,10 @@ class XmlUploadController {
                     `Conflito: Contrato '${numeroContratoNormalizado}' já pertence a outro cliente.`
                   );
                 }
-                // Se o contrato já existe, atualiza seus dados
                 await contrato.update(
                   {
                     status: restOfData.status,
-                    cliente_id: cliente.id, // Garante que o ID do cliente está correto
+                    cliente_id: cliente.id,
                     data_vencimento: restOfData.data_vencimento,
                     data_renovacao: restOfData.data_renovacao,
                     referencia_certificado: certificado?.id,
