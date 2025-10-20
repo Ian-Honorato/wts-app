@@ -7,7 +7,7 @@ import {
   Parceiro,
 } from "../Models/index.js";
 
-import { xmlDataSanitizer } from "../Util/xmlDataSanitizer.js";
+import xmlDataSanitizer from "../Util/xmlDataSanitizer.js";
 import { errorHandler } from "../Util/errorHandler.js";
 
 class XmlUploadController {
@@ -82,7 +82,7 @@ class XmlUploadController {
           // layoutType === 'type_b'
           rawData = {
             cliente_bruto: cells[1]?.Data?._,
-            cpf_cnpj_bruto: cells[2]?.Data?._, // Campo extra para o CPF/CNPJ separado
+            cpf_cnpj_bruto: cells[2]?.Data?._,
             representante_legal: cells[3]?.Data?._,
             telefone: cells[4]?.Data?._,
             email_cliente: cells[5]?.Data?._,
@@ -100,7 +100,7 @@ class XmlUploadController {
       // --- PARTE 2: SANITIZAÇÃO DOS DADOS MAPEADOS ---
       const dadosProcessados = [];
       for (const item of dadosMapeados) {
-        const { sanitizedData, errors } = sanitizarXmlRow(item);
+        const { sanitizedData, errors } = xmlDataSanitizer(item);
 
         if (errors) {
           importReport.errorCount++;
