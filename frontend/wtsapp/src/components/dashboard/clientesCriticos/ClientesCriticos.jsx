@@ -68,6 +68,7 @@ const ClientesCriticos = ({
             disabled={isLoading || isSending}
           >
             <option value="10">10 dias</option>
+            <option value="15">15 dias</option>
             <option value="30">30 dias</option>
             <option value="60">60 dias</option>
             <option value="90">90 dias</option>
