@@ -6,7 +6,7 @@ import docClienteController from "../Controllers/docClienteController.js";
 const router = new Router();
 //criar
 router.post(
-  "cadastrar/:id",
+  "/cadastrar/:id",
   loginRequired,
   docsUpload.single("arquivo"),
   docClienteController.store
