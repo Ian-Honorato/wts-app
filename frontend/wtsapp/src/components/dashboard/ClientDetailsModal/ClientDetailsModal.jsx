@@ -137,7 +137,6 @@ const ClientDetailsModal = ({
             )}
             {details && (
               <div className={styles.detailsGrid}>
-                {/* ... Bloco "Dados Pessoais" ... (sem alterações) */}
                 <div className={styles.infoBlock}>
                   <h4>Dados Pessoais</h4>
                   <p>
@@ -204,7 +203,6 @@ const ClientDetailsModal = ({
                   </ul>
                 </div>
 
-                {/* ... Bloco "Parceiro" ... (sem alterações) */}
                 {details.parceiro_indicador && (
                   <div className={styles.infoBlockFull}>
                     <h4>Parceiro</h4>

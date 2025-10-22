@@ -60,7 +60,7 @@ const ClientDocsModal = ({
     formData.append("arquivo", arquivo);
 
     addDocMutation.mutate(
-      { clienteId, formData },
+      { clientId, formData },
       {
         onSuccess: () => {
           onFeedback("success", "Documento enviado com sucesso!");

@@ -14,14 +14,15 @@ const getAuthHeaders = () => {
 /**
  * Hook (useQuery) para buscar a lista de documentos de um cliente.
  */
-export const useClientDocs = (clienteId, isOpen) => {
+export const useClientDocs = (clientId, isOpen) => {
   return useQuery({
-    queryKey: ["clientDocs", clienteId],
+    queryKey: ["clientDocs", clientId],
+
     queryFn: async () => {
       // CORRETO: Já estava usando getAuthHeaders()
       const { data } = await axios.get(
-        `${API_BASE_URL}/listar/${clienteId}`,
-        getAuthHeaders() // <-- OK
+        `${API_BASE_URL}/listar/${clientId}`,
+        getAuthHeaders()
       );
       return data;
     },
@@ -37,18 +38,15 @@ export const useAddClientDocMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ clienteId, formData }) => {
-      // 1. Pega os cabeçalhos de autenticação
+    mutationFn: async ({ clientId, formData }) => {
       const { headers: authHeaders } = getAuthHeaders();
 
       const { data } = await axios.post(
-        // 2. CORRIGIDO: Adicionada a barra "/"
-        `${API_BASE_URL}/cadastrar/${clienteId}`,
+        `${API_BASE_URL}/cadastrar/${clientId}`,
         formData,
         {
-          // 3. CORRIGIDO: Mescla os headers de Auth e Content-Type
           headers: {
-            ...authHeaders, // Adiciona o header de Autorização
+            ...authHeaders,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -57,7 +55,7 @@ export const useAddClientDocMutation = () => {
     },
     onSuccess: (newData, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["clientDocs", variables.clienteId],
+        queryKey: ["clientDocs", variables.clientId],
       });
     },
   });
@@ -74,7 +72,7 @@ export const useDeleteClientDocMutation = () => {
       // Rota DELETE:
       await axios.delete(
         `${API_BASE_URL}/deletar/${documentoId}`,
-        getAuthHeaders() // <-- CORRIGIDO: Adicionado auth headers
+        getAuthHeaders()
       );
       return documentoId;
     },
