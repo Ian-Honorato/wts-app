@@ -9,6 +9,7 @@ import ContractModal from "../ContractModal/ContractModal.jsx";
 import { detailsClientApi } from "../../../hooks/useMutation";
 import { useDeleteClientMutation } from "../../../hooks/useMutation";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
+import ClientDocsModal from "../ClientDocsModal/ClientDocsModal.jsx";
 import {
   formatarCpfCnpj,
   formatarTelefone,
@@ -30,6 +31,8 @@ const ClientDetailsModal = ({
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [contractToEdit, setContractToEdit] = useState(null);
 
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+
   const {
     data: details,
     isLoading,
@@ -40,7 +43,9 @@ const ClientDetailsModal = ({
     enabled: isOpen && !!clientId,
     staleTime: 1000 * 60 * 5,
   });
-
+  const handlerOpenDocumentos = () => {
+    setIsDocsModalOpen(true);
+  };
   const handleOpenAddContract = () => {
     setContractToEdit(null);
     setIsContractModalOpen(true);
@@ -98,16 +103,16 @@ const ClientDetailsModal = ({
   // Função para determinar a classe CSS com base no status do contrato
   const getContractStatusClass = (status) => {
     const statusLower = status?.toLowerCase();
-    if (statusLower === "ativo") {
+    if (statusLower === "ativo" || statusLower === "renovado") {
       return styles.active;
     }
-    if (statusLower === "vencido" || statusLower === "expirado") {
+    if (statusLower === "nao vai renovar" || statusLower === "cancelado") {
       return styles.expired;
     }
-    if (statusLower === "pendente") {
+    if (statusLower === "agendado" || statusLower === "em contato") {
       return styles.pending;
     }
-    return ""; // Classe padrão caso não encontre
+    return "";
   };
 
   if (!isOpen) return null;
@@ -132,6 +137,7 @@ const ClientDetailsModal = ({
             )}
             {details && (
               <div className={styles.detailsGrid}>
+                {/* ... Bloco "Dados Pessoais" ... (sem alterações) */}
                 <div className={styles.infoBlock}>
                   <h4>Dados Pessoais</h4>
                   <p>
@@ -157,10 +163,12 @@ const ClientDetailsModal = ({
                   </p>
                 </div>
 
-                {/* Bloco de Contratos com a nova estrutura de lista */}
+                {/* Bloco de Contratos (agora com overflow) */}
                 <div className={styles.infoBlock}>
                   <h4>Histórico de Contratos</h4>
                   <ul className={styles.contractList}>
+                    {" "}
+                    {/* Scroll será aqui */}
                     {details.contratos && details.contratos.length > 0 ? (
                       details.contratos.map((contrato) => (
                         <li
@@ -169,6 +177,7 @@ const ClientDetailsModal = ({
                           onClick={() => handleOpenEditContract(contrato)}
                           title="Clique para editar este contrato"
                         >
+                          {/* ... (conteúdo do item do contrato) ... */}
                           <div className={styles.contractInfo}>
                             <span>
                               <strong>Nº:</strong> {contrato.numero_contrato}
@@ -195,6 +204,7 @@ const ClientDetailsModal = ({
                   </ul>
                 </div>
 
+                {/* ... Bloco "Parceiro" ... (sem alterações) */}
                 {details.parceiro_indicador && (
                   <div className={styles.infoBlockFull}>
                     <h4>Parceiro</h4>
@@ -207,6 +217,8 @@ const ClientDetailsModal = ({
               </div>
             )}
           </div>
+
+          {/* --- RODAPÉ COM BOTÕES ATUALIZADO --- */}
           <div className={styles.footerActions}>
             <button
               className={`${styles.actionButton} ${styles.delete}`}
@@ -222,6 +234,15 @@ const ClientDetailsModal = ({
             >
               Alterar Dados
             </button>
+
+            <button
+              className={`${styles.actionButton} ${styles.docs}`}
+              onClick={handlerOpenDocumentos}
+              disabled={!details}
+            >
+              Documentos
+            </button>
+
             <button
               className={`${styles.actionButton} ${styles.addContract}`}
               onClick={handleOpenAddContract}
@@ -247,6 +268,16 @@ const ClientDetailsModal = ({
           onClose={handleCloseContractModal}
           contractToEdit={contractToEdit}
           clientId={clientId}
+          onFeedback={onFeedback}
+        />
+      )}
+
+      {details && (
+        <ClientDocsModal
+          isOpen={isDocsModalOpen}
+          onClose={() => setIsDocsModalOpen(false)}
+          clientId={details.id}
+          clienteNome={details.nome}
           onFeedback={onFeedback}
         />
       )}

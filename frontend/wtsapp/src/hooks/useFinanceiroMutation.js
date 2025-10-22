@@ -12,11 +12,10 @@ const getAuthHeaders = () => {
   };
 };
 
-// --- Funções existentes ---
-// (Observação: Ajustei fetchParceiros para receber tipoId, conforme o hook)
+// --- Funções  ---
 const fetchParceiros = async (mes, tipoId) => {
   const { data } = await axios.get(`${API_BASE_URL}`, {
-    params: { mes, tipoId }, // Supondo que a API também use tipoId
+    params: { mes, tipoId },
     ...getAuthHeaders(),
   });
   return data;
@@ -38,8 +37,6 @@ const createPagamentoCertificados = async (pagamentos) => {
   );
   return data;
 };
-
-// --- NOVAS FUNÇÕES PARA SUMÁRIO E DETALHES ---
 
 const fetchSumarioFinanceiro = async ({ queryKey }) => {
   const [_key, { mes, ano }] = queryKey;

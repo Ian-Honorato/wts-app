@@ -16,7 +16,7 @@
   border-radius: 8px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-width: 700px;
+  max-width: 720px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -57,9 +57,13 @@
   background-color: var(--background-light-color);
   padding: 1rem;
   border-radius: 5px;
+  /* Adicionado para conter a lista de contratos */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Garante que o padding seja respeitado pelo overflow */
 }
 .infoBlockFull {
-  grid-column: 1 / -1; /* Ocupa as duas colunas */
+  grid-column: 1 / -1;
   background-color: var(--background-light-color);
   padding: 1rem;
   border-radius: 5px;
@@ -86,7 +90,8 @@
   display: flex;
   justify-content: flex-end; /* Alinha botões à direita */
   gap: 1rem;
-  margin-top: auto; /* Empurra para o final */
+  margin-top: auto;
+  flex-wrap: wrap;
 }
 .actionButton {
   padding: 0.6rem 1.2rem;
@@ -108,10 +113,13 @@
   background-color: #e74c3c;
 }
 
-/* ===== NOVAS CLASSES ADICIONADAS ABAIXO ===== */
-
 .addContract {
-  background-color: #3498db; /* Azul para o botão de adicionar */
+  background-color: #3498db;
+}
+
+/* --- NOVA CLASSE PARA O BOTÃO DOCUMENTOS --- */
+.docs {
+  background-color: #00bcd4;
 }
 
 /* Container da lista de contratos */
@@ -122,6 +130,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+
+  /* --- ATUALIZADO: Overflow para a lista de contratos --- */
+  overflow-y: auto;
+  max-height: 200px; /* Defina uma altura máxima (ex: 4-5 itens) */
+  /* Adiciona um padding sutil para a barra de rolagem não colar */
+  padding-right: 5px;
 }
 
 /* Estilo de cada item da lista (semelhante ao card de notificação) */
@@ -142,7 +156,7 @@
   transform: translateY(-2px);
 }
 
-/* Informações do contrato (Número e Vencimento) */
+/* ... (demais classes .contractInfo, .contractLink, .noContracts sem alteração) ... */
 .contractInfo {
   display: flex;
   flex-direction: column;
@@ -155,7 +169,6 @@
   color: var(--text-color);
 }
 
-/* Estilo base para o link/status */
 .contractLink {
   font-weight: 600;
   padding: 0.3rem 0.6rem;
@@ -164,19 +177,18 @@
   text-align: center;
 }
 
-/* Variações de cor para os links */
 .contractLink.active {
-  color: #27ae60; /* Verde */
+  color: #27ae60;
   background-color: #eaf7f0;
 }
 
 .contractLink.expired {
-  color: #e74c3c; /* Vermelho para Vencido/Expirado */
+  color: #e74c3c;
   background-color: #fdeded;
 }
 
 .contractLink.pending {
-  color: #f39c12; /* Laranja/Amarelo */
+  color: #f39c12;
   background-color: #fef8e7;
 }
 
@@ -184,4 +196,21 @@
   color: var(--text-light-color);
   font-style: italic;
   font-size: 0.9rem;
+}
+
+/* --- NOVO: Media Query para botões responsivos --- */
+@media (max-width: 600px) {
+  .footerActions {
+    flex-direction: column;
+    align-items: stretch; /* Faz botões ocuparem 100% da largura */
+    gap: 0.5rem; /* Diminui o gap no modo coluna */
+  }
+
+  .actionButton {
+    width: 100%;
+  }
+
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
 }

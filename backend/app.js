@@ -27,10 +27,15 @@ import dashboardRoutes from "./Routes/dashboardRoutes.js";
 import downloadRoutes from "./Routes/downloadRoutes.js";
 import mensagemRoutes from "./Routes/mensagemRoutes.js";
 import contratosRoutes from "./Routes/contratoRoutes.js";
+import docClienteRoutes from "./Routes/docClienteRoutes.js";
+import { fileURLToPath } from "url";
+import path, { dirname, resolve } from "path";
 /**
  * @class App
  * @description Encapsula a configuração e inicialização do servidor Express.
  */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 class App {
   constructor() {
     /**
@@ -103,6 +108,10 @@ class App {
     if (process.env.NODE_ENV === "development") {
       this.app.use(morgan("dev"));
     }
+
+    // Configura o middleware de upload de arquivos
+    const uploadDir = resolve(__dirname, "uploadsds");
+    this.app.use("/files", express.static(uploadDir));
   }
 
   /**
@@ -121,9 +130,8 @@ class App {
     this.app.use("/download", downloadRoutes);
     this.app.use("/mensagem", mensagemRoutes);
     this.app.use("/contratos", contratosRoutes);
+    this.app.use("/documentos", docClienteRoutes);
   }
 }
 
-// Exporta a instância configurada do Express para ser utilizada pelo
-// arquivo que de fato irá iniciar o servidor (ex: server.js).
 export default new App().app;

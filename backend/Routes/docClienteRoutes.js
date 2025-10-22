@@ -4,12 +4,17 @@ import docsUpload from "../Config/docs_upload.js";
 import docClienteController from "../Controllers/docClienteController.js";
 
 const router = new Router();
-
+//criar
 router.post(
-  "/clientes/:id/documento",
+  "cadastrar/:id",
   loginRequired,
   docsUpload.single("arquivo"),
   docClienteController.store
 );
+//listar por cliente
+router.get("/listar/:id", loginRequired, docClienteController.findByCliente);
+
+//deletar
+router.delete("/deletar/:id", loginRequired, docClienteController.delete);
 
 export default router;
