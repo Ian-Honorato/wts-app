@@ -9,6 +9,7 @@ import PagamentoParceiro from "./PagamentoParceiro.js";
 import Parceiro from "./Parceiro.js";
 import Certificado from "./Certificado.js";
 import PagamentoCertificado from "./PagamentoCertificado.js";
+import DocCliente from "./DocCliente.js";
 
 const models = [
   Usuario,
@@ -19,6 +20,7 @@ const models = [
   Parceiro,
   Certificado,
   PagamentoCertificado,
+  DocCliente,
 ];
 
 const connection = new Sequelize(database);
@@ -39,4 +41,5 @@ export {
   Parceiro,
   Certificado,
   PagamentoCertificado,
+  DocCliente,
 };
