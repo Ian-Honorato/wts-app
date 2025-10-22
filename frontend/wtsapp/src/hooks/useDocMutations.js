@@ -3,6 +3,14 @@ import axios from "axios";
 //======================= API Functions =======================
 const API_BASE_URL = "/api/documentos";
 
+// Função para obter os cabeçalhos de autenticação
+const getAuthHeaders = () => {
+  const token = sessionStorage.getItem("token");
+  // Retorna o objeto de configuração do Axios
+  return {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+};
 /**
  * Hook (useQuery) para buscar a lista de documentos de um cliente.
  */
@@ -10,12 +18,15 @@ export const useClientDocs = (clienteId, isOpen) => {
   return useQuery({
     queryKey: ["clientDocs", clienteId],
     queryFn: async () => {
-      // Rota GET que criamos: /clientes/documentos/:id
-      const { data } = await axios.get(`${API_BASE_URL}/listar/${clienteId}`);
+      // CORRETO: Já estava usando getAuthHeaders()
+      const { data } = await axios.get(
+        `${API_BASE_URL}/listar/${clienteId}`,
+        getAuthHeaders() // <-- OK
+      );
       return data;
     },
-    enabled: isOpen && !!clienteId, // Só busca quando o modal está aberto
-    staleTime: 1000 * 60, // Cache de 1 minuto
+    enabled: isOpen && !!clientId,
+    staleTime: 1000 * 60,
   });
 };
 
@@ -27,11 +38,17 @@ export const useAddClientDocMutation = () => {
 
   return useMutation({
     mutationFn: async ({ clienteId, formData }) => {
+      // 1. Pega os cabeçalhos de autenticação
+      const { headers: authHeaders } = getAuthHeaders();
+
       const { data } = await axios.post(
-        `${API_BASE_URL}cadastrar/${clienteId}`,
+        // 2. CORRIGIDO: Adicionada a barra "/"
+        `${API_BASE_URL}/cadastrar/${clienteId}`,
         formData,
         {
+          // 3. CORRIGIDO: Mescla os headers de Auth e Content-Type
           headers: {
+            ...authHeaders, // Adiciona o header de Autorização
             "Content-Type": "multipart/form-data",
           },
         }
@@ -39,7 +56,6 @@ export const useAddClientDocMutation = () => {
       return data;
     },
     onSuccess: (newData, variables) => {
-      // Invalida o cache para forçar o refetch da lista
       queryClient.invalidateQueries({
         queryKey: ["clientDocs", variables.clienteId],
       });
@@ -56,8 +72,11 @@ export const useDeleteClientDocMutation = () => {
   return useMutation({
     mutationFn: async (documentoId) => {
       // Rota DELETE:
-      await axios.delete(`${API_BASE_URL}/deletar/${documentoId}`);
-      return documentoId; // Retorna o ID para o onSuccess
+      await axios.delete(
+        `${API_BASE_URL}/deletar/${documentoId}`,
+        getAuthHeaders() // <-- CORRIGIDO: Adicionado auth headers
+      );
+      return documentoId;
     },
     onSuccess: (deletedId, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clientDocs"] });
