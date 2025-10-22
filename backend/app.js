@@ -110,7 +110,7 @@ class App {
     }
 
     // Configura o middleware de upload de arquivos
-    const uploadDir = resolve(__dirname, "uploadsds");
+    const uploadDir = resolve(__dirname, "uploads", "documentos_clientes");
     this.app.use("/files", express.static(uploadDir));
   }
 
