@@ -105,6 +105,10 @@ class Cliente extends Model {
       foreignKey: "referencia_parceiro",
       as: "parceiro_indicador",
     });
+    this.hasMany(models.DocCliente, {
+      foreignKey: "id_cliente",
+      as: "documentos",
+    });
   }
 }
 
