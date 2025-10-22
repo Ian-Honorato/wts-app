@@ -30,6 +30,7 @@ import contratosRoutes from "./Routes/contratoRoutes.js";
 import docClienteRoutes from "./Routes/docClienteRoutes.js";
 import { fileURLToPath } from "url";
 import path, { dirname, resolve } from "path";
+import fs from "fs";
 /**
  * @class App
  * @description Encapsula a configuração e inicialização do servidor Express.
@@ -108,9 +109,12 @@ class App {
     if (process.env.NODE_ENV === "development") {
       this.app.use(morgan("dev"));
     }
-
-    // Configura o middleware de upload de arquivos
     const uploadDir = resolve(__dirname, "uploads", "documentos_clientes");
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
     this.app.use("/files", express.static(uploadDir));
   }
 
