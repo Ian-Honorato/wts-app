@@ -20,34 +20,30 @@ import {
 } from "../../../hooks/useDocMutations";
 
 import { useQueryClient } from "@tanstack/react-query";
-import ConfirmationModal from "../ConfirmationModal/ConfirmationModal"; // Importa o modal de confirmação
+import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
 const ClientDocsModal = ({
   isOpen,
   onClose,
   clientId,
   clienteNome,
-  onFeedback, // Recebe a função de feedback
+  onFeedback,
 }) => {
   const queryClient = useQueryClient();
 
   // --- Estados Locais ---
   const [arquivo, setArquivo] = useState(null);
-  const [docToDelete, setDocToDelete] = useState(null); // Para o modal de confirmação
+  const [docToDelete, setDocToDelete] = useState(null);
 
   // --- React Query Hooks ---
 
-  // 1. Hook para BUSCAR documentos (useQuery)
   const {
     data: documentos = [], // Garante que 'documentos' seja sempre um array
     isLoading,
     error,
   } = useClientDocs(clientId, isOpen);
 
-  // 2. Hook para ADICIONAR documentos (useMutation)
   const addDocMutation = useAddClientDocMutation();
-
-  // 3. Hook para DELETAR documentos (useMutation)
   const deleteDocMutation = useDeleteClientDocMutation();
 
   // --- Handlers ---
@@ -61,16 +57,15 @@ const ClientDocsModal = ({
     if (!arquivo) return;
 
     const formData = new FormData();
-    formData.append("arquivo", arquivo); // 'arquivo' deve bater com o docsUpload.single("arquivo")
+    formData.append("arquivo", arquivo);
 
     addDocMutation.mutate(
       { clienteId, formData },
       {
         onSuccess: () => {
           onFeedback("success", "Documento enviado com sucesso!");
-          setArquivo(null); // Limpa o input
-          e.target.reset(); // Limpa o formulário
-          // A invalidação do query [clientDocs] já está no hook
+          setArquivo(null);
+          e.target.reset();
         },
         onError: () => {
           onFeedback("error", "Falha no upload. Verifique o tipo/tamanho.");
@@ -102,11 +97,6 @@ const ClientDocsModal = ({
     });
   };
 
-  /**
-   * Monta a URL para visualização/download.
-   * Usamos um link relativo para /files/... que é a rota estática
-   * definida no seu app.js.
-   */
   const getFileUrl = (caminho) => {
     // Ex: /files/documentos_clientes/abc-contrato.pdf
     return `/files/documentos_clientes/${caminho}`;
