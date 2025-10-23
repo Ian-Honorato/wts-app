@@ -96,6 +96,7 @@ const ClientDocsModal = ({
       },
     });
   };
+  const haddlerDownloadDoc = () => {};
 
   const getFileUrl = (caminho) => {
     // Ex: /files/documentos_clientes/abc-contrato.pdf
@@ -185,15 +186,16 @@ const ClientDocsModal = ({
                       {doc.nome_arquivo}
                     </span>
                     <div className={styles.docActions}>
-                      <a
-                        href={getFileUrl(doc.caminho_do_arquivo)}
-                        target="_blank"
+                      <button
+                        //href={getFileUrl(doc.caminho_do_arquivo)}
+                        //target="_blank"
                         rel="noopener noreferrer"
                         className={styles.actionButton}
-                        title="Visualizar / Baixar"
+                        title=" Baixar"
+                        onClick={haddlerDownloadDoc}
                       >
                         <FontAwesomeIcon icon={faDownload} />
-                      </a>
+                      </button>
                       <button
                         className={`${styles.actionButton} ${styles.deleteButton}`}
                         onClick={() => handleDeleteClick(doc)}

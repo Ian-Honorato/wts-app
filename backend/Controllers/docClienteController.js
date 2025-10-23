@@ -96,6 +96,7 @@ class DocClienteController {
       return res.status(400).json({ errors });
     }
   }
+  async downloadDoc(req, res) {}
 }
 
 export default new DocClienteController();
