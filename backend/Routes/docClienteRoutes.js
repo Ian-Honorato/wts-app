@@ -17,4 +17,6 @@ router.get("/listar/:id", loginRequired, docClienteController.findByCliente);
 //deletar
 router.delete("/deletar/:id", loginRequired, docClienteController.delete);
 
+//download
+router.get("/download/:id", loginRequired, docClienteController.downloadDoc);
 export default router;

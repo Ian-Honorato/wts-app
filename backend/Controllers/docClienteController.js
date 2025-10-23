@@ -96,7 +96,40 @@ class DocClienteController {
       return res.status(400).json({ errors });
     }
   }
-  async downloadDoc(req, res) {}
+  async downloadDoc(req, res) {
+    x;
+    try {
+      const { id: docId } = req.params;
+
+      const documento = await DocCliente.findByPk(docId);
+      if (!documento) {
+        return res.status(404).json({ error: "Documento não encontrado." });
+      }
+
+      // Constrói o caminho absoluto para o arquivo
+      const caminhoArquivo = path.join(uploadDir, documento.caminho_do_arquivo);
+
+      // Opcional: Verifica se o arquivo realmente existe no disco
+      try {
+        await fs.promises.access(caminhoArquivo);
+      } catch (fsError) {
+        console.error("Arquivo não encontrado no disco:", caminhoArquivo);
+        return res
+          .status(404)
+          .json({ error: "Arquivo não encontrado no servidor." });
+      }
+
+      res.download(caminhoArquivo, documento.nome_arquivo, (err) => {
+        if (err) {
+          // Se ocorrer um erro durante o stream do arquivo, logamos.
+          console.error("Erro ao enviar o arquivo:", err);
+        }
+      });
+    } catch (error) {
+      const errors = errorHandler(error);
+      return res.status(400).json({ errors });
+    }
+  }
 }
 
 export default new DocClienteController();
