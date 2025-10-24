@@ -39,7 +39,7 @@ const updateClientApi = async (clientData) => {
   );
   return data;
 };
-const downloadClientsApi = async () => {
+const downloadClientsApi = async (status) => {
   const token = sessionStorage.getItem("token");
   const config = {
     headers: {
@@ -48,10 +48,16 @@ const downloadClientsApi = async () => {
     responseType: "blob",
   };
 
-  const url = "/api/download/clientes";
+  let url = "/api/download/clientes";
+
+  if (status) {
+    url += `?status=${encodeURIComponent(status)}`;
+  }
+
   const response = await axios.get(url, config);
   return response.data;
 };
+
 const deleteClientApi = async (clientId) => {
   const barerTokenConfig = createBarerTokenConfig();
   const { data } = await axios.delete(

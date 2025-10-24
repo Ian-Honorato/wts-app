@@ -12,6 +12,36 @@ import { errorHandler } from "../Util/errorHandler.js";
 class DownloadController {
   async downloadXls(req, res) {
     try {
+      const { status } = req.query;
+
+      const contratoInclude = {
+        model: ContratoCertificado,
+        as: "contratos",
+        attributes: [
+          "numero_contrato",
+          "data_vencimento",
+          "data_renovacao",
+          "status",
+        ],
+        include: [
+          {
+            model: Certificado,
+            as: "certificado",
+            attributes: ["nome_certificado"],
+          },
+        ],
+      };
+
+      const parceiroInclude = {
+        model: Parceiro,
+        as: "parceiro_indicador",
+        attributes: ["nome_escritorio"],
+      };
+
+      if (status) {
+        contratoInclude.where = { status: status };
+        contratoInclude.required = true;
+      }
       const clientes = await Cliente.findAll({
         attributes: [
           "id",
@@ -21,34 +51,10 @@ class DownloadController {
           "telefone",
           "email",
         ],
-        include: [
-          {
-            model: ContratoCertificado,
-            as: "contratos",
-            attributes: [
-              "numero_contrato",
-              "data_vencimento",
-              "data_renovacao",
-              "status",
-            ],
-            include: [
-              {
-                model: Certificado,
-                as: "certificado",
-                attributes: ["nome_certificado"],
-              },
-            ],
-          },
-          {
-            model: Parceiro,
-            as: "parceiro_indicador",
-            attributes: ["nome_escritorio"],
-          },
-        ],
+        include: [contratoInclude, parceiroInclude],
         order: [["nome", "ASC"]],
       });
 
-      //1. Formando dados da planilha
       const dadosPlanilha = [];
       clientes.forEach((cliente) => {
         if (cliente.contratos && cliente.contratos.length > 0) {
@@ -73,7 +79,6 @@ class DownloadController {
             });
           });
         } else {
-          // Incluir clientes mesmo sem contrato
           dadosPlanilha.push({
             ID_Cliente: cliente.id,
             Nome: cliente.nome,

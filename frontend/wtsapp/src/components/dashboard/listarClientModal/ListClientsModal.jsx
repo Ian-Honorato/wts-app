@@ -166,7 +166,9 @@ const ListClientsModal = ({
   };
 
   const handleExport = () => {
-    downloadMutation.mutate(undefined, {
+    const statusToExport = activeStatus === "Todos" ? undefined : activeStatus;
+
+    downloadMutation.mutate(statusToExport, {
       onSuccess: () => {
         onFeedback("success", "O download foi iniciado!");
       },
