@@ -2,24 +2,24 @@ import React, { useState } from "react";
 import styles from "./ClientDocsModal.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faTimes, // Ícone para fechar
-  faSpinner, // Ícone de carregamento
-  faTrash, // Ícone de lixeira
-  faDownload, // Ícone de download/visualização
-  faFilePdf, // Ícone para PDF
-  faFileImage, // Ícone para Imagem
-  faFileAlt, // Ícone genérico de arquivo
-  faUpload, // Ícone de upload (no botão)
+  faTimes,
+  faSpinner,
+  faTrash,
+  faDownload,
+  faFilePdf,
+  faFileImage,
+  faFileAlt,
+  faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 
-// Importa os hooks que você criou
+// Importa os hooks
 import {
   useClientDocs,
   useAddClientDocMutation,
   useDeleteClientDocMutation,
+  useDownloadDocMutation,
 } from "../../../hooks/useDocMutations";
 
-import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
 const ClientDocsModal = ({
@@ -29,8 +29,6 @@ const ClientDocsModal = ({
   clienteNome,
   onFeedback,
 }) => {
-  const queryClient = useQueryClient();
-
   // --- Estados Locais ---
   const [arquivo, setArquivo] = useState(null);
   const [docToDelete, setDocToDelete] = useState(null);
@@ -38,13 +36,14 @@ const ClientDocsModal = ({
   // --- React Query Hooks ---
 
   const {
-    data: documentos = [], // Garante que 'documentos' seja sempre um array
+    data: documentos = [],
     isLoading,
     error,
   } = useClientDocs(clientId, isOpen);
 
   const addDocMutation = useAddClientDocMutation();
   const deleteDocMutation = useDeleteClientDocMutation();
+  const downloadDocMutation = useDownloadDocMutation();
 
   // --- Handlers ---
 
@@ -72,38 +71,50 @@ const ClientDocsModal = ({
         },
       }
     );
-  };
+  }; // Abre o modal de confirmação
 
-  // Abre o modal de confirmação
   const handleDeleteClick = (documento) => {
     setDocToDelete(documento);
   };
 
   // Confirma a exclusão
+
   const handleConfirmDelete = () => {
     if (!docToDelete) return;
 
-    deleteDocMutation.mutate(docToDelete.id, {
-      onSuccess: () => {
-        onFeedback("success", "Documento excluído com sucesso.");
-        // Invalida o cache específico deste cliente (melhor que invalidar tudo)
-        queryClient.invalidateQueries({ queryKey: ["clientDocs", clientId] });
-        setDocToDelete(null); // Fecha o modal de confirmação
+    deleteDocMutation.mutate(
+      { documentoId: docToDelete.id, clientId: clientId },
+      {
+        onSuccess: () => {
+          onFeedback("success", "Documento excluído com sucesso.");
+          setDocToDelete(null);
+        },
+        onError: () => {
+          onFeedback("error", "Não foi possível excluir o documento.");
+          setDocToDelete(null);
+        },
+      }
+    );
+  };
+
+  const handleDownloadDoc = (docToDownload) => {
+    downloadDocMutation.mutate(docToDownload.id, {
+      onSuccess: (data) => {
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", docToDownload.nome_arquivo);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
       },
       onError: () => {
-        onFeedback("error", "Não foi possível excluir o documento.");
-        setDocToDelete(null);
+        onFeedback("error", "Não foi possível baixar o documento.");
       },
     });
   };
-  const haddlerDownloadDoc = () => {};
 
-  const getFileUrl = (caminho) => {
-    // Ex: /files/documentos_clientes/abc-contrato.pdf
-    return `/files/documentos_clientes/${caminho}`;
-  };
-
-  // Helper para mostrar o ícone correto com base no nome do arquivo
   const getFileIcon = (fileName) => {
     if (fileName.endsWith(".pdf")) {
       return faFilePdf;
@@ -129,7 +140,6 @@ const ClientDocsModal = ({
               <FontAwesomeIcon icon={faTimes} />
             </button>
           </div>
-
           <div className={styles.modalBody}>
             {/* --- Seção de Upload --- */}
             <div className={styles.uploadSection}>
@@ -159,7 +169,6 @@ const ClientDocsModal = ({
                 Permitidos: PDF, JPG, PNG (Máx 5MB).
               </p>
             </div>
-
             {/* --- Seção da Lista de Documentos --- */}
             <div className={styles.listSection}>
               <h4>Documentos Salvos</h4>
@@ -174,7 +183,6 @@ const ClientDocsModal = ({
               {!isLoading && !error && documentos.length === 0 && (
                 <p className={styles.noDocs}>Nenhum documento encontrado.</p>
               )}
-
               <ul className={styles.docList}>
                 {documentos.map((doc) => (
                   <li key={doc.id} className={styles.docItem}>
@@ -187,12 +195,9 @@ const ClientDocsModal = ({
                     </span>
                     <div className={styles.docActions}>
                       <button
-                        //href={getFileUrl(doc.caminho_do_arquivo)}
-                        //target="_blank"
-                        rel="noopener noreferrer"
                         className={styles.actionButton}
-                        title=" Baixar"
-                        onClick={haddlerDownloadDoc}
+                        title="Baixar"
+                        onClick={() => handleDownloadDoc(doc)}
                       >
                         <FontAwesomeIcon icon={faDownload} />
                       </button>
@@ -212,7 +217,6 @@ const ClientDocsModal = ({
           </div>
         </div>
       </div>
-
       {/* --- Modal de Confirmação --- */}
       <ConfirmationModal
         isOpen={!!docToDelete}

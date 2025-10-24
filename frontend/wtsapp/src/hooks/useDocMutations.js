@@ -19,7 +19,6 @@ export const useClientDocs = (clientId, isOpen) => {
     queryKey: ["clientDocs", clientId],
 
     queryFn: async () => {
-      // CORRETO: Já estava usando getAuthHeaders()
       const { data } = await axios.get(
         `${API_BASE_URL}/listar/${clientId}`,
         getAuthHeaders()
@@ -68,16 +67,33 @@ export const useDeleteClientDocMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (documentoId) => {
+    mutationFn: async ({ documentoId, clientId }) => {
       // Rota DELETE:
       await axios.delete(
         `${API_BASE_URL}/deletar/${documentoId}`,
         getAuthHeaders()
       );
-      return documentoId;
+      return { deletedId: documentoId, clientId };
     },
-    onSuccess: (deletedId, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["clientDocs"] });
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["clientDocs", variables.clientId],
+      });
+    },
+  });
+};
+
+export const useDownloadDocMutation = () => {
+  return useMutation({
+    mutationFn: async (documentoId) => {
+      const { data } = await axios.get(
+        `${API_BASE_URL}/download/${documentoId}`,
+        {
+          ...getAuthHeaders(),
+          responseType: "blob",
+        }
+      );
+      return data;
     },
   });
 };
