@@ -108,7 +108,6 @@ class DocClienteController {
       // Constrói o caminho absoluto para o arquivo
       const caminhoArquivo = path.join(uploadDir, documento.caminho_do_arquivo);
 
-      // Opcional: Verifica se o arquivo realmente existe no disco
       try {
         await fs.promises.access(caminhoArquivo);
       } catch (fsError) {
@@ -120,7 +119,6 @@ class DocClienteController {
 
       res.download(caminhoArquivo, documento.nome_arquivo, (err) => {
         if (err) {
-          // Se ocorrer um erro durante o stream do arquivo, logamos.
           console.error("Erro ao enviar o arquivo:", err);
         }
       });
