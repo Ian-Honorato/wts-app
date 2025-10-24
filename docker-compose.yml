@@ -5,74 +5,10 @@ networks:
   app-network:
     driver: bridge
 
-# Define o volume nomeado para persistir os dados do banco de forma segura.
-volumes:
-  db-data:
-
-services:
-  # Serviço do Banco de Dados (MariaDB)
-  db:
-    image: mariadb:10.11
-    container_name: minha-api-db
-    restart: unless-stopped
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    environment:
-      MARIADB_ROOT_PASSWORD: rootpassword
-      MARIADB_DATABASE: contabilidadeapp
-      MARIADB_USER: docker
-      MARIADB_PASSWORD: docker
-
-    ports:
-      - "3308:3306"
-    # ---------------------------------
-    volumes:
-      - db-data:/var/lib/mysql
-    networks:
-      - app-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-uroot",
-          "-prootpassword",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Serviço do Backend (API Node.js)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: minha-api-backend
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DATABASE_HOST: db
-      DATABASE_NAME: contabilidadeapp
-      DATABASE_USER: docker
-      DATABASE_PASSWORD: docker
-
-    networks:
-      - app-network
-    volumes:version: "3.9"
-
-# Define uma rede customizada para a aplicação, para melhor isolamento e comunicação.
-networks:
-  app-network:
-    driver: bridge
-
 # Define os volumes nomeados
 volumes:
   db-data: # Para persistir os dados do banco
-  backend-uploads: # <-- ADICIONADO: Para persistir os uploads do backend
+  backend-uploads: # Para persistir os uploads do backend
 
 services:
   # Serviço do Banco de Dados (MariaDB)
@@ -125,37 +61,8 @@ services:
     networks:
       - app-network
     volumes:
-      # - ./backend/uploads:/app/uploads # <-- ALTERADO: Linha antiga (bind mount) comentada
-      - backend-uploads:/app/uploads 
-      
-  # Serviço do Frontend (Aplicação Vite/React)
-  frontend:
-    build:
-      context: ./frontend/wtsapp
-      dockerfile: Dockerfile
-    container_name: minha-api-frontend
-    restart: unless-stopped
-    networks:
-      - app-network
+      - backend-uploads:/app/uploads
 
-  # Serviço do Nginx (Proxy Reverso)
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    container_name: minha-api-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      - frontend
-      - backend
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      - app-network
-
-      - ./backend/uploads:/app/uploads
   # Serviço do Frontend (Aplicação Vite/React)
   frontend:
     build:

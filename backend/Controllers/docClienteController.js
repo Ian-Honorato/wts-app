@@ -97,7 +97,6 @@ class DocClienteController {
     }
   }
   async downloadDoc(req, res) {
-    x;
     try {
       const { id: docId } = req.params;
 
