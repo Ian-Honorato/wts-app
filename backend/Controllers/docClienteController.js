@@ -12,7 +12,7 @@ const __dirname = dirname(__filename);
 const uploadDir = resolve(
   __dirname,
   "..", // Sai de /Controllers para /backend
-  "uploadsds", // Acessa /backend/uploadsds
+  "uploads", // Acessa /backend/uploadsds
   "documentos_clientes" // Acessa /backend/uploadsds/documentos_clientes
 );
 class DocClienteController {
