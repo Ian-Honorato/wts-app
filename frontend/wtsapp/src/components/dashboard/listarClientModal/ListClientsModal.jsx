@@ -7,6 +7,7 @@ import {
   faEye,
   faEdit,
   faTrash,
+  faFilter, // NOVO: Ícone de filtro
 } from "@fortawesome/free-solid-svg-icons";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,7 +15,6 @@ import {
   useDownloadMutation,
 } from "../../../hooks/useMutation";
 import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
-
 import { formatarCpfCnpj } from "../../../hooks/util/Mascaras";
 
 // Array com os status para os filtros
@@ -29,14 +29,32 @@ const statusValidos = [
   "Ativo",
 ];
 
+// NOVO: Objeto de filtros padrão
+const defaultFilters = {
+  status: "Todos",
+  startDate: "",
+  endDate: "",
+};
+
+// ALTERADO: fetchClients agora aceita um objeto de filtros
 const fetchClients = async ({ queryKey }) => {
-  const [_key, status] = queryKey;
+  const [_key, filters] = queryKey;
   const token = sessionStorage.getItem("token");
 
-  let url = "/api/clientes";
-  if (status && status !== "Todos") {
-    url += `?status=${encodeURIComponent(status)}`;
+  // Constrói os parâmetros da URL
+  const params = new URLSearchParams();
+  if (filters.status && filters.status !== "Todos") {
+    params.append("status", filters.status);
   }
+  if (filters.startDate) {
+    params.append("startDate", filters.startDate);
+  }
+  if (filters.endDate) {
+    params.append("endDate", filters.endDate);
+  }
+
+  const queryString = params.toString();
+  let url = `/api/clientes${queryString ? `?${queryString}` : ""}`;
 
   const { data } = await axios.get(url, {
     headers: { Authorization: `Bearer ${token}` },
@@ -53,7 +71,10 @@ const ListClientsModal = ({
   onFeedback,
 }) => {
   // --- HOOKS E ESTADOS ---
-  const [activeStatus, setActiveStatus] = useState("Todos");
+
+  const [isFilterAreaVisible, setIsFilterAreaVisible] = useState(false);
+  const [filters, setFilters] = useState(defaultFilters);
+  const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
 
   const {
     data: clients = [],
@@ -61,7 +82,8 @@ const ListClientsModal = ({
     isFetching,
     isError,
   } = useQuery({
-    queryKey: ["clients", activeStatus],
+    // ALTERADO: queryKey agora usa appliedFilters
+    queryKey: ["clients", appliedFilters],
     queryFn: fetchClients,
     enabled: isOpen,
   });
@@ -74,17 +96,21 @@ const ListClientsModal = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
-  const min_searchLength = 3;
+  const min_search_length = 3;
 
   // --- EFEITOS ---
   useEffect(() => {
     if (!isOpen) {
       setSearchResults([]);
+      // NOVO: Reseta os filtros ao fechar o modal
+      setFilters(defaultFilters);
+      setAppliedFilters(defaultFilters);
+      setIsFilterAreaVisible(false);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (searchTerm.trim().length < min_searchLength) {
+    if (searchTerm.trim().length < min_search_length) {
       setSearchResults([]);
       return;
     }
@@ -164,11 +190,16 @@ const ListClientsModal = ({
     setIsConfirmModalOpen(false);
     setClientToDelete(null);
   };
-
   const handleExport = () => {
-    const statusToExport = activeStatus === "Todos" ? undefined : activeStatus;
+    const exportParams = {
+      ...appliedFilters,
+      periodo_inicial: appliedFilters.startDate,
+      periodo_final: appliedFilters.endDate,
+      status:
+        appliedFilters.status === "Todos" ? undefined : appliedFilters.status,
+    };
 
-    downloadMutation.mutate(statusToExport, {
+    downloadMutation.mutate(exportParams, {
       onSuccess: () => {
         onFeedback("success", "O download foi iniciado!");
       },
@@ -177,6 +208,45 @@ const ListClientsModal = ({
       },
     });
   };
+
+  // --- NOVO: Handlers de Filtro ---
+
+  const toggleFilterArea = () => {
+    setIsFilterAreaVisible((prev) => !prev);
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters(filters);
+    setIsFilterAreaVisible(false);
+  };
+
+  const handleClearFilters = () => {
+    setFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
+  };
+
+  const removeStatusFilter = () => {
+    const newFilters = { ...appliedFilters, status: "Todos" };
+    setAppliedFilters(newFilters);
+    setFilters(newFilters); // Sincroniza o form
+  };
+
+  const removeDateFilter = () => {
+    const newFilters = { ...appliedFilters, startDate: "", endDate: "" };
+    setAppliedFilters(newFilters);
+    setFilters(newFilters); // Sincroniza o form
+  };
+
+  // --- NOVO: Helpers de Renderização de Pílulas ---
+  const isStatusFiltered = appliedFilters.status !== "Todos";
+  const isDateFiltered = appliedFilters.startDate || appliedFilters.endDate;
+  const hasActiveFilters = isStatusFiltered || isDateFiltered;
+
   // --- RENDERIZAÇÃO ---
   if (!isOpen) return null;
 
@@ -216,20 +286,97 @@ const ListClientsModal = ({
             )}
           </div>
 
-          {/* ÁREA DOS FILTROS DE STATUS */}
-          <div className={styles.statusFilters}>
-            {statusValidos.map((status) => (
-              <button
-                key={status}
-                className={`${styles.filterButton} ${
-                  activeStatus === status ? styles.active : ""
-                }`}
-                onClick={() => setActiveStatus(status)}
-              >
-                {status}
-              </button>
-            ))}
+          {/* NOVO: BOTÃO DE TOGGLE DOS FILTROS */}
+          <div className={styles.filterToggleContainer}>
+            <button
+              onClick={toggleFilterArea}
+              className={styles.toggleFilterButton}
+            >
+              <FontAwesomeIcon icon={faFilter} />
+              {isFilterAreaVisible ? "Ocultar Filtros" : "Mostrar Filtros"}
+              {hasActiveFilters && !isFilterAreaVisible && (
+                <span className={styles.filterCount}>!</span>
+              )}
+            </button>
           </div>
+
+          {/* NOVO: ÁREA DE PÍLULAS DE FILTROS ATIVOS */}
+          {hasActiveFilters && (
+            <div className={styles.filterPills}>
+              {isStatusFiltered && (
+                <span className={styles.pill}>
+                  {appliedFilters.status}
+                  <button onClick={removeStatusFilter}>&times;</button>
+                </span>
+              )}
+              {isDateFiltered && (
+                <span className={styles.pill}>
+                  {`Venc: ${appliedFilters.startDate || "..."} a ${
+                    appliedFilters.endDate || "..."
+                  }`}
+                  <button onClick={removeDateFilter}>&times;</button>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* NOVO: ÁREA DE FILTROS RETRÁTIL */}
+          {isFilterAreaVisible && (
+            <div className={styles.filterArea}>
+              <div className={styles.filterGroup}>
+                <label htmlFor="status">Status</label>
+                <select
+                  id="status"
+                  name="status"
+                  value={filters.status}
+                  onChange={handleFilterChange}
+                  className={styles.filterSelect}
+                >
+                  {statusValidos.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label htmlFor="startDate">Vencimento de:</label>
+                <input
+                  type="date"
+                  id="startDate"
+                  name="startDate"
+                  value={filters.startDate}
+                  onChange={handleFilterChange}
+                  className={styles.filterInput}
+                />
+              </div>
+              <div className={styles.filterGroup}>
+                <label htmlFor="endDate">Vencimento até:</label>
+                <input
+                  type="date"
+                  id="endDate"
+                  name="endDate"
+                  value={filters.endDate}
+                  onChange={handleFilterChange}
+                  className={styles.filterInput}
+                />
+              </div>
+              <div className={styles.filterActions}>
+                <button
+                  onClick={handleApplyFilters}
+                  className={styles.applyButton}
+                >
+                  Aplicar
+                </button>
+                <button
+                  onClick={handleClearFilters}
+                  className={styles.clearButton}
+                >
+                  Limpar
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* CONTAINER DA TABELA COM SCROLL */}
           <div className={styles.tableContainer}>
@@ -238,7 +385,13 @@ const ListClientsModal = ({
                 Carregando...
               </p>
             ) : isError ? (
-              <p style={{ textAlign: "center", padding: "2rem", color: "red" }}>
+              <p
+                style={{
+                  textAlign: "center",
+                  padding: "2rem",
+                  color: "red",
+                }}
+              >
                 Erro ao carregar clientes.
               </p>
             ) : (
@@ -295,10 +448,16 @@ const ListClientsModal = ({
             )}
           </div>
 
-          {/* FOOTER COM BOTÃO DE EXPORTAÇÃO */}
+          {/* FOOTER */}
           <div className={styles.footer}>
-            <button className={styles.exportButton} onClick={handleExport}>
-              Exportar Clientes (XLS)
+            <button
+              className={styles.exportButton}
+              onClick={handleExport}
+              disabled={downloadMutation.isLoading}
+            >
+              {downloadMutation.isLoading
+                ? "Exportando..."
+                : "Exportar Clientes (XLS)"}
             </button>
           </div>
         </div>

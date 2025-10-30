@@ -1,3 +1,12 @@
+:root {
+  /* Adicione suas variáveis de cor aqui, ou remova se não as usar */
+  --white-color: #fff;
+  --border-color: #eee;
+  --text-color: #333;
+  --text-light-color: #777;
+  --background-light-color: #f8f9fa;
+}
+
 .backdrop {
   position: fixed;
   top: 0;
@@ -75,39 +84,141 @@
   background-color: var(--background-light-color);
 }
 
-/* --- Filtros de Status --- */
-.statusFilters {
+/* --- (SEÇÃO DE FILTROS ANTIGA REMOVIDA) --- */
+
+/* --- NOVOS FILTROS (TOGGLE, PILLS, AREA) --- */
+.filterToggleContainer {
+  margin-bottom: 1rem;
+  padding: 0 1.5rem; /* Alinha com o resto do conteúdo */
+}
+
+.toggleFilterButton {
+  background-color: #f4f7f6;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+}
+.toggleFilterButton:hover {
+  background-color: #e9ecef;
+}
+.toggleFilterButton svg {
+  margin-right: 8px;
+}
+
+.filterCount {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #007bff; /* Cor primária */
+  color: white;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  margin-left: 8px;
+}
+
+.filterPills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 0 1.5rem 1rem;
+  padding: 0 1.5rem 0.5rem;
   border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
-.filterButton {
-  padding: 6px 12px;
-  font-size: 0.875rem;
-  border: 1px solid var(--border-color);
+.pill {
+  display: flex;
+  align-items: center;
+  background-color: #e0e0e0;
   border-radius: 16px;
-  background-color: transparent;
-  color: var(--text-light-color);
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  color: #333;
+}
+.pill button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #777;
+  margin-left: 6px;
+  padding: 0;
+  line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
+}
+.pill button:hover {
+  color: #000;
 }
 
-.filterButton:hover {
-  background-color: #f0f0f0;
-  border-color: #bbb;
+.filterArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 1rem 1.5rem;
+  background-color: var(--background-light-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
-.filterButton.active {
-  background-color: #007bff;
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 180px;
+}
+.filterGroup label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.filterSelect,
+.filterInput {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.filterActions {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex: 1 1 100%;
+  justify-content: flex-end;
+}
+
+.applyButton,
+.clearButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.applyButton {
+  background-color: #28a745;
   color: white;
-  border-color: #007bff;
-  font-weight: bold;
+}
+.applyButton:hover {
+  background-color: #218838;
 }
 
-/* --- Tabela (AJUSTADO) --- */
+.clearButton {
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+.clearButton:hover {
+  background-color: #f8d7da;
+}
+
+/* --- Tabela --- */
 .tableContainer {
   padding: 0 1.5rem;
   overflow-y: auto;
@@ -162,12 +273,13 @@
   background-color: #f0f0f0;
 }
 
+/* --- Footer --- */
 .footer {
   display: flex;
   justify-content: flex-end;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-color);
-  background-color: #f8f9fa;
+  background-color: var(--background-light-color);
 }
 
 .exportButton {

@@ -6,13 +6,14 @@ import {
   ContratoCertificado,
 } from "../Models/index.js";
 
+import { Op } from "sequelize";
 import { utils, write } from "xlsx";
 import { errorHandler } from "../Util/errorHandler.js";
 
 class DownloadController {
   async downloadXls(req, res) {
     try {
-      const { status } = req.query;
+      const { status, startDate, endDate } = req.query;
 
       const contratoInclude = {
         model: ContratoCertificado,
@@ -38,10 +39,30 @@ class DownloadController {
         attributes: ["nome_escritorio"],
       };
 
+      const contratoWhereClause = {};
+
       if (status) {
-        contratoInclude.where = { status: status };
+        contratoWhereClause.status = status;
+      }
+
+      // --- LÓGICA DE DATA ADICIONADA ---
+      const dateFilter = {};
+      if (startDate) {
+        dateFilter[Op.gte] = startDate;
+      }
+      if (endDate) {
+        dateFilter[Op.lte] = endDate;
+      }
+
+      if (Object.keys(dateFilter).length > 0) {
+        contratoWhereClause.data_vencimento = dateFilter;
+      }
+
+      if (Object.keys(contratoWhereClause).length > 0) {
+        contratoInclude.where = contratoWhereClause;
         contratoInclude.required = true;
       }
+
       const clientes = await Cliente.findAll({
         attributes: [
           "id",
