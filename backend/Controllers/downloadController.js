@@ -51,7 +51,7 @@ class DownloadController {
         dateFilter[Op.gte] = startDate;
       }
       if (endDate) {
-        dateFilter[Op.lte] = endDate;
+        dateFilter[Op.lte] = `${endDate} 23:59:59`;
       }
 
       if (Object.keys(dateFilter).length > 0) {
@@ -62,6 +62,12 @@ class DownloadController {
         contratoInclude.where = contratoWhereClause;
         contratoInclude.required = true;
       }
+
+      // --- DEBUGGING ---
+      console.log(
+        "Executando download com filtros:",
+        JSON.stringify(contratoInclude.where, null, 2)
+      );
 
       const clientes = await Cliente.findAll({
         attributes: [
@@ -75,6 +81,9 @@ class DownloadController {
         include: [contratoInclude, parceiroInclude],
         order: [["nome", "ASC"]],
       });
+
+      // --- DEBUGGING ---
+      console.log(`Clientes encontrados: ${clientes.length}`);
 
       const dadosPlanilha = [];
       clientes.forEach((cliente) => {
