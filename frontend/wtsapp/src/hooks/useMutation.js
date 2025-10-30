@@ -39,7 +39,7 @@ const updateClientApi = async (clientData) => {
   );
   return data;
 };
-const downloadClientsApi = async (status) => {
+const downloadClientsApi = async (filters) => {
   const token = sessionStorage.getItem("token");
   const config = {
     headers: {
@@ -50,10 +50,20 @@ const downloadClientsApi = async (status) => {
 
   let url = "/api/download/clientes";
 
-  if (status) {
-    url += `?status=${encodeURIComponent(status)}`;
+  const cleanFilters = {};
+  if (filters) {
+    if (filters.status) cleanFilters.status = filters.status;
+    if (filters.startDate) cleanFilters.startDate = filters.startDate;
+    if (filters.endDate) cleanFilters.endDate = filters.endDate;
   }
 
+  const params = new URLSearchParams(cleanFilters);
+  const queryString = params.toString();
+
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+  // /api/download/clientes?status=Ativo&startDate=2025-01-01
   const response = await axios.get(url, config);
   return response.data;
 };
