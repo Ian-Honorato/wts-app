@@ -63,7 +63,7 @@ const downloadClientsApi = async (filters) => {
   if (queryString) {
     url += `?${queryString}`;
   }
-  // /api/download/clientes?status=Ativo&startDate=2025-01-01
+
   const response = await axios.get(url, config);
   return response.data;
 };

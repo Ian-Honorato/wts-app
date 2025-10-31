@@ -15,6 +15,11 @@ class DownloadController {
     try {
       const { status, startDate, endDate } = req.query;
 
+      console.log(
+        "DADOS RECEBIDOS DO FRONTEND ->" + status,
+        startDate,
+        endDate
+      );
       const contratoInclude = {
         model: ContratoCertificado,
         as: "contratos",
@@ -127,7 +132,7 @@ class DownloadController {
           });
         }
       });
-
+      console.log("dados finais" + dadosPlanilha);
       const worksheet = utils.json_to_sheet(dadosPlanilha);
       const workbook = utils.book_new();
       utils.book_append_sheet(workbook, worksheet, "Clientes");
