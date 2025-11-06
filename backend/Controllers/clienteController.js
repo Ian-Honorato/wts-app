@@ -504,6 +504,7 @@ class ClienteController {
         "Não vai renovar",
         "Agendado",
         "Em contato",
+        "Ativo",
       ];
       const contratos = await ContratoCertificado.findAll({
         where: {

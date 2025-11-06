@@ -51,7 +51,7 @@ class ContratosController {
         const contratoSobreposto = await ContratoCertificado.findOne({
           where: {
             cliente_id,
-            data_renovacao: { [Op.ne]: null }, // Apenas verifica contra contratos que têm um período definido
+            data_renovacao: { [Op.ne]: null },
             [Op.and]: [
               { data_renovacao: { [Op.lt]: data_vencimento } },
               { data_vencimento: { [Op.gt]: data_renovacao } },
@@ -92,7 +92,6 @@ class ContratosController {
       });
     } catch (e) {
       await t.rollback();
-      // Retorna 409 Conflict para erros de regra de negócio
       if (e.message.includes("já possui") || e.message.includes("conflito")) {
         return res.status(409).json({ error: e.message });
       }
@@ -106,7 +105,7 @@ class ContratosController {
   async update(req, res) {
     const t = await sequelize.transaction();
     try {
-      const { id } = req.params; // ID do contrato a ser atualizado
+      const { id } = req.params;
       const {
         numero_contrato,
         data_vencimento,
@@ -122,7 +121,6 @@ class ContratosController {
         throw new Error("Contrato não encontrado.");
       }
 
-      // Re-executa as validações, excluindo o próprio contrato da verificação
       if (data_vencimento) {
         const contratoPorVencimento = await ContratoCertificado.findOne({
           where: {
@@ -144,7 +142,7 @@ class ContratosController {
           where: {
             cliente_id: contrato.cliente_id,
             data_renovacao: { [Op.ne]: null },
-            id: { [Op.ne]: id }, // Exclui o próprio contrato da checagem
+            id: { [Op.ne]: id },
             [Op.and]: [
               { data_renovacao: { [Op.lt]: data_vencimento } },
               { data_vencimento: { [Op.gt]: data_renovacao } },
@@ -175,7 +173,25 @@ class ContratosController {
         },
         { transaction: t }
       );
-
+      if (contratoAtualizado.status === "Renovado") {
+        if (!contratoAtualizado.data_renovacao) {
+          throw new Error(
+            "Para definir um contrato como 'Renovado', a 'data_renovacao' (data de vencimento do próximo contrato) é obrigatória."
+          );
+        }
+        await ContratoCertificado.create(
+          {
+            cliente_id: contrato.cliente_id,
+            numero_contrato: "não identificado",
+            data_vencimento: contratoAtualizado.data_renovacao,
+            data_renovacao: null,
+            status: "Ativo",
+            referencia_certificado: contratoAtualizado.referencia_certificado,
+            usuario_id: req.userId,
+          },
+          { transaction: t }
+        );
+      }
       await t.commit();
       return res.status(200).json({
         message: "Contrato atualizado com sucesso!",

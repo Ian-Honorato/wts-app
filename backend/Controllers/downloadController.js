@@ -95,7 +95,7 @@ class DownloadController {
         if (cliente.contratos && cliente.contratos.length > 0) {
           cliente.contratos.forEach((contrato) => {
             dadosPlanilha.push({
-              ID_Cliente: cliente.id,
+              //ID_Cliente: cliente.id,
               Nome: cliente.nome,
               "CPF/CNPJ": cliente.cpf_cnpj,
               Representante: cliente.representante,
@@ -115,7 +115,7 @@ class DownloadController {
           });
         } else {
           dadosPlanilha.push({
-            ID_Cliente: cliente.id,
+            //ID_Cliente: cliente.id,
             Nome: cliente.nome,
             "CPF/CNPJ": cliente.cpf_cnpj,
             Representante: cliente.representante,
