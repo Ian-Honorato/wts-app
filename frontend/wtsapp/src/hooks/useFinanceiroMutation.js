@@ -56,6 +56,30 @@ const fetchDetalhesPagamento = async ({ queryKey }) => {
   return data;
 };
 
+const downloadPagamentosApi = async (filters) => {
+  // 'filters' aqui objeto { month, year }
+  const token = sessionStorage.getItem("token");
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    responseType: "blob",
+  };
+
+  // Endpoint do backend (das suas rotas)
+  let url = "/api/download/financeiro";
+
+  // Constrói a query string
+  const params = new URLSearchParams(filters);
+  const queryString = params.toString();
+
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+  const response = await axios.get(url, config);
+  return response.data;
+};
+
 //======================= Query Hooks =======================
 
 // --- Hooks existentes ---
@@ -111,3 +135,22 @@ export const useCreatePagamentoCertificados = () => {
     },
   });
 };
+export function useDownloadPagamentosMutation() {
+  return useMutation({
+    mutationFn: downloadPagamentosApi,
+    onSuccess: (data) => {
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement("a");
+      link.href = url;
+      // Define um nome de arquivo
+      link.setAttribute("download", "Relatorio_Financeiro.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+    onError: (error) => {
+      console.error("Erro ao fazer o download do relatório:", error);
+    },
+  });
+}

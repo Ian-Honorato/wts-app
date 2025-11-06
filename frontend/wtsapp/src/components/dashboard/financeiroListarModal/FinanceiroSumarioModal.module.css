@@ -1,108 +1,106 @@
-/* ================================================= */
-/* == FinanceiroSumarioModal.module.css (Filho)   == */
-/* ================================================= */
-
-/* --- ESTRUTURA DO MODAL FILHO --- */
+/* --- Base do Modal --- */
 .backdrop {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  /* Fundo um pouco mais sutil para ver o modal pai atrás */
-  background-color: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1050; /* Z-INDEX MAIOR para ficar sobre o modal pai */
+  z-index: 2010; /* Levemente acima do outro modal */
 }
 
 .modalContent {
-  background: white;
-  padding: 0; /* Removido para controle total do header/body */
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-  width: 100%;
-  max-width: 700px; /* Pode ter um tamanho diferente do pai */
-  z-index: 1060; /* Z-INDEX MAIOR para o conteúdo */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
 }
 
-.body {
-  padding: 2rem;
-}
-
-/* --- CABEÇALHO DO MODAL (estilo consistente) --- */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e9ecef;
   padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
 }
-
 .header h2 {
+  color: #333;
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #005f73;
 }
-
 .closeButton {
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #95a5a6;
-  transition: color 0.2s;
+  color: #777;
 }
 
-.closeButton:hover {
-  color: #2d3748;
-}
-
-/* --- CONTEÚDO INTERNO DO MODAL FILHO (KPIs e Gráfico) --- */
-.statusMessage {
-  text-align: center;
-  color: #666;
-  padding: 1rem;
+/* --- Corpo e KPIs --- */
+.body {
+  padding: 1.5rem;
+  overflow-y: auto;
 }
 
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
 }
 
 .kpiCard {
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  background: #f7f9fc;
-  padding: 1rem;
-  border: 1px solid #eef;
-  border-radius: 4px;
-  text-align: center;
+  gap: 0.5rem;
 }
-
 .kpiCard span {
   font-size: 0.9rem;
   color: #555;
+  font-weight: 500;
 }
-
 .kpiCard strong {
   font-size: 1.5rem;
-  color: #0b5e8b;
-  margin-top: 0.5rem;
-  font-weight: 600;
+  color: #007bff;
 }
 
-.chartContainer {
-  margin-top: 2.5rem;
+/* --- Footer (NOVO) --- */
+.footer {
+  display: flex;
+  justify-content: flex-end; /* Alinha botões à direita */
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid #eee;
-  padding-top: 1.5rem;
+  background-color: #f8f9fa;
 }
 
-.chartContainer h4 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #333;
+.exportButton {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 5px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.exportButton:hover {
+  background-color: #218838;
+}
+.exportButton:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
 }

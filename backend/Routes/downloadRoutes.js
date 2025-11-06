@@ -10,5 +10,10 @@ const router = new Router();
 
 // Lista todos os certificados
 router.get("/clientes", loginRequired, downloadController.downloadXls);
+router.get(
+  "/financeiro",
+  loginRequired,
+  downloadController.downloadXlsFinanceiro
+);
 
 export default router;
