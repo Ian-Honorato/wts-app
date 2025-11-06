@@ -26,7 +26,7 @@ module.exports = {
       numero_contrato: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        //unique: true,
       },
       data_renovacao: {
         type: Sequelize.DATE,
