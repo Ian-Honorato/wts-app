@@ -273,12 +273,10 @@ class XmlUploadController {
             const numeroContratoNormalizado = String(
               restOfData.numero_contrato
             );
-<<<<<<< HEAD
-            /* .replace(/[^a-zA-Z0-9]/g, "")
-=======
-            /*  .replace(/[^a-zA-Z0-9]/g, "")
->>>>>>> 3ae18438b12fb112174cdd64cf7ffeedffed6875
-              .toUpperCase(); */
+            /* 
+             .replace(/[^a-zA-Z0-9]/g, "")
+            .replace(/[^a-zA-Z0-9]/g, "") */
+
             if (numeroContratoNormalizado) {
               const [contrato, isNewContract] =
                 await ContratoCertificado.findOrCreate({
