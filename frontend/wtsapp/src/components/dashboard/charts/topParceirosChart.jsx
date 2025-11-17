@@ -35,7 +35,13 @@ const TopParceirosChart = ({ data }) => {
 
   return (
     <div>
-      <h3 style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+      <h3
+        style={{
+          textAlign: "center",
+          marginBottom: "1.5rem",
+          maxHeight: "400px",
+        }}
+      >
         Top 5 Parceiros por Indicação
       </h3>
       <Chart
